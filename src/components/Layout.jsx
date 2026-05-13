@@ -12,10 +12,11 @@ export default function Layout({ children, currentPage, onNavigate, userName, on
   }
 
   const navItems = [
-    { id: 'quiz', icon: '✏️', label: 'Quiz', color: '#667eea' },
-    { id: 'saved', icon: '💾', label: 'Saved', color: '#764ba2' },
-    { id: 'history', icon: '📋', label: 'History', color: '#22c55e' },
-    { id: 'settings', icon: '⚙️', label: 'Settings', color: '#ef4444' }
+    { id: 'quiz', icon: '✏️', label: 'Quiz' },
+    { id: 'dashboard', icon: '📊', label: 'Dashboard' },
+    { id: 'saved', icon: '💾', label: 'Saved' },
+    { id: 'history', icon: '📋', label: 'History' },
+    { id: 'settings', icon: '⚙️', label: 'Settings' }
   ]
 
   return (

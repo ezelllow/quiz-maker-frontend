@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import Layout from './components/Layout'
 import QuizMaker from './components/QuizMaker'
+import Dashboard from './components/Dashboard'
 import SavedQuizzes from './components/SavedQuizzes'
 import History from './components/History'
 import Settings from './components/Settings'
@@ -83,6 +84,8 @@ function App() {
     switch (currentPage) {
       case 'quiz':
         return <QuizMaker authToken={localStorage.getItem('auth_token')} retakeAttempt={retakeAttempt} onRetakeClear={() => setRetakeAttempt(null)} />
+      case 'dashboard':
+        return <Dashboard authToken={localStorage.getItem('auth_token')} />
       case 'saved':
         return <SavedQuizzes authToken={localStorage.getItem('auth_token')} onRetake={handleRetakeQuiz} />
       case 'history':

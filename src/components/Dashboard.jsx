@@ -3,213 +3,244 @@ import './Dashboard.css'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
-export default function Dashboard({ authToken, onNavigate }) {
-  const [stats, setStats] = useState({
-    totalAttempts: 0,
-    averageScore: 0,
-    bestScore: 0,
-    currentStreak: 7,
-    totalTime: 0
-  })
-  const [recentAttempts, setRecentAttempts] = useState([])
-  const [loading, setLoading] = useState(true)
+const formatTime = (seconds) => {
+  if (!seconds) return '0s'
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  const s = seconds % 60
+  if (h > 0) return `${h}h ${m}m`
+  if (m > 0) return `${m}m ${s}s`
+  return `${s}s`
+}
 
+export default function Dashboard({ authToken }) {
   const token = authToken || localStorage.getItem('auth_token')
+  const [stats, setStats] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
-    fetchDashboardData()
-  }, [])
-
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch(`${API_BASE_URL}/api/history`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+    fetch(`${API_BASE_URL}/api/stats`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => {
+        if (!r.ok) throw new Error('Failed to load stats')
+        return r.json()
       })
-
-      if (!response.ok) throw new Error('Failed to load dashboard data')
-
-      const data = await response.json()
-      const attempts = data.attempts || []
-
-      // Calculate stats
-      const totalAttempts = attempts.length
-      const averageScore = totalAttempts > 0
-        ? Math.round(attempts.reduce((sum, a) => sum + a.percentage, 0) / totalAttempts)
-        : 0
-      const bestScore = totalAttempts > 0 ? Math.max(...attempts.map(a => a.percentage)) : 0
-
-      setStats({
-        totalAttempts,
-        averageScore,
-        bestScore,
-        currentStreak: 7,
-        totalTime: totalAttempts * 5 // estimated
+      .then((d) => {
+        setStats(d)
+        setLoading(false)
       })
+      .catch((e) => {
+        setError(e.message)
+        setLoading(false)
+      })
+  }, [token])
 
-      // Get recent 5 attempts
-      setRecentAttempts(attempts.slice(-5).reverse())
-    } catch (err) {
-      console.error('Error loading dashboard:', err)
-    } finally {
-      setLoading(false)
-    }
+  if (loading) {
+    return (
+      <div className="dashboard">
+        <div className="header-section">
+          <h1>📊 Dashboard</h1>
+          <p>Your study statistics</p>
+        </div>
+        <div className="loading">Loading your stats…</div>
+      </div>
+    )
   }
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString)
-    const today = new Date()
-    const yesterday = new Date(today)
-    yesterday.setDate(yesterday.getDate() - 1)
+  if (error) {
+    return (
+      <div className="dashboard">
+        <div className="header-section"><h1>📊 Dashboard</h1></div>
+        <div className="error-message">{error}</div>
+      </div>
+    )
+  }
 
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today'
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday'
-    }
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  if (!stats || stats.total_attempts === 0) {
+    return (
+      <div className="dashboard">
+        <div className="header-section">
+          <h1>📊 Dashboard</h1>
+          <p>Your study statistics</p>
+        </div>
+        <div className="no-data">
+          <div className="emoji">📭</div>
+          <p>No quiz attempts yet. Take a quiz first and your stats will appear here!</p>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="dashboard">
-      <div className="dashboard-header">
-        <div className="header-content">
-          <h1>Welcome Back! 👋</h1>
-          <p>Keep up your learning streak and reach your goals</p>
-        </div>
-        <button
-          onClick={() => onNavigate('create-quiz')}
-          className="btn-start-quiz"
-        >
-          ✏️ Start a Quiz
-        </button>
+      <div className="header-section">
+        <h1>📊 Dashboard</h1>
+        <p>Your study statistics at a glance</p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="stats-grid">
-        <div className="stat-card primary">
-          <div className="stat-icon">📚</div>
-          <div className="stat-info">
-            <div className="stat-value">{stats.totalAttempts}</div>
-            <div className="stat-label">Total Attempts</div>
-          </div>
-        </div>
-
-        <div className="stat-card success">
-          <div className="stat-icon">📊</div>
-          <div className="stat-info">
-            <div className="stat-value">{stats.averageScore}%</div>
-            <div className="stat-label">Average Score</div>
-          </div>
-        </div>
-
-        <div className="stat-card warning">
-          <div className="stat-icon">🏆</div>
-          <div className="stat-info">
-            <div className="stat-value">{stats.bestScore}%</div>
-            <div className="stat-label">Best Score</div>
-          </div>
-        </div>
-
-        <div className="stat-card danger">
-          <div className="stat-icon">🔥</div>
-          <div className="stat-info">
-            <div className="stat-value">{stats.currentStreak}</div>
-            <div className="stat-label">Day Streak</div>
-          </div>
-        </div>
+      {/* Top stat cards */}
+      <div className="stat-grid">
+        <StatCard
+          icon="🎯"
+          label="Overall accuracy"
+          value={`${stats.overall_accuracy}%`}
+          sub={`${stats.total_correct}/${stats.total_questions_answered} correct`}
+          highlight
+        />
+        <StatCard
+          icon="📚"
+          label="Quizzes taken"
+          value={stats.total_attempts}
+          sub={`${stats.total_quizzes} unique quiz${stats.total_quizzes === 1 ? '' : 'zes'}`}
+        />
+        <StatCard
+          icon="⏱️"
+          label="Time spent"
+          value={formatTime(stats.total_time_seconds)}
+          sub={`~${stats.avg_time_per_question}s per question`}
+        />
+        <StatCard
+          icon="🔥"
+          label="Current streak"
+          value={`${stats.recent_streak_days} day${stats.recent_streak_days === 1 ? '' : 's'}`}
+          sub={stats.recent_streak_days > 0 ? 'Keep it going!' : 'Take a quiz today'}
+        />
       </div>
 
-      {/* Quick Actions */}
-      <div className="quick-actions">
-        <h2>Quick Actions</h2>
-        <div className="actions-grid">
-          <button
-            onClick={() => onNavigate('create-quiz')}
-            className="action-card"
-          >
-            <div className="action-icon">✏️</div>
-            <div className="action-title">Create New Quiz</div>
-            <div className="action-desc">Start a fresh quiz</div>
-          </button>
+      {/* Performance trend */}
+      {stats.trend && stats.trend.length > 0 && (
+        <Panel title="Performance trend" subtitle={`Last ${stats.trend.length} attempts`}>
+          <TrendChart data={stats.trend} />
+        </Panel>
+      )}
 
-          <button
-            onClick={() => onNavigate('my-quizzes')}
-            className="action-card"
-          >
-            <div className="action-icon">📚</div>
-            <div className="action-title">My Quizzes</div>
-            <div className="action-desc">View all your quizzes</div>
-          </button>
+      <div className="two-column">
+        {/* By subtopic */}
+        {stats.by_subtopic && stats.by_subtopic.length > 0 && (
+          <Panel title="Accuracy by subtopic" subtitle="How you're doing per topic">
+            <BarList items={stats.by_subtopic} />
+          </Panel>
+        )}
 
-          <button
-            onClick={() => onNavigate('progress')}
-            className="action-card"
-          >
-            <div className="action-icon">📈</div>
-            <div className="action-title">View Progress</div>
-            <div className="action-desc">Track your improvement</div>
-          </button>
-
-          <button
-            onClick={() => onNavigate('settings')}
-            className="action-card"
-          >
-            <div className="action-icon">⚙️</div>
-            <div className="action-title">Settings</div>
-            <div className="action-desc">Customize your experience</div>
-          </button>
-        </div>
+        {/* By difficulty */}
+        {stats.by_difficulty && stats.by_difficulty.length > 0 && (
+          <Panel title="Accuracy by difficulty" subtitle="Easy → Hard">
+            <BarList items={stats.by_difficulty} />
+          </Panel>
+        )}
       </div>
 
-      {/* Recent Attempts */}
-      {recentAttempts.length > 0 && (
-        <div className="recent-section">
-          <h2>Recent Attempts</h2>
-          <div className="recent-list">
-            {recentAttempts.map((attempt, idx) => (
-              <div key={attempt.id} className="recent-item">
-                <div className="recent-number">#{recentAttempts.length - idx}</div>
-                <div className="recent-info">
-                  <div className="recent-topic">
-                    {attempt.subtopic || 'General Quiz'}
-                  </div>
-                  <div className="recent-meta">
-                    {attempt.difficulty && <span className="meta-badge">{attempt.difficulty}</span>}
-                    <span className="meta-date">{formatDate(attempt.attempted_at)}</span>
-                  </div>
-                </div>
-                <div className={`recent-score ${
-                  attempt.percentage >= 80 ? 'excellent' :
-                  attempt.percentage >= 60 ? 'good' :
-                  'needs-work'
-                }`}>
-                  <span className="score-percent">{attempt.percentage}%</span>
-                  <span className="score-details">{attempt.score}/{attempt.total_questions}</span>
+      {/* Weakest topics */}
+      {stats.weakest_subtopics && stats.weakest_subtopics.length > 0 && (
+        <Panel title="Focus areas" subtitle="Subtopics where you can improve the most">
+          <div className="weakest-list">
+            {stats.weakest_subtopics.map((s) => (
+              <div key={s.name} className="weakest-item">
+                <div className="weakest-name">{s.name}</div>
+                <div className="weakest-meta">
+                  <span className="weakest-acc">{s.accuracy}%</span>
+                  <span className="weakest-count">{s.correct}/{s.total} correct</span>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </Panel>
       )}
+    </div>
+  )
+}
 
-      {/* Empty State */}
-      {!loading && stats.totalAttempts === 0 && (
-        <div className="empty-state">
-          <div className="empty-icon">📝</div>
-          <h3>No quizzes yet</h3>
-          <p>Get started by creating your first quiz!</p>
-          <button
-            onClick={() => onNavigate('create-quiz')}
-            className="btn-primary-large"
-          >
-            Create First Quiz
-          </button>
-        </div>
-      )}
+function StatCard({ icon, label, value, sub, highlight }) {
+  return (
+    <div className={`stat-card${highlight ? ' highlight' : ''}`}>
+      <div className="stat-icon">{icon}</div>
+      <div className="stat-label">{label}</div>
+      <div className="stat-value">{value}</div>
+      <div className="stat-sub">{sub}</div>
+    </div>
+  )
+}
+
+function Panel({ title, subtitle, children }) {
+  return (
+    <div className="panel">
+      <div className="panel-head">
+        <h2>{title}</h2>
+        {subtitle && <p>{subtitle}</p>}
+      </div>
+      <div className="panel-body">{children}</div>
+    </div>
+  )
+}
+
+function BarList({ items }) {
+  return (
+    <div className="bar-list">
+      {items.map((it) => {
+        const pct = it.accuracy
+        // colour-code by accuracy band
+        const cls = pct >= 80 ? 'bar-good' : pct >= 50 ? 'bar-ok' : 'bar-bad'
+        return (
+          <div key={it.name} className="bar-row">
+            <div className="bar-label">
+              <span className="bar-name">{it.name}</span>
+              <span className="bar-meta">{it.correct}/{it.total} • {pct}%</span>
+            </div>
+            <div className="bar-track">
+              <div className={`bar-fill ${cls}`} style={{ width: `${pct}%` }} />
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function TrendChart({ data }) {
+  // Simple inline SVG line chart of percentages.
+  const w = 100   // viewBox width (percentages)
+  const h = 32
+  const padX = 2
+  const padY = 4
+  const usableW = w - padX * 2
+  const usableH = h - padY * 2
+
+  const points = data.map((d, i) => {
+    const x = padX + (i / Math.max(1, data.length - 1)) * usableW
+    const y = padY + usableH * (1 - (d.percentage / 100))
+    return [x, y, d]
+  })
+  const pathD = points
+    .map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`)
+    .join(' ')
+  const areaD = `${pathD} L ${points[points.length - 1][0].toFixed(2)} ${(h - padY).toFixed(2)} L ${points[0][0].toFixed(2)} ${(h - padY).toFixed(2)} Z`
+
+  return (
+    <div className="trend-wrap">
+      <svg viewBox={`0 0 ${w} ${h}`} className="trend-svg" preserveAspectRatio="none">
+        {/* grid lines at 25/50/75 */}
+        {[25, 50, 75].map((v) => {
+          const y = padY + usableH * (1 - v / 100)
+          return <line key={v} x1={padX} x2={w - padX} y1={y} y2={y} className="trend-grid" />
+        })}
+        <defs>
+          <linearGradient id="trend-area" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#5DA9FF" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="#5DA9FF" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path d={areaD} fill="url(#trend-area)" />
+        <path d={pathD} className="trend-line" />
+        {points.map(([x, y, d], i) => (
+          <circle key={i} cx={x} cy={y} r="0.9" className="trend-dot" />
+        ))}
+      </svg>
+      <div className="trend-legend">
+        <span>{data[0].percentage}% (oldest)</span>
+        <span>{data[data.length - 1].percentage}% (latest)</span>
+      </div>
     </div>
   )
 }
