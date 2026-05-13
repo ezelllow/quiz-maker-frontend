@@ -9,8 +9,8 @@ export default function LoginPage({ onLoginSuccess }) {
   const [error, setError] = useState(null)
   const [showPassword, setShowPassword] = useState(false)
 
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000'
-  const GOOGLE_CLIENT_ID = '352836304855-ojuv3r6n6i9i2t2s7c5kr0ddrle46aag.apps.googleusercontent.com' // Replace with your actual ID
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+  const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
 
   const handleEmailLogin = async (e) => {
     e.preventDefault()

@@ -1,142 +1,59 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-:root {
-  --primary: #007bff;
-  --primary-dark: #0056b3;
-  --success: #28a745;
-  --danger: #dc3545;
-  --warning: #ffc107;
-  --light: #f8f9fa;
-  --dark: #343a40;
-  --gray: #6c757d;
-}
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
-}
+/* App-level shells. Page-level styling lives in component CSS. */
 
 .app {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  height: 100%;
+  width: 100%;
 }
 
-.app-header {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  color: white;
-  padding: 20px 40px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.header-content {
-  text-align: center;
-  flex: 1;
-}
-
-.app-header h1 {
-  font-size: 2.5rem;
-  margin-bottom: 10px;
-  font-weight: 700;
-}
-
-.app-header p {
-  font-size: 1.1rem;
-  opacity: 0.9;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  white-space: nowrap;
-}
-
-.user-greeting {
-  font-size: 1rem;
-  font-weight: 500;
-  opacity: 0.95;
-}
-
-.logout-button {
-  background: rgba(255, 255, 255, 0.25);
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  color: white;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.logout-button:hover {
-  background: rgba(255, 255, 255, 0.35);
-  border-color: rgba(255, 255, 255, 0.8);
-}
-
+/* ============================================================
+   Loading screen
+   ============================================================ */
 .loading-container {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  height: 100vh;
+  background:
+    radial-gradient(800px 500px at 30% 30%, rgba(93, 169, 255, 0.18), transparent 60%),
+    radial-gradient(700px 400px at 70% 80%, rgba(139, 92, 246, 0.16), transparent 60%),
+    var(--bg);
+  position: relative;
+  z-index: 2;
 }
 
 .loading-spinner {
-  color: white;
-  font-size: 1.2rem;
-}
-
-.app-main {
-  flex: 1;
-  padding: 40px 20px;
-  max-width: 900px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.app-footer {
-  background: rgba(0, 0, 0, 0.2);
-  color: white;
-  padding: 20px;
   text-align: center;
-  margin-top: auto;
+  color: var(--text-muted);
 }
 
-.app-footer code {
-  background: rgba(0, 0, 0, 0.3);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.9rem;
+.loading-spinner h2 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .app-header h1 {
-    font-size: 1.8rem;
-  }
+/* ============================================================
+   Auth pages — full-bleed dark background w/ glow blobs
+   ============================================================ */
+.login-page,
+.signup-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--space-6);
+  position: relative;
+  z-index: 2;
+  background:
+    radial-gradient(900px 540px at 18% -10%, rgba(93, 169, 255, 0.20), transparent 60%),
+    radial-gradient(800px 560px at 100% 100%, rgba(139, 92, 246, 0.20), transparent 60%),
+    radial-gradient(700px 420px at 100% 0%, rgba(110, 231, 249, 0.10), transparent 60%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-soft) 100%);
+}
 
-  .app-header p {
-    font-size: 1rem;
-  }
-
-  .app-main {
-    padding: 20px 15px;
+@media (max-width: 600px) {
+  .login-page,
+  .signup-page {
+    padding: var(--space-4);
   }
 }

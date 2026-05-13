@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Local env files (Vite reads .env at build-time; production values live in Cloudflare Pages env vars)
+.env
+.env.local
+.env.development.local
+.env.production.local
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

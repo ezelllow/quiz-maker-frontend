@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react'
+import Layout from './components/Layout'
 import QuizMaker from './components/QuizMaker'
+import SavedQuizzes from './components/SavedQuizzes'
+import History from './components/History'
+import Settings from './components/Settings'
 import LoginPage from './components/LoginPage'
 import SignupPage from './components/SignupPage'
 import './App.css'
@@ -7,20 +11,18 @@ import './App.css'
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [user, setUser] = useState(null)
-  const [currentPage, setCurrentPage] = useState('login') // 'login', 'signup', 'quiz'
+  const [currentPage, setCurrentPage] = useState('quiz')
+  const [isSignup, setIsSignup] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [retakeAttempt, setRetakeAttempt] = useState(null)
 
-  // Check if user is already logged in and determine current page from URL on mount
   useEffect(() => {
     const token = localStorage.getItem('auth_token')
     const savedUser = localStorage.getItem('user')
 
-    // Check URL path to determine which auth page to show
     const path = window.location.pathname
     if (path.includes('/signup')) {
-      setCurrentPage('signup')
-    } else {
-      setCurrentPage('login')
+      setIsSignup(true)
     }
 
     if (token && savedUser) {
@@ -43,12 +45,14 @@ function App() {
     setIsAuthenticated(true)
     setUser(userData)
     setCurrentPage('quiz')
+    setIsSignup(false)
   }
 
   const handleSignupSuccess = (token, userData) => {
     setIsAuthenticated(true)
     setUser(userData)
     setCurrentPage('quiz')
+    setIsSignup(false)
   }
 
   const handleLogout = () => {
@@ -59,45 +63,52 @@ function App() {
     setCurrentPage('login')
   }
 
+  const handleRetakeQuiz = (attempt) => {
+    setRetakeAttempt(attempt)
+    setCurrentPage('quiz')
+  }
+
   if (loading) {
     return (
       <div className="loading-container">
         <div className="loading-spinner">
-          <h2>Loading...</h2>
+          <h2>⏳ Loading...</h2>
         </div>
       </div>
     )
   }
 
+  // Render the appropriate page based on currentPage state
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'quiz':
+        return <QuizMaker authToken={localStorage.getItem('auth_token')} retakeAttempt={retakeAttempt} onRetakeClear={() => setRetakeAttempt(null)} />
+      case 'saved':
+        return <SavedQuizzes authToken={localStorage.getItem('auth_token')} onRetake={handleRetakeQuiz} />
+      case 'history':
+        return <History authToken={localStorage.getItem('auth_token')} />
+      case 'settings':
+        return <Settings onLogout={handleLogout} user={user} />
+      default:
+        return <QuizMaker authToken={localStorage.getItem('auth_token')} retakeAttempt={retakeAttempt} onRetakeClear={() => setRetakeAttempt(null)} />
+    }
+  }
+
   return (
     <div className="app">
       {isAuthenticated ? (
-        <>
-          <header className="app-header">
-            <div className="header-content">
-              <h1>📚 Quiz Maker</h1>
-              <p>Create personalized quizzes based on difficulty and topic</p>
-            </div>
-            <div className="header-actions">
-              <span className="user-greeting">Welcome, {user?.name || 'User'}!</span>
-              <button onClick={handleLogout} className="logout-button">
-                🚪 Logout
-              </button>
-            </div>
-          </header>
-
-          <main className="app-main">
-            <QuizMaker authToken={localStorage.getItem('auth_token')} />
-          </main>
-
-          <footer className="app-footer">
-            <p>Backend API: <code>http://localhost:8000</code></p>
-          </footer>
-        </>
-      ) : currentPage === 'login' ? (
-        <LoginPage onLoginSuccess={handleLoginSuccess} />
-      ) : (
+        <Layout
+          currentPage={currentPage}
+          onNavigate={setCurrentPage}
+          userName={user?.name || 'Student'}
+          onLogout={handleLogout}
+        >
+          {renderPage()}
+        </Layout>
+      ) : isSignup ? (
         <SignupPage onSignupSuccess={handleSignupSuccess} />
+      ) : (
+        <LoginPage onLoginSuccess={handleLoginSuccess} />
       )}
     </div>
   )
