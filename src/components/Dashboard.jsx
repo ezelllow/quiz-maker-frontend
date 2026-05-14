@@ -16,6 +16,7 @@ const formatTime = (seconds) => {
 export default function Dashboard({ authToken }) {
   const token = authToken || localStorage.getItem('auth_token')
   const [stats, setStats] = useState(null)
+  const [ranks, setRanks] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -35,6 +36,13 @@ export default function Dashboard({ authToken }) {
         setError(e.message)
         setLoading(false)
       })
+    // Ranks load independently — a failure here shouldn't break the dashboard.
+    fetch(`${API_BASE_URL}/api/ranks`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => (r.ok ? r.json() : { ranks: [] }))
+      .then((d) => setRanks(d.ranks || []))
+      .catch(() => setRanks([]))
   }, [token])
 
   if (loading) {
@@ -65,6 +73,7 @@ export default function Dashboard({ authToken }) {
           <h1>📊 Dashboard</h1>
           <p>Your study statistics</p>
         </div>
+        {ranks.length > 0 && <RankPanel ranks={ranks} />}
         <div className="no-data">
           <div className="emoji">📭</div>
           <p>No quiz attempts yet. Take a quiz first and your stats will appear here!</p>
@@ -79,6 +88,9 @@ export default function Dashboard({ authToken }) {
         <h1>📊 Dashboard</h1>
         <p>Your study statistics at a glance</p>
       </div>
+
+      {/* Rank — the headline */}
+      {ranks.length > 0 && <RankPanel ranks={ranks} />}
 
       {/* Top stat cards */}
       <div className="stat-grid">
@@ -159,6 +171,30 @@ function StatCard({ icon, label, value, sub, highlight }) {
       <div className="stat-label">{label}</div>
       <div className="stat-value">{value}</div>
       <div className="stat-sub">{sub}</div>
+    </div>
+  )
+}
+
+function RankPanel({ ranks }) {
+  return (
+    <div className="panel rank-panel">
+      <div className="panel-head">
+        <h2>Your Rank</h2>
+        <p>Your current standing per subject</p>
+      </div>
+      <div className="panel-body">
+        <div className="rank-grid">
+          {ranks.map((r) => (
+            <div key={r.subject} className="rank-card">
+              <div className="rank-badge">{r.rank_band}</div>
+              <div className="rank-meta">
+                <div className="rank-subject">{r.subject}</div>
+                <div className="rank-score">{r.rank_score}% at placement</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

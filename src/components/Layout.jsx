@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
 import './Layout.css'
 
-export default function Layout({ children, currentPage, onNavigate, userName, onLogout }) {
+export default function Layout({ children, currentPage, onNavigate, userName, userAvatar, onLogout }) {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const initials = (userName || 'Student').trim().charAt(0).toUpperCase()
 
   const handleLogoutClick = (e) => {
     e.preventDefault()
@@ -37,7 +38,11 @@ export default function Layout({ children, currentPage, onNavigate, userName, on
               onClick={() => setProfileMenuOpen(!profileMenuOpen)}
               aria-label="Profile menu"
             >
-              <span className="profile-avatar">👤</span>
+              <span className="profile-avatar">
+                {userAvatar
+                  ? <img src={userAvatar} alt="" className="profile-avatar-img" />
+                  : initials}
+              </span>
               <span className="profile-name">{userName || 'Student'}</span>
             </button>
             {profileMenuOpen && (

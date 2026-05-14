@@ -3,12 +3,24 @@ import './QuizMaker.css'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
+// Normalize an answer to a comparable key so option-text vs letter compares correctly.
+// "C. lamp X" -> "C", "C" -> "C", table _letter "C" -> "C". Falls back to the
+// uppercased string when there's no A-D letter prefix.
+function answerKey(val) {
+  if (val === undefined || val === null) return ''
+  const s = String(val).trim()
+  const m = s.match(/^([A-Da-d])[\.\)\s:\-]?/)
+  if (m) return m[1].toUpperCase()
+  return s.toUpperCase()
+}
+
 export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear }) {
   const token = authToken || localStorage.getItem('auth_token')
 
   // State for filters
   const [subtopics, setSubtopics] = useState([])
   const [difficulties, setDifficulties] = useState([])
+  const [selectedSubject, setSelectedSubject] = useState('Physics')
   const [selectedSubtopic, setSelectedSubtopic] = useState('')
   const [selectedSubtopics, setSelectedSubtopics] = useState([])  // up to 3 picks
   const [selectedDifficulty, setSelectedDifficulty] = useState('')
@@ -148,6 +160,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear }) {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
+          subject: selectedSubject || 'Physics',
           difficulty: selectedDifficulty || null,
           // Send the multi-topic list. If empty the backend treats it as "any topic".
           subtopics: topics.length > 0 ? topics : null,
@@ -211,8 +224,10 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear }) {
       let correctCount = 0
       quiz.questions.forEach((question, index) => {
         const userAnswer = userAnswers[index]
-        const correctAnswer = question.answer.trim()
-        if (userAnswer === correctAnswer) {
+        const correctAnswer = question.answer
+        // Compare by normalized answer key — TEXT options are stored as the full
+        // line ("C. lamp X") while question.answer is just the letter ("C").
+        if (answerKey(userAnswer) && answerKey(userAnswer) === answerKey(correctAnswer)) {
           correctCount++
         }
       })
@@ -324,7 +339,19 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear }) {
             </div>
 
             <div className="form-group">
-              <label>Subtopics (pick up to 3)</label>
+              <label>Subject</label>
+              <select
+                value={selectedSubject}
+                onChange={(e) => setSelectedSubject(e.target.value)}
+                className="form-select"
+              >
+                <option value="Physics">⚛️ Physics</option>
+                <option value="Math" disabled>➗ Math (coming soon)</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Topics (pick up to 3)</label>
               {[0, 1, 2].map((slotIdx) => {
                 const value = selectedSubtopics[slotIdx] || ''
                 // Topics already chosen in OTHER slots — disable them in this dropdown.
@@ -354,7 +381,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear }) {
                     style={{ marginTop: slotIdx > 0 ? '8px' : 0 }}
                   >
                     <option value="">
-                      {slotIdx === 0 ? '📚 All Subtopics' : `+ Add another subtopic (${slotIdx + 1} of 3)`}
+                      {slotIdx === 0 ? '📚 All Topics' : `+ Add another topic (${slotIdx + 1} of 3)`}
                     </option>
                     {subtopics.map((sub) => (
                       <option key={sub} value={sub} disabled={taken.has(sub)}>

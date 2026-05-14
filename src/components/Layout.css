@@ -361,3 +361,12 @@
 @media (max-width: 480px) {
   .content-wrapper { padding-left: var(--space-3); padding-right: var(--space-3); }
 }
+
+/* Profile avatar image (when the user has uploaded a photo) */
+.profile-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
