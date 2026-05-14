@@ -6,6 +6,7 @@ import SavedQuizzes from './components/SavedQuizzes'
 import History from './components/History'
 import Settings from './components/Settings'
 import Placement from './components/Placement'
+import DailyChallenge from './components/DailyChallenge'
 import LoginPage from './components/LoginPage'
 import SignupPage from './components/SignupPage'
 import './App.css'
@@ -21,6 +22,7 @@ function App() {
   const [retakeAttempt, setRetakeAttempt] = useState(null)
   // null = not checked yet, true = must take placement, false = already placed
   const [needsPlacement, setNeedsPlacement] = useState(null)
+  const [ranks, setRanks] = useState([])
 
   // Check whether the user has done their placement quiz yet.
   const checkPlacement = async (token) => {
@@ -34,6 +36,7 @@ function App() {
         return
       }
       const data = await res.json()
+      setRanks(data.ranks || [])
       setNeedsPlacement(!data.has_placement)
     } catch (err) {
       console.error('Placement check failed:', err)
@@ -98,6 +101,10 @@ function App() {
     setCurrentPage('quiz')
   }
 
+  // The rank shown app-wide. Physics is the only subject today; fall back gracefully.
+  const primaryRank =
+    ranks.find((r) => r.subject === 'Physics') || ranks[0] || null
+
   if (loading) {
     return (
       <div className="loading-container">
@@ -113,6 +120,8 @@ function App() {
     switch (currentPage) {
       case 'quiz':
         return <QuizMaker authToken={localStorage.getItem('auth_token')} retakeAttempt={retakeAttempt} onRetakeClear={() => setRetakeAttempt(null)} />
+      case 'daily':
+        return <DailyChallenge authToken={localStorage.getItem('auth_token')} subject="Physics" onExit={() => setCurrentPage('dashboard')} />
       case 'dashboard':
         return <Dashboard authToken={localStorage.getItem('auth_token')} />
       case 'saved':
@@ -120,7 +129,7 @@ function App() {
       case 'history':
         return <History authToken={localStorage.getItem('auth_token')} />
       case 'settings':
-        return <Settings onLogout={handleLogout} user={user} onUserUpdate={setUser} />
+        return <Settings onLogout={handleLogout} user={user} onUserUpdate={setUser} rank={primaryRank} />
       default:
         return <QuizMaker authToken={localStorage.getItem('auth_token')} retakeAttempt={retakeAttempt} onRetakeClear={() => setRetakeAttempt(null)} />
     }
@@ -133,7 +142,7 @@ function App() {
           <Placement
             authToken={localStorage.getItem('auth_token')}
             subject="Physics"
-            onComplete={() => setNeedsPlacement(false)}
+            onComplete={() => checkPlacement(localStorage.getItem('auth_token'))}
           />
         ) : (
           <Layout
@@ -141,6 +150,7 @@ function App() {
             onNavigate={setCurrentPage}
             userName={user?.name || 'Student'}
             userAvatar={user?.avatar_url || ''}
+            rank={primaryRank}
             onLogout={handleLogout}
           >
             {renderPage()}

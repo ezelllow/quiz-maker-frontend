@@ -30,7 +30,7 @@ function resizeImageToDataUrl(file, size = 256) {
   })
 }
 
-export default function Settings({ onLogout, user, onUserUpdate }) {
+export default function Settings({ onLogout, user, onUserUpdate, rank }) {
   const token = localStorage.getItem('auth_token')
   const stored = user || JSON.parse(localStorage.getItem('user') || '{}')
 
@@ -190,6 +190,35 @@ export default function Settings({ onLogout, user, onUserUpdate }) {
           </div>
         </div>
       </div>
+
+      {/* Rank */}
+      {rank && (
+        <div className="settings-section">
+          <h2>Your Rank</h2>
+          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            <div style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              justifyContent: 'center', minWidth: 88, padding: '14px 18px', borderRadius: 14,
+              background: 'linear-gradient(135deg, rgba(93,169,255,0.18), rgba(139,92,246,0.18))',
+              border: '1px solid rgba(93,169,255,0.35)',
+            }}>
+              <div style={{ fontSize: 36, lineHeight: 1 }}>{rank.tier_icon}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, marginTop: 6, color: '#5DA9FF' }}>{rank.tier_name}</div>
+            </div>
+            <div style={{ flex: 1, minWidth: 220 }}>
+              <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                {rank.tier_name} · {rank.subject}
+              </div>
+              <p style={{ fontSize: 13, color: 'var(--text-dim, #93a0c0)', lineHeight: 1.5, margin: '0 0 8px' }}>
+                {rank.tier_desc}
+              </p>
+              <div style={{ fontSize: 12, color: 'var(--text-dim, #93a0c0)' }}>
+                {rank.rank_score}% at placement
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Account Actions */}
       <div className="settings-section danger">

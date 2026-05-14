@@ -376,3 +376,80 @@
   font-size: 0.82rem;
   color: var(--text-soft);
 }
+
+/* ============================================================
+   Streak card (Phase 2)
+   ============================================================ */
+.streak-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.streak-flame {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 110px;
+  height: 110px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border);
+  color: var(--text-soft);
+}
+
+.streak-flame.lit {
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18), transparent 60%),
+    linear-gradient(135deg, #FBBF24 0%, #F87171 100%);
+  color: var(--text-on-accent);
+  border-color: transparent;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.10),
+    0 14px 36px rgba(251, 191, 36, 0.32),
+    0 0 30px rgba(248, 113, 113, 0.22);
+}
+
+.streak-num {
+  font-size: 2.4rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.streak-unit {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 2px;
+}
+
+.streak-meta {
+  display: flex;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.streak-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.streak-meta-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.streak-meta-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}

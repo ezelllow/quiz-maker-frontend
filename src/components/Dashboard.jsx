@@ -17,6 +17,7 @@ export default function Dashboard({ authToken }) {
   const token = authToken || localStorage.getItem('auth_token')
   const [stats, setStats] = useState(null)
   const [ranks, setRanks] = useState([])
+  const [streak, setStreak] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -43,6 +44,13 @@ export default function Dashboard({ authToken }) {
       .then((r) => (r.ok ? r.json() : { ranks: [] }))
       .then((d) => setRanks(d.ranks || []))
       .catch(() => setRanks([]))
+    // Streak loads independently too.
+    fetch(`${API_BASE_URL}/api/streak`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => setStreak(d))
+      .catch(() => setStreak(null))
   }, [token])
 
   if (loading) {
@@ -74,6 +82,7 @@ export default function Dashboard({ authToken }) {
           <p>Your study statistics</p>
         </div>
         {ranks.length > 0 && <RankPanel ranks={ranks} />}
+        {streak && <StreakCard streak={streak} />}
         <div className="no-data">
           <div className="emoji">📭</div>
           <p>No quiz attempts yet. Take a quiz first and your stats will appear here!</p>
@@ -89,8 +98,9 @@ export default function Dashboard({ authToken }) {
         <p>Your study statistics at a glance</p>
       </div>
 
-      {/* Rank — the headline */}
+      {/* Rank + streak — the headline */}
       {ranks.length > 0 && <RankPanel ranks={ranks} />}
+      {streak && <StreakCard streak={streak} />}
 
       {/* Top stat cards */}
       <div className="stat-grid">
@@ -127,6 +137,9 @@ export default function Dashboard({ authToken }) {
           <TrendChart data={stats.trend} />
         </Panel>
       )}
+
+      {/* Practice growth — T3.2 */}
+      {stats.growth && <GrowthPanel growth={stats.growth} />}
 
       <div className="two-column">
         {/* By subtopic */}
@@ -175,6 +188,43 @@ function StatCard({ icon, label, value, sub, highlight }) {
   )
 }
 
+function StreakCard({ streak }) {
+  const current = streak.current_streak ?? 0
+  const longest = streak.longest_streak ?? 0
+  const freezes = streak.freezes_available ?? 0
+  const didToday = !!streak.did_today
+  return (
+    <div className="panel streak-panel">
+      <div className="panel-head">
+        <h2>Daily Streak</h2>
+        <p>{didToday ? "Today's challenge done — streak safe" : "Today's challenge not done yet"}</p>
+      </div>
+      <div className="panel-body">
+        <div className="streak-row">
+          <div className={`streak-flame ${current > 0 ? 'lit' : ''}`}>
+            <span className="streak-num">{current}</span>
+            <span className="streak-unit">day{current === 1 ? '' : 's'}</span>
+          </div>
+          <div className="streak-meta">
+            <div className="streak-meta-item">
+              <span className="streak-meta-label">Longest</span>
+              <span className="streak-meta-value">{longest} day{longest === 1 ? '' : 's'}</span>
+            </div>
+            <div className="streak-meta-item">
+              <span className="streak-meta-label">Freeze</span>
+              <span className="streak-meta-value">🧊 {freezes}</span>
+            </div>
+            <div className="streak-meta-item">
+              <span className="streak-meta-label">Today</span>
+              <span className="streak-meta-value">{didToday ? '✅ Done' : '⏳ Pending'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function RankPanel({ ranks }) {
   return (
     <div className="panel rank-panel">
@@ -186,10 +236,17 @@ function RankPanel({ ranks }) {
         <div className="rank-grid">
           {ranks.map((r) => (
             <div key={r.subject} className="rank-card">
-              <div className="rank-badge">{r.rank_band}</div>
+              <div className="rank-badge">{r.tier_icon}</div>
               <div className="rank-meta">
-                <div className="rank-subject">{r.subject}</div>
+                <div className="rank-subject">
+                  {r.tier_name ? `${r.tier_name} · ${r.subject}` : r.subject}
+                </div>
                 <div className="rank-score">{r.rank_score}% at placement</div>
+                {r.tier_desc && (
+                  <div style={{ fontSize: 12, color: 'var(--text-dim, #93a0c0)', marginTop: 6, lineHeight: 1.45 }}>
+                    {r.tier_desc}
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -197,6 +254,120 @@ function RankPanel({ ranks }) {
       </div>
     </div>
   )
+}
+
+function GrowthPanel({ growth }) {
+  if (!growth) return null
+  const {
+    accuracy_delta, this_week_accuracy, last_week_accuracy,
+    topics_improved, topics_tracked, per_topic_trend,
+  } = growth
+  const hasWeek = accuracy_delta !== null && accuracy_delta !== undefined
+  const trend = per_topic_trend || []
+  const hasTopics = trend.length > 0
+
+  if (!hasWeek && !hasTopics) {
+    return (
+      <Panel title="Practice growth" subtitle="Your improvement over time">
+        <div style={{ color: 'var(--text-dim, #93a0c0)', fontSize: 14, padding: '8px 0' }}>
+          Not enough practice history yet. Take a few more practice quizzes and
+          your week-on-week growth will show up here.
+        </div>
+        <div style={GS.legibility}>
+          💡 Drill your weak topics in Practice to ace tomorrow's Daily Challenge.
+        </div>
+      </Panel>
+    )
+  }
+
+  const dColor = (d) => (d > 0 ? '#10B981' : d < 0 ? '#EF4444' : '#93a0c0')
+  const dArrow = (d) => (d > 0 ? '▲' : d < 0 ? '▼' : '—')
+
+  return (
+    <Panel title="Practice growth" subtitle="Improvement, not just volume">
+      {hasWeek && (
+        <div style={GS.headline}>
+          <div style={{ ...GS.deltaBig, color: dColor(accuracy_delta) }}>
+            {dArrow(accuracy_delta)} {Math.abs(accuracy_delta)}%
+          </div>
+          <div>
+            <div style={GS.headlineLabel}>Accuracy vs last week</div>
+            <div style={GS.headlineSub}>
+              {last_week_accuracy}% → <strong>{this_week_accuracy}%</strong> this week
+            </div>
+          </div>
+        </div>
+      )}
+
+      {hasTopics && (
+        <div style={GS.improvedRow}>
+          <span style={GS.improvedNum}>{topics_improved}</span>
+          <span style={GS.improvedText}>
+            of {topics_tracked} topic{topics_tracked === 1 ? '' : 's'} trending up
+          </span>
+        </div>
+      )}
+
+      {hasTopics && (
+        <div style={{ marginTop: 12 }}>
+          {trend.map((t) => (
+            <div key={t.name} style={GS.topicRow}>
+              <span style={GS.topicName}>{t.name}</span>
+              <span style={GS.topicTrend}>
+                <span style={GS.topicAccDim}>{t.earlier_accuracy}%</span>
+                <span style={GS.topicArrow}>→</span>
+                <span style={GS.topicAccLive}>{t.recent_accuracy}%</span>
+                <span
+                  style={{
+                    ...GS.topicDelta,
+                    color: dColor(t.delta),
+                    background: dColor(t.delta) + '22',
+                  }}
+                >
+                  {dArrow(t.delta)} {Math.abs(t.delta)}%
+                </span>
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div style={GS.legibility}>
+        💡 Drill your weak topics in Practice to ace tomorrow's Daily Challenge.
+      </div>
+    </Panel>
+  )
+}
+
+const GS = {
+  headline: { display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 },
+  deltaBig: { fontSize: 30, fontWeight: 800, lineHeight: 1, minWidth: 96 },
+  headlineLabel: { fontSize: 13, color: 'var(--text-dim, #93a0c0)' },
+  headlineSub: { fontSize: 15, marginTop: 2 },
+  improvedRow: {
+    display: 'flex', alignItems: 'baseline', gap: 8,
+    padding: '10px 0', borderTop: '1px solid rgba(255,255,255,0.06)',
+  },
+  improvedNum: { fontSize: 22, fontWeight: 700, color: '#6EE7B7' },
+  improvedText: { fontSize: 14, color: 'var(--text-dim, #93a0c0)' },
+  topicRow: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    gap: 12, padding: '8px 0', borderTop: '1px solid rgba(255,255,255,0.05)',
+  },
+  topicName: { fontSize: 14, fontWeight: 500 },
+  topicTrend: { display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 },
+  topicAccDim: { fontSize: 13, color: 'var(--text-dim, #93a0c0)' },
+  topicArrow: { fontSize: 12, color: 'var(--text-dim, #93a0c0)' },
+  topicAccLive: { fontSize: 14, fontWeight: 700 },
+  topicDelta: {
+    fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 999, minWidth: 52,
+    textAlign: 'center',
+  },
+  legibility: {
+    marginTop: 16, padding: '10px 12px', borderRadius: 10,
+    background: 'rgba(93,169,255,0.1)', border: '1px solid rgba(93,169,255,0.25)',
+    fontSize: 13, color: 'var(--text, #e6ecff)',
+  },
 }
 
 function Panel({ title, subtitle, children }) {
@@ -236,7 +407,7 @@ function BarList({ items }) {
 
 function TrendChart({ data }) {
   // Simple inline SVG line chart of percentages.
-  const w = 100   // viewBox width (percentages)
+  const w = 100
   const h = 32
   const padX = 2
   const padY = 4
@@ -256,7 +427,6 @@ function TrendChart({ data }) {
   return (
     <div className="trend-wrap">
       <svg viewBox={`0 0 ${w} ${h}`} className="trend-svg" preserveAspectRatio="none">
-        {/* grid lines at 25/50/75 */}
         {[25, 50, 75].map((v) => {
           const y = padY + usableH * (1 - v / 100)
           return <line key={v} x1={padX} x2={w - padX} y1={y} y2={y} className="trend-grid" />

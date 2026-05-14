@@ -144,7 +144,10 @@ export default function Placement({ authToken, subject = 'Physics', onComplete }
       <div className="placement-screen">
         <div className="placement-card placement-result">
           <p className="placement-result-label">Your starting rank</p>
-          <div className="placement-rank-badge">{result.rank_band}</div>
+          <div className="placement-rank-badge">{result.tier_icon}</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#5DA9FF', margin: '8px 0 0' }}>
+            {result.tier_name}
+          </div>
           <p className="placement-result-score">
             {result.score}/{result.total} correct · {result.percentage}%
           </p>

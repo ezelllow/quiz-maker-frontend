@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import './Layout.css'
 
-export default function Layout({ children, currentPage, onNavigate, userName, userAvatar, onLogout }) {
+export default function Layout({ children, currentPage, onNavigate, userName, userAvatar, rank, onLogout }) {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const initials = (userName || 'Student').trim().charAt(0).toUpperCase()
 
@@ -13,7 +13,8 @@ export default function Layout({ children, currentPage, onNavigate, userName, us
   }
 
   const navItems = [
-    { id: 'quiz', icon: '✏️', label: 'Quiz' },
+    { id: 'quiz', icon: '✏️', label: 'Practice' },
+    { id: 'daily', icon: '🔥', label: 'Daily' },
     { id: 'dashboard', icon: '📊', label: 'Dashboard' },
     { id: 'saved', icon: '💾', label: 'Saved' },
     { id: 'history', icon: '📋', label: 'History' },
@@ -32,6 +33,22 @@ export default function Layout({ children, currentPage, onNavigate, userName, us
         </div>
 
         <div className="navbar-right">
+          {rank && (
+            <div
+              title={rank.tier_name}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '5px 10px', marginRight: 4, borderRadius: 999,
+                background: 'linear-gradient(135deg, rgba(93,169,255,0.18), rgba(139,92,246,0.18))',
+                border: '1px solid rgba(93,169,255,0.35)',
+              }}
+            >
+              <span style={{ fontSize: 14 }}>{rank.tier_icon}</span>
+              <span style={{ fontWeight: 600, fontSize: 13, color: '#5DA9FF' }}>
+                {rank.tier_name}
+              </span>
+            </div>
+          )}
           <div className="profile-dropdown">
             <button
               className="profile-button"

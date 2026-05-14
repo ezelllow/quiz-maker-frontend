@@ -305,7 +305,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear }) {
     return (
       <div className="quiz-maker">
         <div className="quiz-header-section">
-          <h1>✏️ Create a Quiz</h1>
+          <h1>✏️ Create a Practice Quiz</h1>
           <p>Choose your filters to generate questions</p>
         </div>
 
@@ -431,7 +431,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear }) {
               disabled={loading}
               className={`btn btn-primary ${loading ? 'loading' : ''}`}
             >
-              {loading ? '⏳ Creating Quiz...' : '🚀 Create Quiz'}
+              {loading ? '⏳ Starting practice set...' : '🚀 Start practice set'}
             </button>
           </form>
         </div>
@@ -445,7 +445,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear }) {
     return (
       <div className="quiz-maker">
         <div className="results-card">
-          <h2>📊 Quiz Results</h2>
+          <h2>📊 Practice Results</h2>
 
           <div className="results-score">
             <div className="score-circle">
@@ -459,7 +459,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear }) {
 
           <div className="results-actions">
             <button onClick={handleRetakeQuiz} className="btn btn-primary">
-              🔄 Try Another Quiz
+              🔄 Practice Again
             </button>
           </div>
         </div>
@@ -655,7 +655,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear }) {
                 {loading
                   ? '⏳ Submitting...'
                   : allAnswered
-                  ? '✅ Submit Quiz'
+                  ? '✅ Submit Practice Quiz'
                   : `⚠️ ${unansweredCount} unanswered`}
               </button>
             )
