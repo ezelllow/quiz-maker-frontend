@@ -1,57 +1,81 @@
+/* Nunito font (QuizQuest design language) — @import must come first */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+/* Tailwind base/utilities/components — our custom CSS layers on top */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 /* ============================================================
-   Design tokens — Dark, futuristic, premium
+   Design tokens — QuizQuest aesthetic (new) layered onto the
+   existing dark-glass system (kept for back-compat during the
+   screen-by-screen migration; will be cleaned up once every
+   screen has moved to the new tokens).
    ============================================================ */
 :root {
-  /* Surfaces */
-  --bg:           #0B1020;   /* primary background */
-  --bg-soft:      #121A2B;   /* secondary background */
-  --bg-card:      #182235;   /* card background */
-  --bg-elevated:  #1E2A40;   /* elevated surface */
+  /* -------- NEW: QuizQuest palette -------- */
+  --green:         #4ade80;
+  --green-dark:    #22c55e;
+  --green-shadow:  #16a34a;
+  --blue:          #38bdf8;
+  --blue-dark:     #0ea5e9;
+  --red:           #fb7185;
+  --red-dark:      #f43f5e;
+  --yellow:        #fbbf24;
+  --purple:        #c084fc;
+  --orange:        #fb923c;
+  --pink:          #f472b6;
+  --cyan:          #22d3ee;
+  --magenta:       #e879f9;
+  --lime:          #a3e635;
+  --quiz-bg:       #0a0a1f;
+  --quiz-bg-2:     #14142b;
+  --quiz-card:     rgba(30, 30, 60, 0.65);
+  --quiz-card-solid: #1a1a35;
+  --quiz-border:   rgba(140, 140, 220, 0.25);
+  --quiz-border-bright: rgba(180, 180, 255, 0.45);
+  --quiz-text:     #e9e9ff;
+  --quiz-muted:    #9d9dbf;
 
-  /* Glass */
-  --glass-bg:     rgba(24, 34, 53, 0.55);
-  --glass-bg-strong: rgba(24, 34, 53, 0.78);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-border-strong: rgba(255, 255, 255, 0.14);
+  /* -------- LEGACY: dark-glass tokens (still used by un-migrated screens) -------- */
+  --bg:           #0a0a1f;          /* aligned to new bg so screens blend */
+  --bg-soft:      #14142b;
+  --bg-card:      #1a1a35;
+  --bg-elevated:  #1E2A40;
 
-  /* Borders / dividers */
-  --border:       rgba(255, 255, 255, 0.08);
-  --border-strong:rgba(255, 255, 255, 0.16);
+  --glass-bg:     rgba(30, 30, 60, 0.65);
+  --glass-bg-strong: rgba(30, 30, 60, 0.85);
+  --glass-border: rgba(140, 140, 220, 0.25);
+  --glass-border-strong: rgba(180, 180, 255, 0.45);
+
+  --border:       rgba(140, 140, 220, 0.25);
+  --border-strong:rgba(180, 180, 255, 0.45);
   --divider:      rgba(255, 255, 255, 0.06);
 
-  /* Text */
-  --text:         #F3F7FF;
-  --text-muted:   #B6C2D9;
-  --text-soft:    #7C8BA1;
+  --text:         #e9e9ff;
+  --text-muted:   #9d9dbf;
+  --text-soft:    #7c7ca0;
   --text-on-accent:#0B1020;
 
-  /* Accent — electric blue, with cyan + purple secondaries */
-  --accent:       #5DA9FF;
-  --accent-hover: #7AB9FF;
-  --accent-active:#3F90F0;
-  --accent-soft:  rgba(93, 169, 255, 0.12);
-  --accent-soft-strong: rgba(93, 169, 255, 0.22);
-  --accent-ring:  rgba(93, 169, 255, 0.35);
-  --accent-glow:  0 0 24px rgba(93, 169, 255, 0.45),
-                  0 0 60px rgba(93, 169, 255, 0.15);
+  --accent:       #38bdf8;
+  --accent-hover: #7dd3fc;
+  --accent-active:#0ea5e9;
+  --accent-soft:  rgba(56, 189, 248, 0.14);
+  --accent-soft-strong: rgba(56, 189, 248, 0.28);
+  --accent-ring:  rgba(56, 189, 248, 0.40);
+  --accent-glow:  0 0 24px rgba(56, 189, 248, 0.45),
+                  0 0 60px rgba(56, 189, 248, 0.15);
 
-  --cyan:         #6EE7F9;
-  --purple:       #8B5CF6;
+  --success:      #4ade80;
+  --success-soft: rgba(74, 222, 128, 0.18);
+  --warning:      #fbbf24;
+  --warning-soft: rgba(251, 191, 36, 0.18);
+  --danger:       #fb7185;
+  --danger-soft:  rgba(251, 113, 133, 0.18);
 
-  /* States */
-  --success:      #34D399;
-  --success-soft: rgba(52, 211, 153, 0.14);
-  --warning:      #FBBF24;
-  --warning-soft: rgba(251, 191, 36, 0.14);
-  --danger:       #F87171;
-  --danger-soft:  rgba(248, 113, 113, 0.14);
+  --grad-accent: linear-gradient(135deg, #38bdf8 0%, #22d3ee 100%);
+  --grad-accent-deep: linear-gradient(135deg, #38bdf8 0%, #c084fc 100%);
+  --grad-progress: linear-gradient(90deg, #38bdf8 0%, #22d3ee 50%, #c084fc 100%);
 
-  /* Gradient blends */
-  --grad-accent: linear-gradient(135deg, #5DA9FF 0%, #6EE7F9 100%);
-  --grad-accent-deep: linear-gradient(135deg, #5DA9FF 0%, #8B5CF6 100%);
-  --grad-progress: linear-gradient(90deg, #5DA9FF 0%, #6EE7F9 50%, #8B5CF6 100%);
-
-  /* Geometry */
   --radius-xs:  6px;
   --radius-sm:  10px;
   --radius-md:  14px;
@@ -59,29 +83,18 @@
   --radius-xl:  28px;
   --radius-pill: 999px;
 
-  /* Shadows */
   --shadow-xs:  0 1px 2px rgba(0, 0, 0, 0.30);
   --shadow-sm:  0 4px 14px rgba(0, 0, 0, 0.30);
   --shadow-md:  0 12px 32px rgba(0, 0, 0, 0.36);
   --shadow-lg:  0 24px 60px rgba(0, 0, 0, 0.50);
-  --shadow-glow: 0 0 0 1px var(--glass-border), 0 18px 48px rgba(0, 0, 0, 0.35);
+  --shadow-glow: 0 0 0 1px rgba(140, 140, 220, 0.25), 0 18px 48px rgba(0, 0, 0, 0.45);
 
-  /* Spacing scale */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-7: 32px;
-  --space-8: 40px;
-  --space-9: 48px;
-  --space-10: 64px;
+  --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
+  --space-5: 20px; --space-6: 24px; --space-7: 32px; --space-8: 40px;
+  --space-9: 48px; --space-10: 64px;
 
-  /* Typography */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-sans: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 
-  /* Motion */
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --transition-fast: 120ms var(--ease);
@@ -92,56 +105,63 @@
 /* ============================================================
    Reset + base
    ============================================================ */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; }
+* { -webkit-tap-highlight-color: transparent; }
 
-html, body, #root {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
+html, body, #root { height: 100%; margin: 0; padding: 0; }
 
 body {
   font-family: var(--font-sans);
   font-size: 15px;
   line-height: 1.55;
-  color: var(--text);
-  background: var(--bg);
+  color: var(--quiz-text);
+  background: #050514;
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(139, 92, 246, 0.25) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(34, 211, 238, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 50%, rgba(232, 121, 249, 0.12) 0%, transparent 60%),
+    linear-gradient(180deg, #0a0a1f 0%, #14142b 50%, #1a0a2e 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
-  position: relative;
-  overflow-x: hidden;
 }
 
-/* Background ambient lighting — fixed, behind everything */
-body::before,
-body::after {
-  content: '';
-  position: fixed;
-  pointer-events: none;
-  z-index: 0;
-  filter: blur(70px);
-  opacity: 0.55;
-  border-radius: 50%;
+/* Starfield (purely decorative, pointer-events: none) */
+body::before, body::after {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
 }
 body::before {
-  top: -120px;
-  left: -100px;
-  width: 540px;
-  height: 540px;
-  background: radial-gradient(circle, rgba(93, 169, 255, 0.55), transparent 65%);
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 24%, #fff, transparent),
+    radial-gradient(1px 1px at 33% 78%, #fff, transparent),
+    radial-gradient(2px 2px at 64% 45%, #fff, transparent),
+    radial-gradient(1px 1px at 81% 12%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1.5px 1.5px at 92% 67%, #fff, transparent),
+    radial-gradient(1px 1px at 47% 88%, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 18% 58%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 71% 91%, rgba(255,255,255,0.85), transparent);
+  background-size: 600px 600px;
+  opacity: 0.6;
+  animation: stars-drift 240s linear infinite;
 }
 body::after {
-  bottom: -160px;
-  right: -120px;
-  width: 620px;
-  height: 620px;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.45), transparent 65%);
+  background-image:
+    radial-gradient(1px 1px at 8% 84%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1.5px 1.5px at 55% 19%, #fff, transparent),
+    radial-gradient(1px 1px at 27% 36%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(2px 2px at 84% 53%, #fff, transparent),
+    radial-gradient(1px 1px at 96% 30%, rgba(255,255,255,0.7), transparent);
+  background-size: 800px 800px;
+  opacity: 0.45;
+  animation: stars-drift 360s linear infinite reverse;
+}
+
+@keyframes stars-drift {
+  from { background-position: 0 0; }
+  to   { background-position: 600px 600px; }
 }
 
 #root {
@@ -152,40 +172,25 @@ body::after {
   flex-direction: column;
 }
 
-/* Subtle dot grid overlay */
-#root::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image:
-    radial-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px);
-  background-size: 28px 28px;
-  mask-image: radial-gradient(circle at 50% 30%, #000 30%, transparent 80%);
-  -webkit-mask-image: radial-gradient(circle at 50% 30%, #000 30%, transparent 80%);
-}
-
 h1, h2, h3, h4, h5, h6 {
   margin: 0;
-  font-weight: 700;
-  color: var(--text);
+  font-weight: 800;            /* Nunito reads best heavy */
+  color: var(--quiz-text);
   letter-spacing: -0.012em;
   line-height: 1.2;
 }
-
 h1 { font-size: clamp(1.85rem, 1.4rem + 1.4vw, 2.4rem); letter-spacing: -0.025em; }
 h2 { font-size: clamp(1.4rem, 1.15rem + 0.6vw, 1.65rem); }
 h3 { font-size: 1.15rem; }
 
-p { margin: 0; color: var(--text-muted); }
+p  { margin: 0; color: var(--quiz-muted); }
 
 a {
-  color: var(--accent);
+  color: var(--blue);
   text-decoration: none;
   transition: color var(--transition-fast);
 }
-a:hover { color: var(--accent-hover); }
+a:hover { color: var(--blue-dark); }
 
 button {
   font-family: inherit;
@@ -197,51 +202,89 @@ button {
 input, select, textarea {
   font-family: inherit;
   font-size: inherit;
-  color: var(--text);
+  color: var(--quiz-text);
   color-scheme: dark;
 }
-input::placeholder, textarea::placeholder { color: var(--text-soft); }
+input::placeholder, textarea::placeholder { color: var(--quiz-muted); }
 
 ::selection {
-  background: var(--accent-soft-strong);
-  color: var(--text);
+  background: rgba(56, 189, 248, 0.35);
+  color: var(--quiz-text);
 }
 
 /* Scrollbars */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.10);
+  background: rgba(140, 140, 220, 0.25);
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.18); background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: rgba(180, 180, 255, 0.40); background-clip: padding-box; }
+
+/* ============================================================
+   Component layer — QuizQuest button + card primitives.
+   Used by the new Button3d / Card / Screen React components.
+   ============================================================ */
+@layer components {
+  .btn-3d {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-weight: 800;
+    color: #fff;
+    border-radius: 1rem;
+    padding: 0.875rem 1.25rem;
+    border: none;
+    cursor: pointer;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    transition: transform 80ms var(--ease), filter 120ms var(--ease);
+    user-select: none;
+  }
+  .btn-3d:active  { transform: translateY(2px); filter: brightness(0.96); }
+  .btn-3d:focus-visible { outline: 3px solid rgba(255,255,255,0.55); outline-offset: 2px; }
+
+  .btn-green   { background: var(--green);   box-shadow: 0 4px 0 0 var(--green-shadow),  0 8px 18px rgba(34, 197, 94, 0.35); }
+  .btn-blue    { background: var(--blue);    box-shadow: 0 4px 0 0 var(--blue-dark),    0 8px 18px rgba(14, 165, 233, 0.35); }
+  .btn-red     { background: var(--red);     box-shadow: 0 4px 0 0 var(--red-dark),     0 8px 18px rgba(244, 63, 94, 0.35); }
+  .btn-yellow  { background: var(--yellow);  color: #4a2a00; text-shadow: none;
+                                              box-shadow: 0 4px 0 0 #d97706,            0 8px 18px rgba(245, 158, 11, 0.35); }
+  .btn-purple  { background: var(--purple);  box-shadow: 0 4px 0 0 #9333ea,            0 8px 18px rgba(168, 85, 247, 0.35); }
+  .btn-orange  { background: var(--orange);  box-shadow: 0 4px 0 0 #ea580c,            0 8px 18px rgba(249, 115, 22, 0.35); }
+  .btn-white   { background: #fff;           color: #1a1a35; text-shadow: none;
+                                              box-shadow: 0 4px 0 0 #cbd5e1,           0 8px 18px rgba(0, 0, 0, 0.25); }
+  .btn-disabled{ background: #3a3a5a;        color: #8888aa; text-shadow: none; cursor: not-allowed;
+                                              box-shadow: 0 4px 0 0 #2a2a45; }
+  .btn-disabled:active { transform: none; filter: none; }
+
+  .qq-card {
+    background: var(--quiz-card);
+    border: 1px solid var(--quiz-border);
+    border-radius: 1.5rem;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 1.5rem;
+    color: var(--quiz-text);
+  }
+  .qq-card-solid {
+    background: var(--quiz-card-solid);
+    border: 1px solid var(--quiz-border-bright);
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    color: var(--quiz-text);
+  }
+}
 
 /* ============================================================
    Reusable animations
    ============================================================ */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(14px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes pop {
-  0%   { transform: scale(0.96); }
-  60%  { transform: scale(1.02); }
-  100% { transform: scale(1); }
-}
-@keyframes shine {
-  0%   { background-position: 200% 50%; }
-  100% { background-position: -100% 50%; }
-}
-@keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(93, 169, 255, 0.35); }
-  50%      { box-shadow: 0 0 32px 8px rgba(93, 169, 255, 0.25); }
-}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pop { 0% { transform: scale(0.96); } 60% { transform: scale(1.02); } 100% { transform: scale(1); } }
+@keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.35); } 50% { box-shadow: 0 0 32px 8px rgba(56, 189, 248, 0.25); } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

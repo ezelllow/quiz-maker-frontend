@@ -1,7 +1,12 @@
 import React, { useState } from 'react'
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'
-import './AuthPage.css'
+import Screen from './ui/Screen'
+import Card from './ui/Card'
+import Button3d from './ui/Button3d'
 
+// LoginPage — QuizQuest-styled rebuild (pilot screen for the redesign).
+// Functionality unchanged: same /api/auth/login + /api/auth/google calls,
+// same localStorage writes, same onLoginSuccess callback.
 export default function LoginPage({ onLoginSuccess }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -16,28 +21,16 @@ export default function LoginPage({ onLoginSuccess }) {
     e.preventDefault()
     setLoading(true)
     setError(null)
-
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: email.trim(),
-          password: password
-        })
+        body: JSON.stringify({ email: email.trim(), password }),
       })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.detail || 'Login failed')
-      }
-
-      // Save token to localStorage
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.detail || 'Login failed')
       localStorage.setItem('auth_token', data.token)
       localStorage.setItem('user', JSON.stringify(data.user))
-
-      // Call callback
       onLoginSuccess(data.token, data.user)
     } catch (err) {
       setError(err.message || 'Login failed. Please try again.')
@@ -50,27 +43,16 @@ export default function LoginPage({ onLoginSuccess }) {
   const handleGoogleSuccess = async (credentialResponse) => {
     setLoading(true)
     setError(null)
-
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/google`, {
+      const res = await fetch(`${API_BASE_URL}/api/auth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          token: credentialResponse.credential
-        })
+        body: JSON.stringify({ token: credentialResponse.credential }),
       })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.detail || 'Google login failed')
-      }
-
-      // Save token to localStorage
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.detail || 'Google login failed')
       localStorage.setItem('auth_token', data.token)
       localStorage.setItem('user', JSON.stringify(data.user))
-
-      // Call callback
       onLoginSuccess(data.token, data.user)
     } catch (err) {
       setError(err.message || 'Google login failed. Please try again.')
@@ -80,83 +62,114 @@ export default function LoginPage({ onLoginSuccess }) {
     }
   }
 
-  const handleGoogleError = () => {
-    setError('Google login failed. Please try again.')
-  }
+  const handleGoogleError = () => setError('Google login failed. Please try again.')
+
+  const inputCls =
+    'w-full rounded-2xl bg-[#1a1a35] border-2 border-[rgba(140,140,220,0.25)] ' +
+    'px-4 py-3 text-base text-quiz-text placeholder:text-quiz-muted ' +
+    'focus:outline-none focus:border-quiz-blue focus:ring-2 focus:ring-quiz-blue/40 ' +
+    'transition-colors disabled:opacity-60'
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <div className="auth-header">
-          <h1>📚 Quiz Maker</h1>
-          <p>Welcome Back!</p>
+    <div className="min-h-screen flex items-center justify-center">
+      <Screen width="narrow">
+        <div className="text-center mb-6">
+          <div className="text-5xl mb-2">🎯</div>
+          <h1 className="!text-4xl !font-black mb-1 tracking-tight">QuizMaker</h1>
+          <p className="text-quiz-muted font-semibold">Welcome back, ready to level up?</p>
         </div>
 
-        {error && <div className="error-message">{error}</div>}
+        <Card variant="solid" className="!p-6 sm:!p-8 space-y-5">
+          {error && (
+            <div className="rounded-2xl border-2 border-quiz-red/50 bg-quiz-red/15 text-quiz-red px-4 py-3 text-sm font-semibold">
+              {error}
+            </div>
+          )}
 
-        <form onSubmit={handleEmailLogin} className="auth-form">
-          <div className="form-group">
-            <label>Email Address</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your.email@example.com"
-              required
-              disabled={loading}
-              className="form-input"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Password</label>
-            <div className="password-input-wrapper">
+          <form onSubmit={handleEmailLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm font-bold text-quiz-muted mb-1.5">Email</label>
               <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your.email@example.com"
                 required
                 disabled={loading}
-                className="form-input"
+                className={inputCls}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="password-toggle"
-              >
-                {showPassword ? '👁️' : '👁️‍🗨️'}
-              </button>
             </div>
+
+            <div>
+              <label className="block text-sm font-bold text-quiz-muted mb-1.5">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  required
+                  disabled={loading}
+                  className={inputCls + ' pr-12'}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xl opacity-80 hover:opacity-100"
+                >
+                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                </button>
+              </div>
+            </div>
+
+            <Button3d
+              type="submit"
+              variant="green"
+              size="lg"
+              full
+              disabled={loading}
+            >
+              {loading ? '⏳ Logging in...' : '🔓 Login'}
+            </Button3d>
+          </form>
+
+          <div className="flex items-center gap-3 text-xs font-bold text-quiz-muted uppercase tracking-widest">
+            <div className="flex-1 h-px bg-quiz-border" />
+            or
+            <div className="flex-1 h-px bg-quiz-border" />
           </div>
 
+          {GOOGLE_CLIENT_ID ? (
+            <div className="flex justify-center">
+              <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  theme="filled_black"
+                  size="large"
+                  shape="pill"
+                  width="100%"
+                />
+              </GoogleOAuthProvider>
+            </div>
+          ) : (
+            <p className="text-center text-xs text-quiz-muted">
+              (Google sign-in not configured)
+            </p>
+          )}
+        </Card>
+
+        <p className="text-center text-sm text-quiz-muted mt-6">
+          Don't have an account?{' '}
           <button
-            type="submit"
-            disabled={loading}
-            className="btn btn-primary btn-login"
+            onClick={() => (window.location.href = '/signup')}
+            className="text-quiz-blue font-bold underline-offset-4 hover:underline"
           >
-            {loading ? '⏳ Logging in...' : '🔓 Login'}
+            Sign up
           </button>
-        </form>
-
-        <div className="divider">OR</div>
-
-        <div className="google-login-wrapper">
-          <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={handleGoogleError}
-              theme="outline"
-              size="large"
-              width="100%"
-            />
-          </GoogleOAuthProvider>
-        </div>
-
-        <div className="auth-footer">
-          <p>Don't have an account? <button onClick={() => window.location.href = '/signup'} className="link" style={{background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline'}}>Sign up here</button></p>
-        </div>
-      </div>
+        </p>
+      </Screen>
     </div>
   )
 }

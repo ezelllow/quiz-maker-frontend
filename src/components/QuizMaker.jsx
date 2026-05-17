@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react'
-import './QuizMaker.css'
+import React, { useEffect, useState } from 'react'
+import Screen from './ui/Screen'
+import Card from './ui/Card'
+import Button3d from './ui/Button3d'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
-// Normalize an answer to a comparable key so option-text vs letter compares correctly.
-// "C. lamp X" -> "C", "C" -> "C", table _letter "C" -> "C". Falls back to the
-// uppercased string when there's no A-D letter prefix.
 function answerKey(val) {
   if (val === undefined || val === null) return ''
   const s = String(val).trim()
@@ -14,98 +13,59 @@ function answerKey(val) {
   return s.toUpperCase()
 }
 
-export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear }) {
+export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mode = 'daily' }) {
+  const isPractice = mode === 'practice'
   const token = authToken || localStorage.getItem('auth_token')
 
-  // State for filters
-  const [subtopics, setSubtopics] = useState([])
-  const [difficulties, setDifficulties] = useState([])
-  const [selectedSubject, setSelectedSubject] = useState('Physics')
-  const [selectedSubtopic, setSelectedSubtopic] = useState('')
-  const [selectedSubtopics, setSelectedSubtopics] = useState([])  // up to 3 picks
-  const [selectedDifficulty, setSelectedDifficulty] = useState('')
-  const [questionCount, setQuestionCount] = useState(5)
-  const [quizName, setQuizName] = useState('')
+  const [subtopics, setSubtopics]                 = useState([])
+  const [difficulties, setDifficulties]           = useState([])
+  const [selectedSubject, setSelectedSubject]     = useState('Physics')
+  const [selectedSubtopic, setSelectedSubtopic]   = useState('')
+  const [selectedSubtopics, setSelectedSubtopics] = useState([])
+  const [selectedDifficulty, setSelectedDifficulty] = useState('Medium')
+  const [questionCount, setQuestionCount]         = useState(10)
+  const [quizName, setQuizName]                   = useState('')
 
-  // State for quiz
-  const [quiz, setQuiz] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-  const [userAnswers, setUserAnswers] = useState({})
-  const [showResults, setShowResults] = useState(false)
-  const [quizStartTime, setQuizStartTime] = useState(null)
-  const [submitSuccess, setSubmitSuccess] = useState(null)
-  const [isRetaking, setIsRetaking] = useState(false)
-  const [retakeParentId, setRetakeParentId] = useState(null)
+  const [quiz, setQuiz]                                   = useState(null)
+  const [loading, setLoading]                             = useState(false)
+  const [error, setError]                                 = useState(null)
+  const [currentQuestionIndex, setCurrentQuestionIndex]   = useState(0)
+  const [userAnswers, setUserAnswers]                     = useState({})
+  const [showResults, setShowResults]                     = useState(false)
+  const [quizStartTime, setQuizStartTime]                 = useState(null)
+  const [submitSuccess, setSubmitSuccess]                 = useState(null)
+  const [isRetaking, setIsRetaking]                       = useState(false)
+  const [retakeParentId, setRetakeParentId]               = useState(null)
+  const [topicsOpen, setTopicsOpen]                       = useState(false)
 
-  // Fetch available filters on mount
-  useEffect(() => {
-    fetchFilters()
-  }, [])
-
-  // Handle retake attempt - load quiz directly
-  useEffect(() => {
-    if (retakeAttempt) {
-      loadRetakeQuiz()
-    }
-  }, [retakeAttempt])
+  useEffect(() => { fetchFilters() }, [])
+  useEffect(() => { if (retakeAttempt) loadRetakeQuiz() }, [retakeAttempt])
 
   const loadRetakeQuiz = async () => {
     try {
-      setLoading(true)
-      setError(null)
-      setIsRetaking(true)
-
-      // Fetch the original quiz questions from history using the /quiz endpoint
-      const response = await fetch(`${API_BASE_URL}/api/history/${retakeAttempt.id}/quiz`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to load quiz for retake')
-      }
-
-      const data = await response.json()
+      setLoading(true); setError(null); setIsRetaking(true)
+      const res = await fetch(`${API_BASE_URL}/api/history/${retakeAttempt.id}/quiz`,
+        { headers: { Authorization: `Bearer ${token}` } })
+      if (!res.ok) throw new Error('Failed to load quiz for retake')
+      const data = await res.json()
       const questionsData = data.questions
-
-      if (!questionsData || questionsData.length === 0) {
-        throw new Error('No questions found for this attempt')
-      }
-
-      console.log('Questions data from backend:', questionsData)
-      console.log('First question structure:', questionsData[0])
-
-      // Reconstruct the quiz object with the returned questions
-      // Keep all original fields, just ensure answer field is populated
-      const reconstructedQuiz = {
-        questions: questionsData.map(q => ({
-          ...q,  // Keep all original fields (options, option_type, etc.)
-          answer: q.answer || q.correct_answer || '',  // Ensure answer field exists
-          correct_answer: q.correct_answer || q.answer || ''  // Also include correct_answer
-        }))
-      }
-
-      console.log('Reconstructed quiz:', reconstructedQuiz)
-      setQuiz(reconstructedQuiz)
+      if (!questionsData || questionsData.length === 0) throw new Error('No questions found for this attempt')
+      setQuiz({
+        questions: questionsData.map((q) => ({
+          ...q,
+          answer:         q.answer || q.correct_answer || '',
+          correct_answer: q.correct_answer || q.answer || '',
+        })),
+      })
       setSelectedSubtopic(retakeAttempt.subtopic)
       setSelectedDifficulty(retakeAttempt.difficulty)
       setQuestionCount(retakeAttempt.count)
       setRetakeParentId(retakeAttempt.id)
-      setCurrentQuestionIndex(0)
-      setUserAnswers({})
-      setShowResults(false)
-      setQuizStartTime(Date.now())
-      setSubmitSuccess(null)
-      // Consume the retakeAttempt prop so the quiz doesn't auto-reload
-      // if the user navigates away and back via the sidebar.
+      setCurrentQuestionIndex(0); setUserAnswers({}); setShowResults(false)
+      setQuizStartTime(Date.now()); setSubmitSuccess(null)
       if (onRetakeClear) onRetakeClear()
     } catch (err) {
       setError(`Error loading quiz for retake: ${err.message}`)
-      console.error('Retake error:', err)
       setIsRetaking(false)
     } finally {
       setLoading(false)
@@ -116,559 +76,551 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear }) {
     try {
       const [subRes, difRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/subtopics`),
-        fetch(`${API_BASE_URL}/api/difficulties`)
+        fetch(`${API_BASE_URL}/api/difficulties`),
       ])
-
       if (!subRes.ok || !difRes.ok) throw new Error('Failed to fetch filters')
-
-      const subs = await subRes.json()
-      const difs = await difRes.json()
-
-      setSubtopics(subs)
-      setDifficulties(difs)
+      setSubtopics(await subRes.json())
+      setDifficulties(await difRes.json())
     } catch (err) {
       setError(`Error loading filters: ${err.message}`)
     }
   }
 
   const handleCreateQuiz = async (e) => {
-    e.preventDefault()
-    setError(null)
-
-    if (!token) {
-      setError('Error: No authorization token found. Please log in again.')
-      return
-    }
-
-    // Client-side validation: more topics than questions = error before request
+    e.preventDefault(); setError(null)
+    if (!token) { setError('Error: No authorization token found. Please log in again.'); return }
     const count = parseInt(questionCount, 10) || 0
     const topics = selectedSubtopics.filter(Boolean)
-    if (topics.length > count) {
-      setError(
-        `You picked ${topics.length} topics but only ${count} question${count === 1 ? '' : 's'}. ` +
-        `Reduce topics or increase question count.`
-      )
+    if (topics.length < 1) {
+      setError('Pick at least 1 topic.')
+      setTopicsOpen(true)
       return
     }
-
+    if (!selectedDifficulty) {
+      setError('Pick a difficulty.')
+      return
+    }
+    if (topics.length > count) {
+      setError(`You picked ${topics.length} topics but only ${count} question${count === 1 ? '' : 's'}. Reduce topics or increase question count.`)
+      return
+    }
     setLoading(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/api/quiz`, {
+      const res = await fetch(`${API_BASE_URL}/api/quiz`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
-          subject: selectedSubject || 'Physics',
+          subject:    selectedSubject || 'Physics',
           difficulty: selectedDifficulty || null,
-          // Send the multi-topic list. If empty the backend treats it as "any topic".
-          subtopics: topics.length > 0 ? topics : null,
-          // Keep the legacy field for compatibility (first topic, if any)
-          subtopic: topics[0] || null,
-          count
-        })
+          subtopics:  topics.length > 0 ? topics : null,
+          subtopic:   topics[0] || null,
+          count,
+        }),
       })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || 'Failed to create quiz')
-      }
-
-      const quizData = await response.json()
+      if (!res.ok) { const d = await res.json(); throw new Error(d.detail || 'Failed to create quiz') }
+      const quizData = await res.json()
       setQuiz(quizData)
-      setCurrentQuestionIndex(0)
-      setUserAnswers({})
-      setShowResults(false)
-      setQuizStartTime(Date.now())
-      setSubmitSuccess(null)
+      setCurrentQuestionIndex(0); setUserAnswers({}); setShowResults(false)
+      setQuizStartTime(Date.now()); setSubmitSuccess(null)
     } catch (err) {
       setError(`Error creating quiz: ${err.message}`)
-      console.error('Quiz creation error:', err)
     } finally {
       setLoading(false)
-    }
-  }
-
-  const handlePreviousQuestion = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1)
-    }
-  }
-
-  const handleNextQuestion = () => {
-    if (currentQuestionIndex < quiz.questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1)
     }
   }
 
   const handleSubmitQuiz = async () => {
-    // Block submission if any question is unanswered. We check by index
-    // because userAnswers is keyed by the question index in the quiz.
-    const unanswered = quiz.questions
-      .map((_, idx) => idx)
+    const unanswered = quiz.questions.map((_, idx) => idx)
       .filter((idx) => userAnswers[idx] === undefined || userAnswers[idx] === null || userAnswers[idx] === '')
     if (unanswered.length > 0) {
-      const list = unanswered.map((i) => i + 1).join(', ')
-      setError(`Please answer all questions before submitting. Unanswered: Q${list}`)
-      // Jump the user to the first unanswered question for convenience
+      setError(`Please answer all questions before submitting. Unanswered: Q${unanswered.map((i) => i + 1).join(', ')}`)
       setCurrentQuestionIndex(unanswered[0])
       return
     }
-    setError(null)
-
+    setError(null); setLoading(true)
     try {
-      setLoading(true)
-
-      // Calculate scores
       let correctCount = 0
-      quiz.questions.forEach((question, index) => {
-        const userAnswer = userAnswers[index]
-        const correctAnswer = question.answer
-        // Compare by normalized answer key — TEXT options are stored as the full
-        // line ("C. lamp X") while question.answer is just the letter ("C").
-        if (answerKey(userAnswer) && answerKey(userAnswer) === answerKey(correctAnswer)) {
-          correctCount++
-        }
+      quiz.questions.forEach((question, idx) => {
+        if (answerKey(userAnswers[idx]) && answerKey(userAnswers[idx]) === answerKey(question.answer)) correctCount++
       })
-
       const percentage = Math.round((correctCount / quiz.questions.length) * 100)
       const timeSpent = Math.floor((Date.now() - quizStartTime) / 1000)
-
-      // Submit to backend
-      const submitResponse = await fetch(`${API_BASE_URL}/api/quiz/submit`, {
+      const res = await fetch(`${API_BASE_URL}/api/quiz/submit`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           difficulty: selectedDifficulty || null,
-          // For display/grouping in Saved/History: join multiple picks with " · "
-          subtopic: selectedSubtopics.filter(Boolean).length > 0
+          subtopic:   selectedSubtopics.filter(Boolean).length > 0
             ? selectedSubtopics.filter(Boolean).join(' · ')
             : (selectedSubtopic || null),
-          count: quiz.questions.length,
+          count:              quiz.questions.length,
           time_spent_seconds: timeSpent,
-          user_answers: userAnswers,
-          score: correctCount,
-          percentage: percentage,
-          // When the user came in via the Retake button on a saved quiz,
-          // tag this submission with the original attempt id so the backend
-          // records it as a retake (visible in History, not Saved Quizzes).
-          parent_attempt_id: (isRetaking && retakeParentId) || null,
-          // Name is only used by the backend on the original (first) attempt;
-          // retakes inherit the parent's name regardless of what we send.
-          name: !isRetaking ? (quizName.trim() || null) : null,
-          questions: quiz.questions.map((q, idx) => ({
-            ...q,  // Send ALL question fields
-            index: idx
-          }))
-        })
+          user_answers:       userAnswers,
+          score:              correctCount,
+          percentage,
+          parent_attempt_id:  (isRetaking && retakeParentId) || null,
+          name:               !isRetaking ? (quizName.trim() || null) : null,
+          questions:          quiz.questions.map((q, idx) => ({ ...q, index: idx })),
+        }),
       })
-
-      if (!submitResponse.ok) {
-        throw new Error('Failed to save quiz results')
-      }
-
-      const submitData = await submitResponse.json()
-      console.log('Quiz submitted successfully:', submitData)
-
-      setShowResults({ correctCount, percentage, attemptId: submitData.attempt_id })
+      if (!res.ok) throw new Error('Failed to save quiz results')
+      const d = await res.json()
+      setShowResults({
+        correctCount, percentage, attemptId: d.attempt_id,
+        dailyProgress: d.daily_progress || null,
+        streakAwarded: d.daily_progress?.streak_awarded === true,
+      })
       setSubmitSuccess(`Quiz saved! You scored ${correctCount}/${quiz.questions.length} (${percentage}%)`)
     } catch (err) {
       setError(`Error submitting quiz: ${err.message}`)
-      console.error('Submit error:', err)
     } finally {
       setLoading(false)
     }
   }
 
-  const handleRetakeQuiz = () => {
-    setQuiz(null)
-    setCurrentQuestionIndex(0)
-    setUserAnswers({})
-    setShowResults(false)
-    setError(null)
-    setSubmitSuccess(null)
-    setIsRetaking(false)
-    setRetakeParentId(null)
-    if (onRetakeClear) {
-      onRetakeClear()
-    }
+  const handleRetakeQuizClick = () => {
+    setQuiz(null); setCurrentQuestionIndex(0); setUserAnswers({}); setShowResults(false)
+    setError(null); setSubmitSuccess(null); setIsRetaking(false); setRetakeParentId(null)
+    if (onRetakeClear) onRetakeClear()
   }
 
-  // ==================== RENDER ====================
+  const inputCls =
+    'w-full rounded-2xl bg-[#1a1a35] border-2 border-quiz-border px-4 py-3 text-base ' +
+    'text-quiz-text placeholder:text-quiz-muted focus:outline-none focus:border-quiz-blue ' +
+    'focus:ring-2 focus:ring-quiz-blue/40 transition-colors disabled:opacity-60'
 
-  // Filter Selection Screen
+  // ===== CREATE FORM (QuizQuest renderQuizSetup pattern) =====
   if (!quiz) {
+    const MAX_TOPICS = 5
+    const topicsSelected = selectedSubtopics.filter(Boolean)
+    const topicCount = topicsSelected.length
+    const toggleTopic = (sub) => {
+      if (topicsSelected.includes(sub)) {
+        setSelectedSubtopics(topicsSelected.filter((s) => s !== sub))
+      } else if (topicCount < MAX_TOPICS) {
+        setSelectedSubtopics([...topicsSelected, sub])
+      }
+    }
+
+    // Forced Easy / Medium / Hard order with XP multiplier badges. Match the
+    // backend's spelling case-insensitively so we submit what /api/difficulties recognises.
+    const normKey = (d) => {
+      const k = String(d).toLowerCase()
+      if (k.startsWith('eas')) return 'easy'
+      if (k.startsWith('med')) return 'medium'
+      if (k.startsWith('har')) return 'hard'
+      return null
+    }
+    const findDiff = (key) => difficulties.find((d) => normKey(d) === key) || null
+    const diffSlots = [
+      { key: 'easy',   id: findDiff('easy')   || 'Easy',   label: 'Easy',   emoji: '🌱', mult: '×0.5', ring: 'border-quiz-green  bg-quiz-green/15' },
+      { key: 'medium', id: findDiff('medium') || 'Medium', label: 'Medium', emoji: '🔥', mult: '×1.5', ring: 'border-quiz-orange bg-quiz-orange/15' },
+      { key: 'hard',   id: findDiff('hard')   || 'Hard',   label: 'Hard',   emoji: '💀', mult: '×2',   ring: 'border-quiz-red    bg-quiz-red/15' },
+    ]
+
+    const countOptions = [10, 15, 20]
+
+    const selBtn = (active) =>
+      'p-3 rounded-2xl border-2 font-black transition-all text-left ' +
+      (active
+        ? 'border-quiz-blue bg-quiz-blue/15 text-white shadow-lg scale-[1.02]'
+        : 'border-quiz-border bg-[#1a1a35] text-quiz-text hover:border-quiz-blue/60 hover:bg-white/5')
+
+    const nameInputCls =
+      'w-full rounded-2xl bg-[#1a1a35] border-2 border-quiz-border px-4 py-3 text-base ' +
+      'text-quiz-text placeholder:text-quiz-muted focus:outline-none focus:border-quiz-blue ' +
+      'focus:ring-2 focus:ring-quiz-blue/40 transition-colors'
+
     return (
-      <div className="quiz-maker">
-        <div className="quiz-header-section">
-          <h1>✏️ Create a Practice Quiz</h1>
-          <p>Choose your filters to generate questions</p>
-        </div>
+      <Screen width="default">
+        <header className="mb-6">
+          <div className="text-xs font-black uppercase tracking-widest text-quiz-muted">
+            {selectedSubject} · {isPractice ? 'Practice' : 'Daily Challenge'}
+          </div>
+          <h1 className="!text-3xl !font-black tracking-tight">
+            {isPractice ? 'Practice mode' : "Build today's quiz"}
+          </h1>
+          <p className="text-quiz-muted font-semibold mt-1 text-sm">
+            {isPractice
+              ? 'Drill anything you want — no pressure. Correct answers still count toward your daily streak.'
+              : 'Hit 10 correct today to earn the streak — correct answers stack across attempts.'}
+          </p>
+        </header>
 
-        <div className="filter-card">
-          {error && <div className="error-message">{error}</div>}
-          {submitSuccess && (
-            <div style={{
-              padding: '15px',
-              background: '#dcfce7',
-              border: '1px solid #86efac',
-              borderLeft: '4px solid #22c55e',
-              color: '#166534',
-              borderRadius: '8px',
-              marginBottom: '20px'
-            }}>
-              ✅ {submitSuccess}
-            </div>
-          )}
+        {error && (
+          <div className="rounded-2xl border-2 border-quiz-red/50 bg-quiz-red/15 text-quiz-red px-4 py-3 text-sm font-bold mb-4">
+            {error}
+          </div>
+        )}
+        {submitSuccess && (
+          <div className="rounded-2xl border-2 border-quiz-green/50 bg-quiz-green/15 text-quiz-green px-4 py-3 text-sm font-bold mb-4">
+            ✅ {submitSuccess}
+          </div>
+        )}
 
-          <form onSubmit={handleCreateQuiz} className="filter-form">
-            <div className="form-group">
-              <label>Quiz Name</label>
-              <input
-                type="text"
-                value={quizName}
-                onChange={(e) => setQuizName(e.target.value)}
-                placeholder="e.g. Electricity drill #1 (optional)"
-                className="form-input"
-                maxLength={120}
-              />
-            </div>
+        <form onSubmit={handleCreateQuiz} className="space-y-6">
+          {/* Topics — collapsible. Selected chips stay visible. */}
+          <div className="qq-card-solid !p-3">
+            <button
+              type="button"
+              onClick={() => setTopicsOpen((o) => !o)}
+              className="w-full flex items-center justify-between gap-2 px-2 py-2"
+            >
+              <div className="text-left">
+                <div className="text-xs font-black uppercase tracking-widest text-quiz-muted">Topics</div>
+                <div className="text-sm font-bold mt-0.5">
+                  {topicCount === 0
+                    ? <span className="text-quiz-red">Pick 1 to {MAX_TOPICS}</span>
+                    : <span>{topicCount} / {MAX_TOPICS} picked</span>}
+                </div>
+              </div>
+              <span className={'text-xl text-quiz-muted transition-transform ' + (topicsOpen ? 'rotate-180' : '')}>▾</span>
+            </button>
 
-            <div className="form-group">
-              <label>Subject</label>
-              <select
-                value={selectedSubject}
-                onChange={(e) => setSelectedSubject(e.target.value)}
-                className="form-select"
-              >
-                <option value="Physics">⚛️ Physics</option>
-                <option value="Math" disabled>➗ Math (coming soon)</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>Topics (pick up to 3)</label>
-              {[0, 1, 2].map((slotIdx) => {
-                const value = selectedSubtopics[slotIdx] || ''
-                // Topics already chosen in OTHER slots — disable them in this dropdown.
-                const taken = new Set(
-                  selectedSubtopics
-                    .filter((_, i) => i !== slotIdx)
-                    .filter(Boolean)
-                )
-                // Only show slot 2/3 once the previous slot has a value.
-                if (slotIdx > 0 && !selectedSubtopics[slotIdx - 1]) return null
-                return (
-                  <select
-                    key={slotIdx}
-                    value={value}
-                    onChange={(e) => {
-                      const next = [...selectedSubtopics]
-                      const v = e.target.value
-                      if (!v) {
-                        // Clearing this slot also clears any later slots.
-                        next.splice(slotIdx)
-                      } else {
-                        next[slotIdx] = v
-                      }
-                      setSelectedSubtopics(next.filter(Boolean))
-                    }}
-                    className="form-select"
-                    style={{ marginTop: slotIdx > 0 ? '8px' : 0 }}
+            {topicCount > 0 && (
+              <div className="flex flex-wrap gap-1.5 px-2 pb-2">
+                {topicsSelected.map((sub) => (
+                  <button
+                    key={sub}
+                    type="button"
+                    onClick={() => toggleTopic(sub)}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold
+                               bg-quiz-blue/20 border border-quiz-blue/40 text-quiz-blue hover:bg-quiz-blue/30"
+                    title="Remove"
                   >
-                    <option value="">
-                      {slotIdx === 0 ? '📚 All Topics' : `+ Add another topic (${slotIdx + 1} of 3)`}
-                    </option>
-                    {subtopics.map((sub) => (
-                      <option key={sub} value={sub} disabled={taken.has(sub)}>
-                        {sub}
-                      </option>
-                    ))}
-                  </select>
+                    {sub} <span className="opacity-70">×</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {topicsOpen && (
+              <div className="flex flex-wrap gap-1.5 mt-2 px-1 pb-1">
+                {subtopics.map((sub) => {
+                  const isSelected = topicsSelected.includes(sub)
+                  const isMaxed = !isSelected && topicCount >= MAX_TOPICS
+                  return (
+                    <button
+                      key={sub}
+                      type="button"
+                      disabled={isMaxed}
+                      onClick={() => toggleTopic(sub)}
+                      className={
+                        'inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ' +
+                        (isSelected
+                          ? 'bg-quiz-blue/25 border-quiz-blue text-white'
+                          : 'bg-[#1a1a35] border-quiz-border text-quiz-text hover:border-quiz-blue/60') +
+                        (isMaxed ? ' opacity-40 cursor-not-allowed' : '')
+                      }
+                    >
+                      {sub}{isSelected && ' ✓'}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Difficulty — Easy / Medium / Hard with XP multipliers */}
+          <div>
+            <div className="flex items-center justify-between mb-2 px-1">
+              <div className="text-xs font-black uppercase tracking-widest text-quiz-muted">Difficulty</div>
+              <div className="text-[10px] font-bold text-quiz-muted">XP multiplier</div>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {diffSlots.map((d) => {
+                const active = String(selectedDifficulty).toLowerCase() === String(d.id).toLowerCase()
+                return (
+                  <button
+                    key={d.key}
+                    type="button"
+                    onClick={() => setSelectedDifficulty(d.id)}
+                    className={
+                      'p-3 rounded-2xl border-2 font-black transition-all text-center ' +
+                      (active
+                        ? d.ring + ' text-white shadow-lg scale-[1.03]'
+                        : 'border-quiz-border bg-[#1a1a35] text-quiz-text hover:border-quiz-blue/60 hover:bg-white/5')
+                    }
+                  >
+                    <div className="text-2xl">{d.emoji}</div>
+                    <div className="text-xs mt-1">{d.label}</div>
+                    <div className="text-[11px] mt-0.5 font-black text-quiz-yellow">{d.mult}</div>
+                  </button>
                 )
               })}
-              {selectedSubtopics.filter(Boolean).length > 1 && (
-                <p style={{ fontSize: '0.78rem', color: 'var(--text-soft)', marginTop: '6px' }}>
-                  Questions will be split randomly across {selectedSubtopics.filter(Boolean).length} topics.
-                </p>
-              )}
-            </div>
-
-            <div className="form-group">
-              <label>Difficulty Level</label>
-              <select
-                value={selectedDifficulty}
-                onChange={(e) => setSelectedDifficulty(e.target.value)}
-                className="form-select"
-              >
-                <option value="">⭐ All Levels</option>
-                {difficulties.map((diff) => (
-                  <option key={diff} value={diff}>
-                    {diff}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>Number of Questions</label>
-              <input
-                type="number"
-                min="1"
-                max="50"
-                value={questionCount}
-                onChange={(e) => setQuestionCount(e.target.value)}
-                className="form-input"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className={`btn btn-primary ${loading ? 'loading' : ''}`}
-            >
-              {loading ? '⏳ Starting practice set...' : '🚀 Start practice set'}
-            </button>
-          </form>
-        </div>
-      </div>
-    )
-  }
-
-  // Results Screen
-  if (showResults) {
-    const { correctCount, percentage } = showResults
-    return (
-      <div className="quiz-maker">
-        <div className="results-card">
-          <h2>📊 Practice Results</h2>
-
-          <div className="results-score">
-            <div className="score-circle">
-              <div className="score-number">{percentage}%</div>
-              <div className="score-label">Score</div>
-            </div>
-            <div className="results-text">
-              <p>You got <strong>{correctCount}</strong> out of <strong>{quiz.questions.length}</strong> questions correct!</p>
             </div>
           </div>
 
-          <div className="results-actions">
-            <button onClick={handleRetakeQuiz} className="btn btn-primary">
-              🔄 Practice Again
-            </button>
+          {/* Question count — 10 / 15 / 20 */}
+          <div>
+            <div className="text-xs font-black uppercase tracking-widest text-quiz-muted mb-2 px-1">How many questions?</div>
+            <div className="grid grid-cols-3 gap-2">
+              {countOptions.map((c) => {
+                const active = Number(questionCount) === c
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setQuestionCount(c)}
+                    className={selBtn(active) + ' text-center text-xl'}
+                  >
+                    {c}
+                  </button>
+                )
+              })}
+            </div>
           </div>
-        </div>
-      </div>
-    )
-  }
 
-  // Quiz Taking Screen
-  const currentQuestion = quiz.questions[currentQuestionIndex]
-  const totalCount = quiz.questions.length
-
-  return (
-    <div className="quiz-maker">
-      <div className="quiz-card">
-        <div className="quiz-header">
-          <h1>{currentQuestion.question_text}</h1>
-          <div className="progress-text">
-            Question {currentQuestionIndex + 1} of {totalCount}
-          </div>
-          <div className="progress-bar">
-            <div
-              className="progress-fill"
-              style={{
-                width: `${((currentQuestionIndex + 1) / totalCount) * 100}%`
-              }}
+          {/* Optional quiz name */}
+          <div>
+            <div className="text-xs font-black uppercase tracking-widest text-quiz-muted mb-2 px-1">
+              Name <span className="font-bold text-quiz-muted normal-case tracking-normal">(optional)</span>
+            </div>
+            <input
+              type="text"
+              value={quizName}
+              onChange={(e) => setQuizName(e.target.value)}
+              placeholder="e.g. Electricity drill #1"
+              maxLength={120}
+              className={nameInputCls}
             />
           </div>
-        </div>
 
-        {error && <div className="error-message">{error}</div>}
+          <Button3d type="submit" variant="green" size="lg" full disabled={loading}>
+            {loading ? '⏳ Starting practice set...' : "🚀 Let's go!"}
+          </Button3d>
+        </form>
+      </Screen>
+    )
+  }
 
-        <div className="question-section">
-          {/* Question diagram (setup image) — always shown if present */}
-          {currentQuestion.setup_image_url && (
-            <div className="image-container">
-              <img
-                src={currentQuestion.setup_image_url}
-                alt="Question diagram"
-                className="question-image"
-                onError={(e) => { e.target.style.display = 'none' }}
-              />
-            </div>
-          )}
+  // ===== RESULTS =====
+  if (showResults) {
+    const { correctCount, percentage, dailyProgress: dp, streakAwarded } = showResults
+    const pctCls = percentage >= 80 ? 'text-quiz-green' : percentage >= 50 ? 'text-quiz-yellow' : 'text-quiz-red'
+    const target = dp?.target ?? 10
+    const todayCorrect = dp?.today_correct ?? correctCount
+    const passedToday = dp?.passed_today ?? false
+    const progressPct = Math.min(100, Math.round((todayCorrect / target) * 100))
+    return (
+      <Screen width="default" className="py-8">
+        <Card variant="solid" className="!p-8 text-center mb-4">
+          <h2 className="!text-2xl !font-black mb-5">📊 Quiz Results</h2>
+          <div className="mx-auto mb-4 w-36 h-36 rounded-full flex flex-col items-center justify-center
+                          bg-gradient-to-br from-quiz-blue/20 to-quiz-purple/20 border-4 border-quiz-blue/40 shadow-xl">
+            <div className={'text-5xl font-black ' + pctCls}>{percentage}%</div>
+            <div className="text-xs font-bold text-quiz-muted uppercase tracking-widest mt-1">Score</div>
+          </div>
+          <p className="text-quiz-text mb-2">
+            You got <strong>{correctCount}</strong> out of <strong>{quiz.questions.length}</strong> questions correct!
+          </p>
+        </Card>
 
-          {/* For IMAGE-type questions, show the options image (if distinct from the setup diagram) */}
-          {currentQuestion.option_type === 'IMAGE' &&
-            currentQuestion.image_url &&
-            currentQuestion.image_url !== currentQuestion.setup_image_url && (
-              <div className="image-container">
-                <img
-                  src={currentQuestion.image_url}
-                  alt="Answer options"
-                  className="question-image"
-                  onError={(e) => { e.target.style.display = 'none' }}
-                />
+        {/* Daily progress + streak award */}
+        {dp && (
+          <Card variant="solid" className="!p-5 mb-4">
+            {streakAwarded ? (
+              <div className="text-center">
+                <div className="text-5xl mb-2">🎉</div>
+                <div className="text-xl font-black text-quiz-yellow mb-1">Streak earned!</div>
+                <p className="text-quiz-muted text-sm">
+                  You hit {target} correct today. Come back tomorrow to keep it alive.
+                </p>
               </div>
-            )}
-
-          {/* Fallback for legacy non-IMAGE questions where setup_image_url was empty
-              and only image_url is populated */}
-          {currentQuestion.option_type !== 'IMAGE' &&
-            !currentQuestion.setup_image_url &&
-            currentQuestion.image_url && (
-              <div className="image-container">
-                <img
-                  src={currentQuestion.image_url}
-                  alt="Question"
-                  className="question-image"
-                  onError={(e) => { e.target.style.display = 'none' }}
-                />
-              </div>
-            )}
-
-          {/* Display options based on type */}
-          {currentQuestion.option_type === 'TABLE' ? (
-            (() => {
-              // Headers may be a flat list (single-level) or a list of lists (multi-level).
-              // Use the deepest row as the column keys for each data row.
-              const rawHeaders = currentQuestion.table_headers || []
-              const flatHeaders = Array.isArray(rawHeaders[0])
-                ? rawHeaders[rawHeaders.length - 1]
-                : rawHeaders
-              const rows = Array.isArray(currentQuestion.table_rows) ? currentQuestion.table_rows : []
-              // table_rows are dicts keyed by header, with `_letter` for selection ('A'/'B'/...)
-              const rowLetter = (row) => (row && typeof row === 'object' ? row._letter : null)
-              return (
-                <div className="table-options-container">
-                  <table className="options-table">
-                    <thead>
-                      <tr>
-                        {flatHeaders.map((header, idx) => (
-                          <th key={idx}>{header}</th>
-                        ))}
-                        <th style={{ width: '70px', textAlign: 'center' }}>Select</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {rows.map((row, rowIdx) => {
-                        const letter = rowLetter(row) || String.fromCharCode(65 + rowIdx) // fallback A/B/C/D
-                        const isSelected = userAnswers[currentQuestionIndex] === letter
-                        return (
-                          <tr
-                            key={rowIdx}
-                            className={isSelected ? 'selected' : ''}
-                            onClick={() => setUserAnswers({ ...userAnswers, [currentQuestionIndex]: letter })}
-                          >
-                            {flatHeaders.map((header, cellIdx) => (
-                              <td key={cellIdx}>
-                                {row && typeof row === 'object' ? (row[header] ?? '') : ''}
-                              </td>
-                            ))}
-                            <td className="option-selector-col">
-                              <input
-                                type="radio"
-                                name={`question-${currentQuestionIndex}`}
-                                checked={isSelected}
-                                onChange={() => setUserAnswers({ ...userAnswers, [currentQuestionIndex]: letter })}
-                              />
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-[10px] font-black uppercase tracking-widest text-quiz-muted">Today's progress</div>
+                  <div className="text-sm font-black">
+                    {passedToday ? '✅ ' : ''}{todayCorrect} / {target} correct
+                  </div>
                 </div>
-              )
-            })()
-          ) : currentQuestion.option_type === 'IMAGE' ? (
-            // The options live inside the image above — just render A/B/C/D radios
-            <div className="options-container">
-              {['A', 'B', 'C', 'D'].map((letter) => {
-                const isSelected = userAnswers[currentQuestionIndex] === letter
-                return (
-                  <label key={letter} className={`option-label ${isSelected ? 'selected' : ''}`}>
-                    <input
-                      type="radio"
-                      name={`question-${currentQuestionIndex}`}
-                      className="option-input"
-                      checked={isSelected}
-                      onChange={() => setUserAnswers({ ...userAnswers, [currentQuestionIndex]: letter })}
-                    />
-                    <span className="option-text">{letter}</span>
-                  </label>
-                )
-              })}
-            </div>
-          ) : (
-            <div className="options-container">
-              {currentQuestion.options && currentQuestion.options.split('\n').map((option, idx) => {
-                const isSelected = userAnswers[currentQuestionIndex] === option.trim()
-                return (
-                  <label key={idx} className={`option-label ${isSelected ? 'selected' : ''}`}>
-                    <input
-                      type="radio"
-                      className="option-input"
-                      checked={isSelected}
-                      onChange={() => setUserAnswers({ ...userAnswers, [currentQuestionIndex]: option.trim() })}
-                    />
-                    <span className="option-text">{option}</span>
-                  </label>
-                )
-              })}
-            </div>
-          )}
+                <div className="h-2 rounded-full bg-white/5 overflow-hidden mb-3">
+                  <div
+                    className={'h-full transition-all duration-500 ' +
+                      (passedToday
+                        ? 'bg-quiz-yellow'
+                        : 'bg-gradient-to-r from-quiz-orange to-quiz-yellow')}
+                    style={{ width: `${progressPct}%` }}
+                  />
+                </div>
+                {passedToday ? (
+                  <p className="text-quiz-muted text-sm">
+                    Today's streak is safe. Anything extra is bonus practice.
+                  </p>
+                ) : (
+                  <p className="text-quiz-muted text-sm">
+                    {target - todayCorrect} correct to go. Correct answers stack — keep at it.
+                  </p>
+                )}
+              </>
+            )}
+          </Card>
+        )}
+
+        <Button3d variant="green" size="lg" full onClick={handleRetakeQuizClick}>
+          🔄 Take another
+        </Button3d>
+      </Screen>
+    )
+  }
+
+  // ===== QUIZ TAKING =====
+  const q = quiz.questions[currentQuestionIndex]
+  const total = quiz.questions.length
+  const isLast = currentQuestionIndex === total - 1
+  const setAnswer = (val) => setUserAnswers({ ...userAnswers, [currentQuestionIndex]: val })
+
+  const answeredCount = quiz.questions.filter((_, i) => {
+    const a = userAnswers[i]; return a !== undefined && a !== null && a !== ''
+  }).length
+  const allAnswered = answeredCount === total
+
+  const rawHeaders = q.table_headers || []
+  const flatHeaders = Array.isArray(rawHeaders[0]) ? rawHeaders[rawHeaders.length - 1] : rawHeaders
+
+  const optionCls = (selected) => [
+    'flex items-center gap-3 w-full text-left px-4 py-3 rounded-2xl border-2 cursor-pointer transition-all',
+    selected
+      ? 'bg-quiz-blue/20 border-quiz-blue text-white shadow-lg scale-[1.01]'
+      : 'bg-[#1a1a35] border-quiz-border hover:border-quiz-blue/60 hover:bg-white/5',
+  ].join(' ')
+
+  return (
+    <Screen width="default" className="py-8">
+      <Card variant="solid" className="!p-6 sm:!p-8 space-y-5">
+        <div className="flex items-center justify-between gap-3">
+          <span className="px-3 py-1 rounded-full bg-quiz-green/20 border border-quiz-green/40 text-quiz-green text-xs font-bold">
+            Practice · {selectedSubject}
+          </span>
+          <span className="text-sm font-bold text-quiz-muted">Question {currentQuestionIndex + 1} of {total}</span>
         </div>
 
-        {/* Navigation */}
-        <div className="navigation-section">
-          <button
-            onClick={handlePreviousQuestion}
+        <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-quiz-green via-quiz-cyan to-quiz-blue transition-all duration-300"
+               style={{ width: `${((currentQuestionIndex + 1) / total) * 100}%` }} />
+        </div>
+
+        {error && (
+          <div className="rounded-2xl border-2 border-quiz-red/50 bg-quiz-red/15 text-quiz-red px-4 py-3 text-sm font-bold">
+            {error}
+          </div>
+        )}
+
+        <h2 className="!text-xl !font-black leading-snug">{q.question_text}</h2>
+
+        {q.setup_image_url && (
+          <div className="rounded-2xl overflow-hidden border border-quiz-border bg-black/30">
+            <img src={q.setup_image_url} alt="Question diagram" className="w-full max-h-80 object-contain"
+                 onError={(e) => { e.target.style.display = 'none' }} />
+          </div>
+        )}
+        {q.option_type === 'IMAGE' && q.image_url && q.image_url !== q.setup_image_url && (
+          <div className="rounded-2xl overflow-hidden border border-quiz-border bg-black/30">
+            <img src={q.image_url} alt="Answer options" className="w-full max-h-80 object-contain"
+                 onError={(e) => { e.target.style.display = 'none' }} />
+          </div>
+        )}
+        {q.option_type !== 'IMAGE' && !q.setup_image_url && q.image_url && (
+          <div className="rounded-2xl overflow-hidden border border-quiz-border bg-black/30">
+            <img src={q.image_url} alt="Question" className="w-full max-h-80 object-contain"
+                 onError={(e) => { e.target.style.display = 'none' }} />
+          </div>
+        )}
+
+        {q.option_type === 'TABLE' && Array.isArray(q.table_rows) ? (
+          <div className="overflow-x-auto rounded-2xl border border-quiz-border">
+            <table className="w-full text-sm">
+              {flatHeaders.length > 0 && (
+                <thead><tr className="bg-white/5">
+                  {flatHeaders.map((h, i) => <th key={i} className="px-3 py-2 text-left font-bold text-quiz-muted">{h}</th>)}
+                  <th className="px-3 py-2 w-16 text-center font-bold text-quiz-muted">Pick</th>
+                </tr></thead>
+              )}
+              <tbody>
+                {q.table_rows.map((row, rIdx) => {
+                  const letter = (row && typeof row === 'object' ? row._letter : null)
+                    || String.fromCharCode(65 + rIdx)
+                  const selected = userAnswers[currentQuestionIndex] === letter
+                  return (
+                    <tr key={rIdx} onClick={() => setAnswer(letter)}
+                        className={'cursor-pointer transition-colors ' + (selected ? 'bg-quiz-blue/20' : 'hover:bg-white/5')}>
+                      {flatHeaders.map((h, cIdx) => (
+                        <td key={cIdx} className="px-3 py-2 border-t border-quiz-border">
+                          {row && typeof row === 'object' ? (row[h] ?? '') : ''}
+                        </td>
+                      ))}
+                      <td className="px-3 py-2 text-center border-t border-quiz-border">
+                        <input type="radio" checked={selected} onChange={() => setAnswer(letter)} className="accent-quiz-blue" />
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : q.option_type === 'IMAGE' ? (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {['A', 'B', 'C', 'D'].map((letter) => {
+              const selected = userAnswers[currentQuestionIndex] === letter
+              return (
+                <label key={letter} className={optionCls(selected) + ' justify-center'}>
+                  <input type="radio" checked={selected} onChange={() => setAnswer(letter)} className="sr-only" />
+                  <span className="text-2xl font-black">{letter}</span>
+                </label>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {q.options && String(q.options).split('\n').map((opt, i) => {
+              const t = opt.trim(); if (!t) return null
+              const selected = userAnswers[currentQuestionIndex] === t
+              return (
+                <label key={i} className={optionCls(selected)}>
+                  <input type="radio" checked={selected} onChange={() => setAnswer(t)} className="sr-only" />
+                  <span className="font-semibold">{t}</span>
+                </label>
+              )
+            })}
+          </div>
+        )}
+
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+          <Button3d
+            variant={currentQuestionIndex === 0 ? 'disabled' : 'white'}
+            size="md"
+            onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
             disabled={currentQuestionIndex === 0}
-            className="btn btn-secondary"
           >
             ← Previous
-          </button>
-
-          <span className="nav-indicator">
-            {currentQuestionIndex + 1} / {totalCount}
+          </Button3d>
+          <span className="text-sm font-bold text-quiz-muted order-3 sm:order-2 w-full sm:w-auto text-center">
+            {answeredCount}/{total} answered
           </span>
-
-          {currentQuestionIndex === totalCount - 1 ? (() => {
-            const unansweredCount = quiz.questions.filter(
-              (_, i) => userAnswers[i] === undefined || userAnswers[i] === null || userAnswers[i] === ''
-            ).length
-            const allAnswered = unansweredCount === 0
-            return (
-              <button
-                onClick={handleSubmitQuiz}
-                disabled={loading || !allAnswered}
-                className={`btn btn-success ${loading ? 'loading' : ''}`}
-                title={!allAnswered ? `${unansweredCount} unanswered question(s) — please answer all before submitting` : ''}
-              >
-                {loading
-                  ? '⏳ Submitting...'
-                  : allAnswered
-                  ? '✅ Submit Practice Quiz'
-                  : `⚠️ ${unansweredCount} unanswered`}
-              </button>
-            )
-          })() : (
-            <button
-              onClick={handleNextQuestion}
-              className="btn btn-secondary"
+          {isLast ? (
+            <Button3d
+              variant={allAnswered ? 'green' : 'disabled'}
+              size="md"
+              onClick={handleSubmitQuiz}
+              disabled={loading || !allAnswered}
+              title={!allAnswered ? `${total - answeredCount} unanswered — please answer all` : ''}
+              className="order-2 sm:order-3"
+            >
+              {loading ? '⏳ Submitting…' : allAnswered ? '✅ Submit Practice Quiz' : `⚠️ ${total - answeredCount} unanswered`}
+            </Button3d>
+          ) : (
+            <Button3d
+              variant="blue"
+              size="md"
+              onClick={() => setCurrentQuestionIndex(Math.min(total - 1, currentQuestionIndex + 1))}
+              className="order-2 sm:order-3"
             >
               Next →
-            </button>
+            </Button3d>
           )}
         </div>
-      </div>
-    </div>
+      </Card>
+    </Screen>
   )
 }

@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react'
-import './Placement.css'
+import React, { useState } from 'react'
+import Screen from './ui/Screen'
+import Card from './ui/Card'
+import Button3d from './ui/Button3d'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
-// Extract a comparable answer key from a user answer / correct answer.
-// Handles "C. lamp X" -> "C", "C" -> "C", table _letter "C" -> "C".
+// "C. lamp X" -> "C", "C" -> "C", table _letter "C" -> "C".
 function answerKey(val) {
   if (val === undefined || val === null) return ''
   const s = String(val).trim()
@@ -13,7 +14,6 @@ function answerKey(val) {
   return s.toUpperCase()
 }
 
-// Short description for each band so the result feels meaningful.
 const BAND_BLURB = {
   A1: 'Outstanding — top of the class.',
   A2: 'Excellent work.',
@@ -28,7 +28,7 @@ const BAND_BLURB = {
 
 export default function Placement({ authToken, subject = 'Physics', onComplete }) {
   const token = authToken || localStorage.getItem('auth_token')
-  const [step, setStep] = useState('intro')          // intro | quiz | result | error
+  const [step, setStep] = useState('intro')
   const [questions, setQuestions] = useState([])
   const [idx, setIdx] = useState(0)
   const [answers, setAnswers] = useState({})
@@ -37,130 +37,112 @@ export default function Placement({ authToken, subject = 'Physics', onComplete }
   const [error, setError] = useState(null)
 
   const startPlacement = async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true); setError(null)
     try {
-      const res = await fetch(
-        `${API_BASE_URL}/api/placement/questions?subject=${encodeURIComponent(subject)}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
+      const res = await fetch(`${API_BASE_URL}/api/placement/questions?subject=${encodeURIComponent(subject)}`,
+        { headers: { Authorization: `Bearer ${token}` } })
       const data = await res.json()
       if (!res.ok) throw new Error(data.detail || 'Could not load placement quiz')
-      if (!data.questions || data.questions.length === 0) {
-        throw new Error('No placement questions are available yet.')
-      }
-      setQuestions(data.questions)
-      setIdx(0)
-      setAnswers({})
-      setStep('quiz')
-    } catch (e) {
-      setError(e.message)
-      setStep('error')
-    } finally {
-      setLoading(false)
-    }
+      if (!data.questions || data.questions.length === 0) throw new Error('No placement questions are available yet.')
+      setQuestions(data.questions); setIdx(0); setAnswers({}); setStep('quiz')
+    } catch (e) { setError(e.message); setStep('error') } finally { setLoading(false) }
   }
 
   const submitPlacement = async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true); setError(null)
     try {
-      // Score client-side using a type-agnostic letter comparison.
       let correct = 0
       questions.forEach((q, i) => {
-        if (answerKey(answers[i]) && answerKey(answers[i]) === answerKey(q.answer)) {
-          correct += 1
-        }
+        if (answerKey(answers[i]) && answerKey(answers[i]) === answerKey(q.answer)) correct += 1
       })
       const res = await fetch(`${API_BASE_URL}/api/placement/submit`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ subject, score: correct, total: questions.length }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.detail || 'Could not submit placement')
-      setResult(data)
-      setStep('result')
-    } catch (e) {
-      setError(e.message)
-      setStep('error')
-    } finally {
-      setLoading(false)
-    }
+      setResult(data); setStep('result')
+    } catch (e) { setError(e.message); setStep('error') } finally { setLoading(false) }
   }
 
-  // ---------- INTRO ----------
+  // ===== INTRO =====
   if (step === 'intro') {
     return (
-      <div className="placement-screen">
-        <div className="placement-card placement-intro">
-          <div className="placement-badge-icon">🎯</div>
-          <h1>Let's find your starting rank</h1>
-          <p className="placement-sub">
-            Before you dive in, take a short placement quiz. It's <strong>15 questions</strong> across
-            different {subject} topics and difficulty levels — about 15 minutes. Your score sets your
-            starting rank (A1 is the best, F9 the lowest). You can climb from there.
-          </p>
-          <div className="placement-meta-row">
-            <span>📚 {subject}</span>
-            <span>❓ 15 questions</span>
-            <span>📊 Sets your rank</span>
-          </div>
-          <button className="placement-btn-primary" onClick={startPlacement} disabled={loading}>
-            {loading ? 'Loading…' : 'Start placement quiz'}
-          </button>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <Screen width="narrow">
+          <Card variant="solid" className="!p-8 text-center">
+            <div className="text-6xl mb-3">🎯</div>
+            <h1 className="!text-3xl !font-black mb-2">Let's find your starting rank</h1>
+            <p className="text-quiz-muted leading-relaxed mb-5">
+              Take a short placement quiz — <strong className="text-quiz-text">15 questions</strong> across
+              different {subject} topics and difficulty. Your score sets your starting rank. You can
+              climb from there.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-2 mb-6 text-xs font-bold text-quiz-muted">
+              <span className="px-3 py-1.5 rounded-full bg-white/5 border border-quiz-border">📚 {subject}</span>
+              <span className="px-3 py-1.5 rounded-full bg-white/5 border border-quiz-border">❓ 15 questions</span>
+              <span className="px-3 py-1.5 rounded-full bg-white/5 border border-quiz-border">📊 Sets your rank</span>
+            </div>
+            <Button3d variant="green" size="lg" full onClick={startPlacement} disabled={loading}>
+              {loading ? 'Loading…' : 'Start placement quiz'}
+            </Button3d>
+          </Card>
+        </Screen>
       </div>
     )
   }
 
-  // ---------- ERROR ----------
+  // ===== ERROR =====
   if (step === 'error') {
     return (
-      <div className="placement-screen">
-        <div className="placement-card">
-          <div className="placement-badge-icon">⚠️</div>
-          <h1>Something went wrong</h1>
-          <p className="placement-sub">{error}</p>
-          <div className="placement-actions">
-            <button className="placement-btn-secondary" onClick={startPlacement} disabled={loading}>
-              Try again
-            </button>
-            <button className="placement-btn-primary" onClick={() => onComplete && onComplete()}>
-              Continue anyway
-            </button>
-          </div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <Screen width="narrow">
+          <Card variant="solid" className="!p-8 text-center">
+            <div className="text-6xl mb-3">⚠️</div>
+            <h1 className="!text-2xl !font-black mb-2">Something went wrong</h1>
+            <p className="text-quiz-muted mb-6">{error}</p>
+            <div className="flex flex-col gap-2">
+              <Button3d variant="blue" size="md" full onClick={startPlacement} disabled={loading}>
+                Try again
+              </Button3d>
+              <Button3d variant="white" size="md" full onClick={() => onComplete && onComplete()}>
+                Continue anyway
+              </Button3d>
+            </div>
+          </Card>
+        </Screen>
       </div>
     )
   }
 
-  // ---------- RESULT ----------
+  // ===== RESULT =====
   if (step === 'result' && result) {
     return (
-      <div className="placement-screen">
-        <div className="placement-card placement-result">
-          <p className="placement-result-label">Your starting rank</p>
-          <div className="placement-rank-badge">{result.tier_icon}</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#5DA9FF', margin: '8px 0 0' }}>
-            {result.tier_name}
-          </div>
-          <p className="placement-result-score">
-            {result.score}/{result.total} correct · {result.percentage}%
-          </p>
-          <p className="placement-sub">{BAND_BLURB[result.rank_band] || ''}</p>
-          <button className="placement-btn-primary" onClick={() => onComplete && onComplete()}>
-            Continue to QuizMaker
-          </button>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <Screen width="narrow">
+          <Card variant="solid" className="!p-8 text-center">
+            <p className="text-xs font-bold text-quiz-muted uppercase tracking-widest mb-3">Your starting rank</p>
+            <div className="mx-auto mb-3 w-32 h-32 rounded-full flex items-center justify-center
+                            bg-gradient-to-br from-quiz-blue/25 to-quiz-purple/25
+                            border-2 border-quiz-blue/50 shadow-xl text-7xl">
+              {result.tier_icon}
+            </div>
+            <div className="text-3xl font-black text-quiz-blue mb-1">{result.tier_name}</div>
+            <p className="text-quiz-muted font-bold mb-2">
+              {result.score}/{result.total} correct · {result.percentage}%
+            </p>
+            <p className="text-quiz-muted leading-relaxed mb-6">{BAND_BLURB[result.rank_band] || ''}</p>
+            <Button3d variant="green" size="lg" full onClick={() => onComplete && onComplete()}>
+              Continue to QuizMaker
+            </Button3d>
+          </Card>
+        </Screen>
       </div>
     )
   }
 
-  // ---------- QUIZ ----------
+  // ===== QUIZ =====
   const q = questions[idx]
   const total = questions.length
   const isLast = idx === total - 1
@@ -169,90 +151,111 @@ export default function Placement({ authToken, subject = 'Physics', onComplete }
     return a !== undefined && a !== null && a !== ''
   }).length
   const allAnswered = answeredCount === total
-
   const setAnswer = (val) => setAnswers({ ...answers, [idx]: val })
 
-  // Derive flat headers for TABLE questions (single- or multi-level)
   const rawHeaders = q.table_headers || []
   const flatHeaders = Array.isArray(rawHeaders[0]) ? rawHeaders[rawHeaders.length - 1] : rawHeaders
 
+  const optionCls = (selected) => [
+    'flex items-center gap-3 w-full text-left px-4 py-3 rounded-2xl border-2 cursor-pointer transition-all',
+    selected
+      ? 'bg-quiz-blue/20 border-quiz-blue text-white shadow-lg scale-[1.01]'
+      : 'bg-[#1a1a35] border-quiz-border hover:border-quiz-blue/60 hover:bg-white/5',
+  ].join(' ')
+
   return (
-    <div className="placement-screen">
-      <div className="placement-card placement-quiz">
-        <div className="placement-quiz-head">
-          <span className="placement-pill">Placement · {subject}</span>
-          <span className="placement-progress-text">Question {idx + 1} of {total}</span>
+    <Screen width="default" className="py-8">
+      <Card variant="solid" className="!p-6 sm:!p-8 space-y-5">
+        <div className="flex items-center justify-between gap-3">
+          <span className="px-3 py-1 rounded-full bg-quiz-purple/20 border border-quiz-purple/40 text-quiz-purple text-xs font-bold">
+            Placement · {subject}
+          </span>
+          <span className="text-sm font-bold text-quiz-muted">Question {idx + 1} of {total}</span>
         </div>
-        <div className="placement-progress-bar">
+
+        <div className="h-2 rounded-full bg-white/5 overflow-hidden">
           <div
-            className="placement-progress-fill"
+            className="h-full bg-gradient-to-r from-quiz-blue via-quiz-cyan to-quiz-purple transition-all duration-300"
             style={{ width: `${((idx + 1) / total) * 100}%` }}
           />
         </div>
 
-        <h2 className="placement-question">{q.question_text}</h2>
+        <h2 className="!text-xl !font-black leading-snug">{q.question_text}</h2>
 
         {q.setup_image_url && (
-          <div className="placement-image">
-            <img src={q.setup_image_url} alt="Question diagram"
+          <div className="rounded-2xl overflow-hidden border border-quiz-border bg-black/30">
+            <img src={q.setup_image_url} alt="Question diagram" className="w-full max-h-80 object-contain"
                  onError={(e) => { e.target.style.display = 'none' }} />
           </div>
         )}
         {q.option_type === 'IMAGE' && q.image_url && q.image_url !== q.setup_image_url && (
-          <div className="placement-image">
-            <img src={q.image_url} alt="Answer options"
+          <div className="rounded-2xl overflow-hidden border border-quiz-border bg-black/30">
+            <img src={q.image_url} alt="Answer options" className="w-full max-h-80 object-contain"
                  onError={(e) => { e.target.style.display = 'none' }} />
           </div>
         )}
 
         {/* Options */}
         {q.option_type === 'TABLE' && Array.isArray(q.table_rows) ? (
-          <table className="placement-table">
-            {flatHeaders.length > 0 && (
-              <thead>
-                <tr>
-                  {flatHeaders.map((h, i) => <th key={i}>{h}</th>)}
-                  <th style={{ width: 56 }}>Pick</th>
-                </tr>
-              </thead>
-            )}
-            <tbody>
-              {q.table_rows.map((row, rIdx) => {
-                const letter = (row && typeof row === 'object' ? row._letter : null)
-                  || String.fromCharCode(65 + rIdx)
-                const selected = answers[idx] === letter
-                return (
-                  <tr key={rIdx} className={selected ? 'selected' : ''} onClick={() => setAnswer(letter)}>
-                    {flatHeaders.map((h, cIdx) => (
-                      <td key={cIdx}>{row && typeof row === 'object' ? (row[h] ?? '') : ''}</td>
+          <div className="overflow-x-auto rounded-2xl border border-quiz-border">
+            <table className="w-full text-sm">
+              {flatHeaders.length > 0 && (
+                <thead>
+                  <tr className="bg-white/5">
+                    {flatHeaders.map((h, i) => (
+                      <th key={i} className="px-3 py-2 text-left font-bold text-quiz-muted">{h}</th>
                     ))}
-                    <td style={{ textAlign: 'center' }}>
-                      <input type="radio" checked={selected} onChange={() => setAnswer(letter)} />
-                    </td>
+                    <th className="px-3 py-2 w-16 text-center font-bold text-quiz-muted">Pick</th>
                   </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                </thead>
+              )}
+              <tbody>
+                {q.table_rows.map((row, rIdx) => {
+                  const letter = (row && typeof row === 'object' ? row._letter : null)
+                    || String.fromCharCode(65 + rIdx)
+                  const selected = answers[idx] === letter
+                  return (
+                    <tr
+                      key={rIdx}
+                      onClick={() => setAnswer(letter)}
+                      className={'cursor-pointer transition-colors ' + (selected ? 'bg-quiz-blue/20' : 'hover:bg-white/5')}
+                    >
+                      {flatHeaders.map((h, cIdx) => (
+                        <td key={cIdx} className="px-3 py-2 border-t border-quiz-border">
+                          {row && typeof row === 'object' ? (row[h] ?? '') : ''}
+                        </td>
+                      ))}
+                      <td className="px-3 py-2 text-center border-t border-quiz-border">
+                        <input type="radio" checked={selected} onChange={() => setAnswer(letter)} className="accent-quiz-blue" />
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
         ) : q.option_type === 'IMAGE' ? (
-          <div className="placement-options">
-            {['A', 'B', 'C', 'D'].map((letter) => (
-              <label key={letter} className={`placement-option ${answers[idx] === letter ? 'selected' : ''}`}>
-                <input type="radio" checked={answers[idx] === letter} onChange={() => setAnswer(letter)} />
-                <span>{letter}</span>
-              </label>
-            ))}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {['A', 'B', 'C', 'D'].map((letter) => {
+              const selected = answers[idx] === letter
+              return (
+                <label key={letter} className={optionCls(selected) + ' justify-center'}>
+                  <input type="radio" checked={selected} onChange={() => setAnswer(letter)} className="sr-only" />
+                  <span className="text-2xl font-black">{letter}</span>
+                </label>
+              )
+            })}
           </div>
         ) : (
-          <div className="placement-options">
+          <div className="space-y-2">
             {q.options && String(q.options).split('\n').map((opt, i) => {
               const t = opt.trim()
               if (!t) return null
               const selected = answers[idx] === t
               return (
-                <label key={i} className={`placement-option ${selected ? 'selected' : ''}`}>
-                  <input type="radio" checked={selected} onChange={() => setAnswer(t)} />
-                  <span>{t}</span>
+                <label key={i} className={optionCls(selected)}>
+                  <input type="radio" checked={selected} onChange={() => setAnswer(t)} className="sr-only" />
+                  <span className="font-semibold">{t}</span>
                 </label>
               )
             })}
@@ -260,31 +263,41 @@ export default function Placement({ authToken, subject = 'Physics', onComplete }
         )}
 
         {/* Navigation */}
-        <div className="placement-nav">
-          <button
-            className="placement-btn-secondary"
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+          <Button3d
+            variant={idx === 0 ? 'disabled' : 'white'}
+            size="md"
             onClick={() => setIdx(Math.max(0, idx - 1))}
             disabled={idx === 0}
           >
             ← Previous
-          </button>
-          <span className="placement-nav-count">{answeredCount}/{total} answered</span>
+          </Button3d>
+          <span className="text-sm font-bold text-quiz-muted order-3 sm:order-2 w-full sm:w-auto text-center">
+            {answeredCount}/{total} answered
+          </span>
           {isLast ? (
-            <button
-              className="placement-btn-primary"
+            <Button3d
+              variant={allAnswered ? 'green' : 'disabled'}
+              size="md"
               onClick={submitPlacement}
               disabled={loading || !allAnswered}
               title={!allAnswered ? 'Answer all questions to finish' : ''}
+              className="order-2 sm:order-3"
             >
               {loading ? 'Scoring…' : allAnswered ? 'Finish & get my rank' : `${total - answeredCount} left`}
-            </button>
+            </Button3d>
           ) : (
-            <button className="placement-btn-secondary" onClick={() => setIdx(Math.min(total - 1, idx + 1))}>
+            <Button3d
+              variant="blue"
+              size="md"
+              onClick={() => setIdx(Math.min(total - 1, idx + 1))}
+              className="order-2 sm:order-3"
+            >
               Next →
-            </button>
+            </Button3d>
           )}
         </div>
-      </div>
-    </div>
+      </Card>
+    </Screen>
   )
 }

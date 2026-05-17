@@ -7,6 +7,8 @@ import History from './components/History'
 import Settings from './components/Settings'
 import Placement from './components/Placement'
 import DailyChallenge from './components/DailyChallenge'
+import HomePage from './components/HomePage'
+import LeaderboardPage from './components/LeaderboardPage'
 import LoginPage from './components/LoginPage'
 import SignupPage from './components/SignupPage'
 import './App.css'
@@ -16,7 +18,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [user, setUser] = useState(null)
-  const [currentPage, setCurrentPage] = useState('quiz')
+  const [currentPage, setCurrentPage] = useState('home')
   const [isSignup, setIsSignup] = useState(false)
   const [loading, setLoading] = useState(true)
   const [retakeAttempt, setRetakeAttempt] = useState(null)
@@ -58,7 +60,7 @@ function App() {
         const userData = JSON.parse(savedUser)
         setIsAuthenticated(true)
         setUser(userData)
-        setCurrentPage('quiz')
+        setCurrentPage('home')
         checkPlacement(token)
       } catch (err) {
         console.error('Error parsing saved user:', err)
@@ -73,7 +75,7 @@ function App() {
   const handleLoginSuccess = (token, userData) => {
     setIsAuthenticated(true)
     setUser(userData)
-    setCurrentPage('quiz')
+    setCurrentPage('home')
     setIsSignup(false)
     checkPlacement(token)
   }
@@ -81,7 +83,7 @@ function App() {
   const handleSignupSuccess = (token, userData) => {
     setIsAuthenticated(true)
     setUser(userData)
-    setCurrentPage('quiz')
+    setCurrentPage('home')
     setIsSignup(false)
     // New signups always go through placement.
     setNeedsPlacement(true)
@@ -118,10 +120,16 @@ function App() {
   // Render the appropriate page based on currentPage state
   const renderPage = () => {
     switch (currentPage) {
+      case 'home':
+        return <HomePage authToken={localStorage.getItem('auth_token')} user={user} rank={primaryRank} onNavigate={setCurrentPage} />
       case 'quiz':
-        return <QuizMaker authToken={localStorage.getItem('auth_token')} retakeAttempt={retakeAttempt} onRetakeClear={() => setRetakeAttempt(null)} />
+        return <QuizMaker authToken={localStorage.getItem('auth_token')} retakeAttempt={retakeAttempt} onRetakeClear={() => setRetakeAttempt(null)} mode="daily" />
+      case 'practice':
+        return <QuizMaker authToken={localStorage.getItem('auth_token')} retakeAttempt={retakeAttempt} onRetakeClear={() => setRetakeAttempt(null)} mode="practice" />
+      case 'leaderboard':
+        return <LeaderboardPage user={user} />
       case 'daily':
-        return <DailyChallenge authToken={localStorage.getItem('auth_token')} subject="Physics" onExit={() => setCurrentPage('dashboard')} />
+        return <DailyChallenge authToken={localStorage.getItem('auth_token')} subject="Physics" onExit={() => setCurrentPage('home')} />
       case 'dashboard':
         return <Dashboard authToken={localStorage.getItem('auth_token')} />
       case 'saved':
@@ -131,7 +139,7 @@ function App() {
       case 'settings':
         return <Settings onLogout={handleLogout} user={user} onUserUpdate={setUser} rank={primaryRank} />
       default:
-        return <QuizMaker authToken={localStorage.getItem('auth_token')} retakeAttempt={retakeAttempt} onRetakeClear={() => setRetakeAttempt(null)} />
+        return <HomePage authToken={localStorage.getItem('auth_token')} user={user} rank={primaryRank} onNavigate={setCurrentPage} />
     }
   }
 

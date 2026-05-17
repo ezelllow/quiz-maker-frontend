@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import './Dashboard.css'
+import Screen from './ui/Screen'
+import Card from './ui/Card'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -22,32 +23,15 @@ export default function Dashboard({ authToken }) {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/stats`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => {
-        if (!r.ok) throw new Error('Failed to load stats')
-        return r.json()
-      })
-      .then((d) => {
-        setStats(d)
-        setLoading(false)
-      })
-      .catch((e) => {
-        setError(e.message)
-        setLoading(false)
-      })
-    // Ranks load independently — a failure here shouldn't break the dashboard.
-    fetch(`${API_BASE_URL}/api/ranks`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    fetch(`${API_BASE_URL}/api/stats`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => { if (!r.ok) throw new Error('Failed to load stats'); return r.json() })
+      .then((d) => { setStats(d); setLoading(false) })
+      .catch((e) => { setError(e.message); setLoading(false) })
+    fetch(`${API_BASE_URL}/api/ranks`, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => (r.ok ? r.json() : { ranks: [] }))
       .then((d) => setRanks(d.ranks || []))
       .catch(() => setRanks([]))
-    // Streak loads independently too.
-    fetch(`${API_BASE_URL}/api/streak`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    fetch(`${API_BASE_URL}/api/streak`, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => setStreak(d))
       .catch(() => setStreak(null))
@@ -55,136 +39,101 @@ export default function Dashboard({ authToken }) {
 
   if (loading) {
     return (
-      <div className="dashboard">
-        <div className="header-section">
-          <h1>📊 Dashboard</h1>
-          <p>Your study statistics</p>
-        </div>
-        <div className="loading">Loading your stats…</div>
-      </div>
+      <Screen width="wide">
+        <header className="mb-6">
+          <h1 className="!text-3xl !font-black tracking-tight mb-1">📊 Dashboard</h1>
+          <p className="text-quiz-muted font-semibold">Your study statistics</p>
+        </header>
+        <Card variant="solid" className="!p-8 text-center text-quiz-muted">Loading your stats…</Card>
+      </Screen>
     )
   }
-
   if (error) {
     return (
-      <div className="dashboard">
-        <div className="header-section"><h1>📊 Dashboard</h1></div>
-        <div className="error-message">{error}</div>
-      </div>
+      <Screen width="wide">
+        <header className="mb-6"><h1 className="!text-3xl !font-black">📊 Dashboard</h1></header>
+        <Card variant="solid" className="!p-6 border-2 border-quiz-red/50 bg-quiz-red/10 text-quiz-red font-bold">{error}</Card>
+      </Screen>
     )
   }
 
-  if (!stats || stats.total_attempts === 0) {
-    return (
-      <div className="dashboard">
-        <div className="header-section">
-          <h1>📊 Dashboard</h1>
-          <p>Your study statistics</p>
-        </div>
+  const empty = !stats || stats.total_attempts === 0
+  return (
+    <Screen width="wide">
+      <header className="mb-6">
+        <h1 className="!text-3xl !font-black tracking-tight mb-1">📊 Dashboard</h1>
+        <p className="text-quiz-muted font-semibold">Your study statistics</p>
+      </header>
+
+      <div className="grid grid-cols-1 gap-3 mb-4">
         {ranks.length > 0 && <RankPanel ranks={ranks} />}
         {streak && <StreakCard streak={streak} />}
-        <div className="no-data">
-          <div className="emoji">📭</div>
-          <p>No quiz attempts yet. Take a quiz first and your stats will appear here!</p>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="dashboard">
-      <div className="header-section">
-        <h1>📊 Dashboard</h1>
-        <p>Your study statistics at a glance</p>
       </div>
 
-      {/* Rank + streak — the headline */}
-      {ranks.length > 0 && <RankPanel ranks={ranks} />}
-      {streak && <StreakCard streak={streak} />}
-
-      {/* Top stat cards */}
-      <div className="stat-grid">
-        <StatCard
-          icon="🎯"
-          label="Overall accuracy"
-          value={`${stats.overall_accuracy}%`}
-          sub={`${stats.total_correct}/${stats.total_questions_answered} correct`}
-          highlight
-        />
-        <StatCard
-          icon="📚"
-          label="Quizzes taken"
-          value={stats.total_attempts}
-          sub={`${stats.total_quizzes} unique quiz${stats.total_quizzes === 1 ? '' : 'zes'}`}
-        />
-        <StatCard
-          icon="⏱️"
-          label="Time spent"
-          value={formatTime(stats.total_time_seconds)}
-          sub={`~${stats.avg_time_per_question}s per question`}
-        />
-        <StatCard
-          icon="🔥"
-          label="Current streak"
-          value={`${stats.recent_streak_days} day${stats.recent_streak_days === 1 ? '' : 's'}`}
-          sub={stats.recent_streak_days > 0 ? 'Keep it going!' : 'Take a quiz today'}
-        />
-      </div>
-
-      {/* Performance trend */}
-      {stats.trend && stats.trend.length > 0 && (
-        <Panel title="Performance trend" subtitle={`Last ${stats.trend.length} attempts`}>
-          <TrendChart data={stats.trend} />
-        </Panel>
-      )}
-
-      {/* Practice growth — T3.2 */}
-      {stats.growth && <GrowthPanel growth={stats.growth} />}
-
-      <div className="two-column">
-        {/* By subtopic */}
-        {stats.by_subtopic && stats.by_subtopic.length > 0 && (
-          <Panel title="Accuracy by subtopic" subtitle="How you're doing per topic">
-            <BarList items={stats.by_subtopic} />
-          </Panel>
-        )}
-
-        {/* By difficulty */}
-        {stats.by_difficulty && stats.by_difficulty.length > 0 && (
-          <Panel title="Accuracy by difficulty" subtitle="Easy → Hard">
-            <BarList items={stats.by_difficulty} />
-          </Panel>
-        )}
-      </div>
-
-      {/* Weakest topics */}
-      {stats.weakest_subtopics && stats.weakest_subtopics.length > 0 && (
-        <Panel title="Focus areas" subtitle="Subtopics where you can improve the most">
-          <div className="weakest-list">
-            {stats.weakest_subtopics.map((s) => (
-              <div key={s.name} className="weakest-item">
-                <div className="weakest-name">{s.name}</div>
-                <div className="weakest-meta">
-                  <span className="weakest-acc">{s.accuracy}%</span>
-                  <span className="weakest-count">{s.correct}/{s.total} correct</span>
-                </div>
-              </div>
-            ))}
+      {empty ? (
+        <Card variant="solid" className="!p-12 text-center">
+          <div className="text-6xl mb-3">📭</div>
+          <p className="text-quiz-muted font-bold">No quiz attempts yet. Take a Practice quiz first and your stats will appear here!</p>
+        </Card>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <StatCard icon="🎯" label="Overall accuracy" value={`${stats.overall_accuracy}%`} sub={`${stats.total_correct}/${stats.total_questions_answered} correct`} highlight />
+            <StatCard icon="📚" label="Quizzes taken"    value={stats.total_attempts} sub={`${stats.total_quizzes} unique`} />
+            <StatCard icon="⏱️" label="Time spent"      value={formatTime(stats.total_time_seconds)} sub={`~${stats.avg_time_per_question}s/q`} />
+            <StatCard icon="🔥" label="Current streak"  value={`${stats.recent_streak_days}d`} sub={stats.recent_streak_days > 0 ? 'Keep it going!' : 'Take a quiz today'} />
           </div>
-        </Panel>
+
+          {stats.trend && stats.trend.length > 0 && (
+            <Panel title="Performance trend" subtitle={`Last ${stats.trend.length} attempts`}>
+              <TrendChart data={stats.trend} />
+            </Panel>
+          )}
+
+          {stats.growth && <GrowthPanel growth={stats.growth} />}
+
+          <div className="grid grid-cols-1 gap-3">
+            {stats.by_subtopic && stats.by_subtopic.length > 0 && (
+              <Panel title="Accuracy by topic" subtitle="How you're doing per topic">
+                <BarList items={stats.by_subtopic} />
+              </Panel>
+            )}
+            {stats.by_difficulty && stats.by_difficulty.length > 0 && (
+              <Panel title="Accuracy by difficulty" subtitle="Easy → Hard">
+                <BarList items={stats.by_difficulty} />
+              </Panel>
+            )}
+          </div>
+
+          {stats.weakest_subtopics && stats.weakest_subtopics.length > 0 && (
+            <Panel title="Focus areas" subtitle="Where you can improve the most">
+              <div className="space-y-2">
+                {stats.weakest_subtopics.map((s) => (
+                  <div key={s.name} className="flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-white/5 border border-quiz-border">
+                    <div className="font-bold">{s.name}</div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <span className="font-black text-quiz-red">{s.accuracy}%</span>
+                      <span className="text-quiz-muted">{s.correct}/{s.total}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Panel>
+          )}
+        </>
       )}
-    </div>
+    </Screen>
   )
 }
 
 function StatCard({ icon, label, value, sub, highlight }) {
   return (
-    <div className={`stat-card${highlight ? ' highlight' : ''}`}>
-      <div className="stat-icon">{icon}</div>
-      <div className="stat-label">{label}</div>
-      <div className="stat-value">{value}</div>
-      <div className="stat-sub">{sub}</div>
-    </div>
+    <Card variant="solid" className={'!p-4 ' + (highlight ? 'ring-2 ring-quiz-blue/40' : '')}>
+      <div className="text-2xl mb-1">{icon}</div>
+      <div className="text-xs font-bold text-quiz-muted uppercase tracking-wider">{label}</div>
+      <div className="text-2xl sm:text-3xl font-black mt-0.5">{value}</div>
+      <div className="text-xs text-quiz-muted mt-1">{sub}</div>
+    </Card>
   )
 }
 
@@ -194,209 +143,101 @@ function StreakCard({ streak }) {
   const freezes = streak.freezes_available ?? 0
   const didToday = !!streak.did_today
   return (
-    <div className="panel streak-panel">
-      <div className="panel-head">
-        <h2>Daily Streak</h2>
-        <p>{didToday ? "Today's challenge done — streak safe" : "Today's challenge not done yet"}</p>
+    <Card variant="solid" className="!p-5">
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div>
+          <h2 className="!text-lg !font-black">Daily Streak</h2>
+          <p className="text-xs text-quiz-muted font-semibold mt-0.5">
+            {didToday ? "Today's challenge done — streak safe" : "Today's challenge not done yet"}
+          </p>
+        </div>
       </div>
-      <div className="panel-body">
-        <div className="streak-row">
-          <div className={`streak-flame ${current > 0 ? 'lit' : ''}`}>
-            <span className="streak-num">{current}</span>
-            <span className="streak-unit">day{current === 1 ? '' : 's'}</span>
+      <div className="flex items-center gap-5">
+        <div className={'flex flex-col items-center justify-center w-24 h-24 rounded-full text-3xl font-black ' +
+          (current > 0
+            ? 'bg-gradient-to-br from-quiz-orange to-quiz-red text-white shadow-xl'
+            : 'bg-white/5 border-2 border-quiz-border text-quiz-muted')}>
+          <span className="leading-none">{current}</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest mt-1">{current === 1 ? 'day' : 'days'}</span>
+        </div>
+        <div className="grid grid-cols-3 gap-3 flex-1 text-center">
+          <div>
+            <div className="text-[10px] font-bold text-quiz-muted uppercase tracking-wider">Longest</div>
+            <div className="font-black mt-0.5">{longest}d</div>
           </div>
-          <div className="streak-meta">
-            <div className="streak-meta-item">
-              <span className="streak-meta-label">Longest</span>
-              <span className="streak-meta-value">{longest} day{longest === 1 ? '' : 's'}</span>
-            </div>
-            <div className="streak-meta-item">
-              <span className="streak-meta-label">Freeze</span>
-              <span className="streak-meta-value">🧊 {freezes}</span>
-            </div>
-            <div className="streak-meta-item">
-              <span className="streak-meta-label">Today</span>
-              <span className="streak-meta-value">{didToday ? '✅ Done' : '⏳ Pending'}</span>
-            </div>
+          <div>
+            <div className="text-[10px] font-bold text-quiz-muted uppercase tracking-wider">Freeze</div>
+            <div className="font-black mt-0.5">🧊 {freezes}</div>
+          </div>
+          <div>
+            <div className="text-[10px] font-bold text-quiz-muted uppercase tracking-wider">Today</div>
+            <div className="font-black mt-0.5">{didToday ? '✅' : '⏳'}</div>
           </div>
         </div>
       </div>
-    </div>
+    </Card>
   )
 }
 
 function RankPanel({ ranks }) {
   return (
-    <div className="panel rank-panel">
-      <div className="panel-head">
-        <h2>Your Rank</h2>
-        <p>Your current standing per subject</p>
+    <Card variant="solid" className="!p-5">
+      <div className="mb-3">
+        <h2 className="!text-lg !font-black">Your Rank</h2>
+        <p className="text-xs text-quiz-muted font-semibold mt-0.5">Your current standing per subject</p>
       </div>
-      <div className="panel-body">
-        <div className="rank-grid">
-          {ranks.map((r) => (
-            <div key={r.subject} className="rank-card">
-              <div className="rank-badge">{r.tier_icon}</div>
-              <div className="rank-meta">
-                <div className="rank-subject">
-                  {r.tier_name ? `${r.tier_name} · ${r.subject}` : r.subject}
-                </div>
-                <div className="rank-score">{r.rank_score}% at placement</div>
-                {r.tier_desc && (
-                  <div style={{ fontSize: 12, color: 'var(--text-dim, #93a0c0)', marginTop: 6, lineHeight: 1.45 }}>
-                    {r.tier_desc}
-                  </div>
-                )}
+      <div className="flex flex-col gap-3">
+        {ranks.map((r) => (
+          <div key={r.subject} className="flex items-center gap-4 p-3 rounded-2xl
+                                          bg-gradient-to-r from-quiz-blue/15 to-quiz-purple/15
+                                          border border-quiz-blue/30">
+            <div className="w-16 h-16 rounded-full flex items-center justify-center text-4xl
+                            bg-gradient-to-br from-quiz-blue/25 to-quiz-purple/25
+                            border border-quiz-blue/40 shrink-0">
+              {r.tier_icon}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="font-black text-lg">
+                {r.tier_name ? `${r.tier_name} · ${r.subject}` : r.subject}
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function GrowthPanel({ growth }) {
-  if (!growth) return null
-  const {
-    accuracy_delta, this_week_accuracy, last_week_accuracy,
-    topics_improved, topics_tracked, per_topic_trend,
-  } = growth
-  const hasWeek = accuracy_delta !== null && accuracy_delta !== undefined
-  const trend = per_topic_trend || []
-  const hasTopics = trend.length > 0
-
-  if (!hasWeek && !hasTopics) {
-    return (
-      <Panel title="Practice growth" subtitle="Your improvement over time">
-        <div style={{ color: 'var(--text-dim, #93a0c0)', fontSize: 14, padding: '8px 0' }}>
-          Not enough practice history yet. Take a few more practice quizzes and
-          your week-on-week growth will show up here.
-        </div>
-        <div style={GS.legibility}>
-          💡 Drill your weak topics in Practice to ace tomorrow's Daily Challenge.
-        </div>
-      </Panel>
-    )
-  }
-
-  const dColor = (d) => (d > 0 ? '#10B981' : d < 0 ? '#EF4444' : '#93a0c0')
-  const dArrow = (d) => (d > 0 ? '▲' : d < 0 ? '▼' : '—')
-
-  return (
-    <Panel title="Practice growth" subtitle="Improvement, not just volume">
-      {hasWeek && (
-        <div style={GS.headline}>
-          <div style={{ ...GS.deltaBig, color: dColor(accuracy_delta) }}>
-            {dArrow(accuracy_delta)} {Math.abs(accuracy_delta)}%
-          </div>
-          <div>
-            <div style={GS.headlineLabel}>Accuracy vs last week</div>
-            <div style={GS.headlineSub}>
-              {last_week_accuracy}% → <strong>{this_week_accuracy}%</strong> this week
+              <div className="text-xs text-quiz-muted font-bold">{r.rank_score}% at placement</div>
+              {r.tier_desc && (
+                <div className="text-xs text-quiz-muted leading-relaxed mt-1.5 line-clamp-2">{r.tier_desc}</div>
+              )}
             </div>
           </div>
-        </div>
-      )}
-
-      {hasTopics && (
-        <div style={GS.improvedRow}>
-          <span style={GS.improvedNum}>{topics_improved}</span>
-          <span style={GS.improvedText}>
-            of {topics_tracked} topic{topics_tracked === 1 ? '' : 's'} trending up
-          </span>
-        </div>
-      )}
-
-      {hasTopics && (
-        <div style={{ marginTop: 12 }}>
-          {trend.map((t) => (
-            <div key={t.name} style={GS.topicRow}>
-              <span style={GS.topicName}>{t.name}</span>
-              <span style={GS.topicTrend}>
-                <span style={GS.topicAccDim}>{t.earlier_accuracy}%</span>
-                <span style={GS.topicArrow}>→</span>
-                <span style={GS.topicAccLive}>{t.recent_accuracy}%</span>
-                <span
-                  style={{
-                    ...GS.topicDelta,
-                    color: dColor(t.delta),
-                    background: dColor(t.delta) + '22',
-                  }}
-                >
-                  {dArrow(t.delta)} {Math.abs(t.delta)}%
-                </span>
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div style={GS.legibility}>
-        💡 Drill your weak topics in Practice to ace tomorrow's Daily Challenge.
+        ))}
       </div>
-    </Panel>
+    </Card>
   )
-}
-
-const GS = {
-  headline: { display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 },
-  deltaBig: { fontSize: 30, fontWeight: 800, lineHeight: 1, minWidth: 96 },
-  headlineLabel: { fontSize: 13, color: 'var(--text-dim, #93a0c0)' },
-  headlineSub: { fontSize: 15, marginTop: 2 },
-  improvedRow: {
-    display: 'flex', alignItems: 'baseline', gap: 8,
-    padding: '10px 0', borderTop: '1px solid rgba(255,255,255,0.06)',
-  },
-  improvedNum: { fontSize: 22, fontWeight: 700, color: '#6EE7B7' },
-  improvedText: { fontSize: 14, color: 'var(--text-dim, #93a0c0)' },
-  topicRow: {
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    gap: 12, padding: '8px 0', borderTop: '1px solid rgba(255,255,255,0.05)',
-  },
-  topicName: { fontSize: 14, fontWeight: 500 },
-  topicTrend: { display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 },
-  topicAccDim: { fontSize: 13, color: 'var(--text-dim, #93a0c0)' },
-  topicArrow: { fontSize: 12, color: 'var(--text-dim, #93a0c0)' },
-  topicAccLive: { fontSize: 14, fontWeight: 700 },
-  topicDelta: {
-    fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 999, minWidth: 52,
-    textAlign: 'center',
-  },
-  legibility: {
-    marginTop: 16, padding: '10px 12px', borderRadius: 10,
-    background: 'rgba(93,169,255,0.1)', border: '1px solid rgba(93,169,255,0.25)',
-    fontSize: 13, color: 'var(--text, #e6ecff)',
-  },
 }
 
 function Panel({ title, subtitle, children }) {
   return (
-    <div className="panel">
-      <div className="panel-head">
-        <h2>{title}</h2>
-        {subtitle && <p>{subtitle}</p>}
+    <Card variant="solid" className="!p-5 mb-4">
+      <div className="mb-3">
+        <h2 className="!text-lg !font-black">{title}</h2>
+        {subtitle && <p className="text-xs text-quiz-muted font-semibold mt-0.5">{subtitle}</p>}
       </div>
-      <div className="panel-body">{children}</div>
-    </div>
+      {children}
+    </Card>
   )
 }
 
 function BarList({ items }) {
   return (
-    <div className="bar-list">
+    <div className="space-y-2.5">
       {items.map((it) => {
         const pct = it.accuracy
-        // colour-code by accuracy band
-        const cls = pct >= 80 ? 'bar-good' : pct >= 50 ? 'bar-ok' : 'bar-bad'
+        const barCol = pct >= 80 ? 'bg-quiz-green' : pct >= 50 ? 'bg-quiz-yellow' : 'bg-quiz-red'
         return (
-          <div key={it.name} className="bar-row">
-            <div className="bar-label">
-              <span className="bar-name">{it.name}</span>
-              <span className="bar-meta">{it.correct}/{it.total} • {pct}%</span>
+          <div key={it.name}>
+            <div className="flex items-center justify-between text-sm mb-1">
+              <span className="font-bold">{it.name}</span>
+              <span className="text-quiz-muted text-xs font-bold">{it.correct}/{it.total} · {pct}%</span>
             </div>
-            <div className="bar-track">
-              <div className={`bar-fill ${cls}`} style={{ width: `${pct}%` }} />
+            <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+              <div className={'h-full ' + barCol + ' transition-all'} style={{ width: `${pct}%` }} />
             </div>
           </div>
         )
@@ -405,15 +246,85 @@ function BarList({ items }) {
   )
 }
 
-function TrendChart({ data }) {
-  // Simple inline SVG line chart of percentages.
-  const w = 100
-  const h = 32
-  const padX = 2
-  const padY = 4
-  const usableW = w - padX * 2
-  const usableH = h - padY * 2
+function GrowthPanel({ growth }) {
+  if (!growth) return null
+  const { accuracy_delta, this_week_accuracy, last_week_accuracy,
+          topics_improved, topics_tracked, per_topic_trend } = growth
+  const hasWeek = accuracy_delta !== null && accuracy_delta !== undefined
+  const trend = per_topic_trend || []
+  const hasTopics = trend.length > 0
 
+  if (!hasWeek && !hasTopics) {
+    return (
+      <Panel title="Practice growth" subtitle="Your improvement over time">
+        <p className="text-quiz-muted text-sm">
+          Not enough practice history yet. Take a few more practice quizzes and your week-on-week growth will show up here.
+        </p>
+        <Hint />
+      </Panel>
+    )
+  }
+
+  const dColor = (d) => (d > 0 ? 'text-quiz-green' : d < 0 ? 'text-quiz-red' : 'text-quiz-muted')
+  const dBg    = (d) => (d > 0 ? 'bg-quiz-green/15' : d < 0 ? 'bg-quiz-red/15' : 'bg-white/5')
+  const dArrow = (d) => (d > 0 ? '▲' : d < 0 ? '▼' : '—')
+
+  return (
+    <Panel title="Practice growth" subtitle="Improvement, not just volume">
+      {hasWeek && (
+        <div className="flex items-center gap-4 mb-4">
+          <div className={'text-4xl font-black ' + dColor(accuracy_delta)}>
+            {dArrow(accuracy_delta)} {Math.abs(accuracy_delta)}%
+          </div>
+          <div>
+            <div className="text-xs font-bold text-quiz-muted uppercase tracking-wider">Accuracy vs last week</div>
+            <div className="text-sm mt-0.5">
+              {last_week_accuracy}% → <strong>{this_week_accuracy}%</strong> this week
+            </div>
+          </div>
+        </div>
+      )}
+      {hasTopics && (
+        <div className="flex items-baseline gap-2 py-2 border-t border-quiz-border">
+          <span className="text-2xl font-black text-quiz-green">{topics_improved}</span>
+          <span className="text-sm text-quiz-muted font-bold">
+            of {topics_tracked} topic{topics_tracked === 1 ? '' : 's'} trending up
+          </span>
+        </div>
+      )}
+      {hasTopics && (
+        <div className="mt-2">
+          {trend.map((t) => (
+            <div key={t.name} className="flex items-center justify-between gap-3 py-2 border-t border-quiz-border/60">
+              <span className="font-bold text-sm truncate">{t.name}</span>
+              <span className="flex items-center gap-2 shrink-0">
+                <span className="text-xs text-quiz-muted">{t.earlier_accuracy}%</span>
+                <span className="text-quiz-muted">→</span>
+                <span className="text-sm font-black">{t.recent_accuracy}%</span>
+                <span className={'text-xs font-black px-2 py-0.5 rounded-full min-w-[56px] text-center ' + dColor(t.delta) + ' ' + dBg(t.delta)}>
+                  {dArrow(t.delta)} {Math.abs(t.delta)}%
+                </span>
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+      <Hint />
+    </Panel>
+  )
+}
+
+function Hint() {
+  return (
+    <div className="mt-4 px-3 py-2.5 rounded-2xl bg-quiz-blue/10 border border-quiz-blue/30 text-sm">
+      💡 Drill your weak topics in Practice to ace tomorrow's Daily Challenge.
+    </div>
+  )
+}
+
+function TrendChart({ data }) {
+  const w = 100, h = 32, padX = 2, padY = 4
+  const usableW = w - padX * 2, usableH = h - padY * 2
   const points = data.map((d, i) => {
     const x = padX + (i / Math.max(1, data.length - 1)) * usableW
     const y = padY + usableH * (1 - (d.percentage / 100))
@@ -423,27 +334,26 @@ function TrendChart({ data }) {
     .map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`)
     .join(' ')
   const areaD = `${pathD} L ${points[points.length - 1][0].toFixed(2)} ${(h - padY).toFixed(2)} L ${points[0][0].toFixed(2)} ${(h - padY).toFixed(2)} Z`
-
   return (
-    <div className="trend-wrap">
-      <svg viewBox={`0 0 ${w} ${h}`} className="trend-svg" preserveAspectRatio="none">
+    <div>
+      <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-32" preserveAspectRatio="none">
         {[25, 50, 75].map((v) => {
           const y = padY + usableH * (1 - v / 100)
-          return <line key={v} x1={padX} x2={w - padX} y1={y} y2={y} className="trend-grid" />
+          return <line key={v} x1={padX} x2={w - padX} y1={y} y2={y} stroke="rgba(255,255,255,0.08)" strokeWidth="0.25" strokeDasharray="0.6 0.6" />
         })}
         <defs>
           <linearGradient id="trend-area" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#5DA9FF" stopOpacity="0.5" />
-            <stop offset="100%" stopColor="#5DA9FF" stopOpacity="0" />
+            <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.6" />
+            <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
           </linearGradient>
         </defs>
         <path d={areaD} fill="url(#trend-area)" />
-        <path d={pathD} className="trend-line" />
-        {points.map(([x, y, d], i) => (
-          <circle key={i} cx={x} cy={y} r="0.9" className="trend-dot" />
+        <path d={pathD} stroke="#38bdf8" strokeWidth="0.8" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        {points.map(([x, y], i) => (
+          <circle key={i} cx={x} cy={y} r="0.9" fill="#22d3ee" />
         ))}
       </svg>
-      <div className="trend-legend">
+      <div className="flex justify-between text-xs text-quiz-muted font-bold mt-2">
         <span>{data[0].percentage}% (oldest)</span>
         <span>{data[data.length - 1].percentage}% (latest)</span>
       </div>

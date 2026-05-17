@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>QuizQuest — Daily Science Quiz</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #4ade80;
+    --green-dark: #22c55e;
+    --green-shadow: #16a34a;
+    --blue: #38bdf8;
+    --blue-dark: #0ea5e9;
+    --red: #fb7185;
+    --red-dark: #f43f5e;
+    --yellow: #fbbf24;
+    --purple: #c084fc;
+    --orange: #fb923c;
+    --pink: #f472b6;
+    --cyan: #22d3ee;
+    --magenta: #e879f9;
+    --lime: #a3e635;
+    --bg: #0a0a1f;
+    --bg-2: #14142b;
+    --card: rgba(30, 30, 60, 0.65);
+    --card-solid: #1a1a35;
+    --border: rgba(140, 140, 220, 0.25);
+    --border-bright: rgba(180, 180, 255, 0.45);
+    --text: #e9e9ff;
+    --muted: #9d9dbf;
+  }
+  * { font-family: 'Nunito', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+  html, body { background: #050514; color: var(--text); overscroll-behavior: none; }
+  body {
+    background:
+      radial-gradient(ellipse at 20% 10%, rgba(139, 92, 246, 0.25) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(34, 211, 238, 0.18) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 50%, rgba(232, 121, 249, 0.12) 0%, transparent 60%),
+      linear-gradient(180deg, #0a0a1f 0%, #14142b 50%, #1a0a2e 100%);
+    min-height: 100vh;
+  }
+  /* Starfield */
+  body::before, body::after {
+    content: '';
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  }
+  body::before {
+    background-image:
+      radial-gradient(1.5px 1.5px at 12% 24%, #fff, transparent),
+      radial-gradient(1px 1px at 33% 78%, #fff, transparent),
+      radial-gradient(2px 2px at 64% 45%, #fff, transparent),
+      radial-gradient(1px 1px at 81% 12%, rgba(255,255,255,0.7), transparent),
+      radial-gradient(1.5px 1.5px at 92% 67%, #fff, transparent),
+      radial-gradient(1px 1px at 47% 91%, rgba(255,255,255,0.6), transparent),
+      radial-gradient(2px 2px at 7% 56%, #fff, transparent),
+      radial-gradient(1px 1px at 25% 33%, rgba(180,200,255,0.8), transparent),
+      radial-gradient(1px 1px at 58% 9%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 73% 88%, rgba(255,220,180,0.9), transparent);
+    background-size: 400px 400px;
+    animation: twinkle 4s ease-in-out infinite alternate;
+  }
+  body::after {
+    background-image:
+      radial-gradient(1px 1px at 22% 64%, rgba(180,200,255,0.6), transparent),
+      radial-gradient(1px 1px at 55% 22%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1.5px 1.5px at 88% 38%, rgba(255,180,220,0.7), transparent),
+      radial-gradient(1px 1px at 14% 88%, rgba(255,255,255,0.5), transparent);
+    background-size: 300px 300px;
+    animation: drift 60s linear infinite;
+  }
+  @keyframes twinkle { 0% { opacity: 0.4; } 100% { opacity: 1; } }
+  @keyframes drift { 0% { transform: translate(0,0);} 100% { transform: translate(-300px, -300px);} }
+  .btn-3d {
+    border-radius: 16px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    transition: transform 0.06s, box-shadow 0.06s, filter 0.1s;
+    user-select: none;
+    cursor: pointer;
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-3d:active { transform: translateY(3px); box-shadow: 0 1px 0 0 rgba(0,0,0,0.4) !important; filter: brightness(0.95); }
+  .btn-green { background: linear-gradient(180deg, #4ade80, #22c55e); color: #061b0e; box-shadow: 0 4px 0 0 #15803d, 0 0 24px rgba(74, 222, 128, 0.4); border-color: #86efac; }
+  .btn-green:hover { filter: brightness(1.1); box-shadow: 0 4px 0 0 #15803d, 0 0 32px rgba(74, 222, 128, 0.6); }
+  .btn-blue { background: linear-gradient(180deg, #38bdf8, #0ea5e9); color: #04222e; box-shadow: 0 4px 0 0 #0369a1, 0 0 24px rgba(56, 189, 248, 0.4); border-color: #7dd3fc; }
+  .btn-red { background: linear-gradient(180deg, #fb7185, #f43f5e); color: #350814; box-shadow: 0 4px 0 0 #be123c, 0 0 24px rgba(251, 113, 133, 0.4); border-color: #fda4af; }
+  .btn-white { background: rgba(255,255,255,0.08); color: var(--text); box-shadow: 0 4px 0 0 rgba(0,0,0,0.4); border: 2px solid var(--border); backdrop-filter: blur(8px); }
+  .btn-white:hover { background: rgba(255,255,255,0.15); border-color: var(--border-bright); }
+  .btn-yellow { background: linear-gradient(180deg, #fbbf24, #f59e0b); color: #3a1d04; box-shadow: 0 4px 0 0 #b45309, 0 0 24px rgba(251, 191, 36, 0.4); border-color: #fcd34d; }
+  .btn-purple { background: linear-gradient(180deg, #c084fc, #a855f7); color: #1f0633; box-shadow: 0 4px 0 0 #6b21a8, 0 0 24px rgba(192, 132, 252, 0.5); border-color: #d8b4fe; }
+  .btn-disabled { background: rgba(80,80,110,0.4) !important; color: #6b6b8a !important; box-shadow: 0 4px 0 0 rgba(0,0,0,0.3) !important; cursor: not-allowed; border-color: rgba(140,140,180,0.2) !important; filter: none !important;}
+
+  .answer-tile {
+    background: var(--card);
+    backdrop-filter: blur(10px);
+    border: 2px solid var(--border);
+    border-bottom-width: 4px;
+    border-radius: 16px;
+    padding: 18px 16px;
+    font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .answer-tile:hover:not(.locked) { border-color: var(--border-bright); background: rgba(56,189,248,0.08); transform: translateY(-1px); }
+  .answer-tile.selected { border-color: var(--cyan); background: rgba(34,211,238,0.15); color: #a5f3fc; box-shadow: 0 0 24px rgba(34,211,238,0.35); }
+  .answer-tile.correct { border-color: var(--green); background: rgba(74,222,128,0.15); color: #bbf7d0; box-shadow: 0 0 28px rgba(74,222,128,0.5); }
+  .answer-tile.wrong { border-color: var(--red); background: rgba(251,113,133,0.15); color: #fecdd3; box-shadow: 0 0 28px rgba(251,113,133,0.45); }
+  .answer-tile .letter {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: rgba(140,140,220,0.15); color: var(--muted);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 14px;
+    border: 2px solid var(--border); flex-shrink: 0;
+  }
+  .answer-tile.selected .letter { background: rgba(34,211,238,0.2); border-color: var(--cyan); color: var(--cyan); }
+  .answer-tile.correct .letter { background: rgba(74,222,128,0.2); border-color: var(--green); color: var(--green); }
+  .answer-tile.wrong .letter { background: rgba(251,113,133,0.2); border-color: var(--red); color: var(--red); }
+
+  .progress-bar {
+    background: rgba(140,140,220,0.18);
+    border-radius: 999px;
+    height: 14px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--border);
+  }
+  .progress-fill {
+    background: linear-gradient(90deg, var(--cyan), var(--magenta));
+    box-shadow: 0 0 14px rgba(34, 211, 238, 0.6);
+    height: 100%;
+    transition: width 0.4s ease;
+    border-radius: 999px;
+    position: relative;
+  }
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 8px; right: 8px;
+    height: 4px;
+    background: rgba(255,255,255,0.4);
+    border-radius: 999px;
+  }
+  .pop-in { animation: pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  @keyframes pop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  .slide-up { animation: slideUp 0.3s ease-out; }
+  @keyframes slideUp { 0% { transform: translateY(20px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+  .shake { animation: shake 0.4s; }
+  @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-8px);} 75%{transform:translateX(8px);} }
+  .bounce { animation: bounce 0.6s infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);} }
+  .confetti { position: fixed; pointer-events: none; top: -20px; width: 10px; height: 14px; opacity: 0.9; z-index: 100; }
+  @keyframes fall { 0% { transform: translateY(0) rotate(0deg); } 100% { transform: translateY(110vh) rotate(720deg); } }
+
+  /* ===== Global remap so inline Tailwind utilities fit the dark space theme ===== */
+  .bg-white { background: var(--card) !important; backdrop-filter: blur(10px); }
+  .bg-gray-50 { background: rgba(140,140,220,0.08) !important; }
+  .text-gray-400, .text-gray-500, .text-gray-600, .text-gray-700, .text-gray-800 { color: var(--muted) !important; }
+  .border-gray-100, .border-gray-200, .border-gray-300 { border-color: var(--border) !important; }
+  .border-blue-400 { border-color: var(--cyan) !important; box-shadow: 0 0 16px rgba(34,211,238,0.35); }
+  .bg-blue-50 { background: rgba(34,211,238,0.12) !important; }
+  .text-blue-500, .text-blue-700 { color: var(--cyan) !important; }
+  .bg-blue-500 { background: linear-gradient(180deg, var(--cyan), var(--blue-dark)) !important; box-shadow: 0 0 18px rgba(34,211,238,0.5); }
+  .bg-orange-100 { background: rgba(251,146,60,0.15) !important; border: 1px solid rgba(251,146,60,0.35); }
+  .text-orange-500, .text-orange-600, .text-orange-700, .text-orange-800 { color: #fdba74 !important; }
+  .bg-yellow-100, .bg-yellow-50 { background: rgba(251,191,36,0.15) !important; border-color: rgba(251,191,36,0.35) !important; }
+  .text-yellow-600, .text-yellow-700, .text-yellow-800 { color: #fcd34d !important; }
+  .border-yellow-200, .border-yellow-300 { border-color: rgba(251,191,36,0.4) !important; }
+  .bg-purple-50, .bg-purple-100 { background: rgba(192,132,252,0.15) !important; }
+  .text-purple-500, .text-purple-600, .text-purple-700, .text-purple-800 { color: #d8b4fe !important; }
+  .border-orange-200, .border-orange-300 { border-color: rgba(251,146,60,0.4) !important; }
+  .bg-red-400, .border-red-400 { border-color: var(--red) !important; }
+  /* Card top-edge highlight + subtle glow */
+  .bg-white { border-color: var(--border) !important; box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(255,255,255,0.02); }
+
+  .tab-btn { color: var(--muted); font-weight: 800; padding: 10px 0; display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .tab-btn.active { color: var(--cyan); text-shadow: 0 0 12px rgba(34,211,238,0.6); }
+  .tab-btn svg { width: 28px; height: 28px; }
+
+  .mascot { font-size: 64px; line-height: 1; filter: drop-shadow(0 0 24px rgba(192,132,252,0.7)); }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+  .feedback-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    padding: 20px 16px 24px;
+    border-top: 2px solid var(--border);
+    background: rgba(20,20,40,0.95);
+    backdrop-filter: blur(16px);
+    color: var(--text);
+    transform: translateY(100%);
+    transition: transform 0.3s;
+    z-index: 50;
+  }
+  .feedback-bar.show { transform: translateY(0); }
+  .feedback-bar.correct { background: linear-gradient(180deg, rgba(34,197,94,0.25), rgba(20,20,40,0.95)); border-top: 2px solid var(--green); box-shadow: 0 -8px 32px rgba(74,222,128,0.3); }
+  .feedback-bar.wrong { background: linear-gradient(180deg, rgba(244,63,94,0.25), rgba(20,20,40,0.95)); border-top: 2px solid var(--red); box-shadow: 0 -8px 32px rgba(251,113,133,0.3); }
+
+  .ring-progress { transform: rotate(-90deg); }
+
+  .badge-card {
+    background: linear-gradient(135deg, rgba(251,191,36,0.25), rgba(232,121,249,0.2));
+    border: 2px solid rgba(251,191,36,0.6);
+    border-bottom-width: 4px;
+    box-shadow: 0 0 24px rgba(251,191,36,0.3);
+  }
+  .locked-badge { background: rgba(140,140,180,0.08); border: 2px solid rgba(140,140,180,0.2); opacity: 0.55; }
+
+  .reward-card {
+    background: var(--card);
+    backdrop-filter: blur(10px);
+    border: 2px solid var(--border);
+    border-bottom-width: 4px;
+    border-radius: 16px;
+    transition: transform 0.1s, box-shadow 0.2s;
+  }
+  .reward-card:hover { transform: translateY(-2px); border-color: var(--border-bright); box-shadow: 0 6px 24px rgba(192,132,252,0.25); }
+
+  /* Inputs */
+  input { background: rgba(20,20,40,0.6) !important; color: var(--text) !important; border-color: var(--border) !important; }
+  input::placeholder { color: var(--muted); }
+  input:focus { border-color: var(--cyan) !important; box-shadow: 0 0 0 3px rgba(34,211,238,0.2); }
+
+  /* Phone frame for desktop preview */
+  @media (min-width: 600px) {
+    body { display: flex; align-items: center; justify-content: center; padding: 20px; }
+    #app {
+      max-width: 420px;
+      height: 90vh;
+      max-height: 880px;
+      box-shadow: 0 0 60px rgba(192,132,252,0.4), 0 0 120px rgba(34,211,238,0.2), 0 20px 80px rgba(0,0,0,0.6);
+      border-radius: 36px;
+      overflow: hidden;
+      position: relative;
+      border: 2px solid rgba(192,132,252,0.3);
+    }
+  }
+  #app {
+    background:
+      radial-gradient(ellipse at 30% 0%, rgba(192,132,252,0.18) 0%, transparent 50%),
+      radial-gradient(ellipse at 70% 100%, rgba(34,211,238,0.15) 0%, transparent 50%),
+      linear-gradient(180deg, #0a0a1f 0%, #14142b 100%);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+  .screen { flex: 1; overflow-y: auto; padding-bottom: 80px; }
+  .nav-bar {
+    background: rgba(10,10,30,0.85);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 4px 4px 8px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Glowing accent text */
+  .glow-cyan { text-shadow: 0 0 16px rgba(34,211,238,0.7); }
+  .glow-magenta { text-shadow: 0 0 16px rgba(232,121,249,0.7); }
+  .glow-green { text-shadow: 0 0 16px rgba(74,222,128,0.7); }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="screen" class="screen"></div>
+  <div id="nav" class="nav-bar"></div>
+</div>
+
+<script>
+/* ============================================================
+   QuizQuest — Frontend Prototype
+   Single-file Duolingo-style daily quiz app
+   Mock data; swap fetchQuestions() to call your real backend.
+============================================================ */
+
+// ---------- Mock Question Bank (aligned to MOE syllabus) ----------
+// Structure: subject → theme → topic → questions
+// Backend will replace fetchQuestions(); this is just so the UX is fully clickable.
+const QUESTION_BANK = {
+  "lss": {
+    label: "Lower Sec Science",
+    level: "Sec 1–2",
+    color: "#58cc02",
+    emoji: "🔬",
+    themes: {
+      "diversity": {
+        label: "Diversity",
+        emoji: "🌿",
+        topics: {
+          "phys-properties": { label: "Diversity of Matter — Physical Properties", questions: [
+            { q: "Which property is best for separating sand from water?", o: ["Density", "Solubility", "Particle size", "Colour"], a: 2, exp: "Filtration relies on particle size differences." },
+            { q: "A material that can be drawn into wires is described as…", o: ["Malleable", "Ductile", "Brittle", "Soluble"], a: 1, exp: "Ductile = can be drawn into wires (e.g. copper)." },
+            { q: "Density is defined as…", o: ["Mass × Volume", "Mass / Volume", "Volume / Mass", "Weight × Volume"], a: 1, exp: "ρ = m/V, units kg/m³ or g/cm³." },
+          ]},
+          "chem-composition": { label: "Diversity of Matter — Chemical Composition", questions: [
+            { q: "Which is a pure substance?", o: ["Air", "Sea water", "Distilled water", "Brass"], a: 2, exp: "Distilled water contains only H₂O molecules." },
+            { q: "An element is made of only one type of…", o: ["Compound", "Atom", "Molecule", "Mixture"], a: 1, exp: "Elements consist of one type of atom." },
+            { q: "Salt water is an example of a…", o: ["Compound", "Element", "Mixture", "Pure substance"], a: 2, exp: "Components keep their properties and can be separated physically." },
+          ]},
+          "separation": { label: "Separation Techniques", questions: [
+            { q: "Which method separates iron filings from sand?", o: ["Filtration", "Distillation", "Magnetic attraction", "Chromatography"], a: 2, exp: "Iron is magnetic; sand is not." },
+            { q: "Salt is recovered from sea water by…", o: ["Filtration", "Evaporation", "Decanting", "Sieving"], a: 1, exp: "Water evaporates and salt is left behind." },
+            { q: "Chromatography is used to separate…", o: ["Solids of different sizes", "Different coloured dyes", "Iron from sulfur", "Oil from water"], a: 1, exp: "Different solutes travel different distances along the paper." },
+          ]},
+        }
+      },
+      "models": {
+        label: "Models",
+        emoji: "🧊",
+        topics: {
+          "ray-light": { label: "Ray Model of Light", questions: [
+            { q: "Light travels in…", o: ["Curves", "Straight lines", "Zigzags", "Random paths"], a: 1, exp: "We model light as rays — straight lines from source." },
+            { q: "The angle of incidence equals the angle of…", o: ["Refraction", "Diffraction", "Reflection", "Dispersion"], a: 2, exp: "Law of reflection on a plane mirror." },
+            { q: "A shadow forms because light…", o: ["Bends around objects", "Cannot pass through opaque objects", "Is absorbed by air", "Reflects off everything"], a: 1, exp: "Opaque objects block light, leaving a shadow." },
+          ]},
+          "cells": { label: "Model of Cells — Basic Unit of Life", questions: [
+            { q: "Which organelle is the powerhouse of the cell?", o: ["Nucleus", "Mitochondrion", "Ribosome", "Vacuole"], a: 1, exp: "Mitochondria release energy through respiration." },
+            { q: "Plant cells have which feature that animal cells lack?", o: ["Cell membrane", "Cytoplasm", "Cell wall", "Nucleus"], a: 2, exp: "Cell wall is made of cellulose." },
+            { q: "What controls the activities of a cell?", o: ["Nucleus", "Cytoplasm", "Membrane", "Mitochondrion"], a: 0, exp: "Nucleus contains DNA." },
+          ]},
+          "particulate": { label: "Model of Matter — Particulate Nature", questions: [
+            { q: "Which state has particles in a fixed regular pattern?", o: ["Solid", "Liquid", "Gas", "Plasma"], a: 0, exp: "Solid particles vibrate about fixed positions." },
+            { q: "Gas → liquid is called…", o: ["Evaporation", "Condensation", "Sublimation", "Freezing"], a: 1, exp: "Condensation: gas to liquid." },
+            { q: "Why does a gas exert pressure?", o: ["Particles attract walls", "Particles collide with walls", "Particles are heavy", "Particles are sticky"], a: 1, exp: "Collisions with container walls cause pressure." },
+          ]},
+          "atoms": { label: "Model of Matter — Atoms and Molecules", questions: [
+            { q: "An atom of oxygen has how many protons?", o: ["6", "7", "8", "16"], a: 2, exp: "Oxygen's atomic number is 8." },
+            { q: "Which subatomic particle has no charge?", o: ["Proton", "Neutron", "Electron", "Ion"], a: 1, exp: "Neutrons are neutral." },
+            { q: "A water molecule (H₂O) contains…", o: ["2 atoms", "3 atoms", "4 atoms", "1 atom"], a: 1, exp: "2 H + 1 O = 3 atoms." },
+          ]},
+        }
+      },
+      "interactions": {
+        label: "Interactions",
+        emoji: "⚡",
+        topics: {
+          "forces-energy": { label: "Application of Forces & Transfer of Energy", questions: [
+            { q: "Unit of force is the…", o: ["Joule", "Newton", "Watt", "Pascal"], a: 1, exp: "1 N = 1 kg·m/s²." },
+            { q: "A stretched rubber band stores…", o: ["Kinetic energy", "Elastic potential energy", "Thermal energy", "Chemical energy"], a: 1, exp: "Elastic PE is stored in deformed elastic materials." },
+            { q: "A 2 kg object moves at 3 m/s. Its KE is…", o: ["3 J", "6 J", "9 J", "18 J"], a: 2, exp: "KE = ½mv² = ½(2)(9) = 9 J." },
+          ]},
+          "heat": { label: "Transfer of Heat Energy and its Effects", questions: [
+            { q: "Heat transfer through a metal rod is mainly by…", o: ["Convection", "Radiation", "Conduction", "Evaporation"], a: 2, exp: "Solids conduct heat via vibrating particles and free electrons." },
+            { q: "A black surface is a good…", o: ["Reflector", "Insulator", "Absorber of radiation", "Conductor"], a: 2, exp: "Dull black surfaces absorb and emit IR best." },
+            { q: "Convection requires…", o: ["A fluid (liquid or gas)", "A vacuum", "A solid", "Light"], a: 0, exp: "Convection moves heat via fluid currents." },
+          ]},
+          "chem-changes": { label: "Chemical Changes", questions: [
+            { q: "Burning magnesium in air is an example of…", o: ["Physical change", "Chemical change", "State change", "Melting"], a: 1, exp: "A new substance (MgO) is formed." },
+            { q: "Which is a sign of a chemical reaction?", o: ["Boiling", "Colour change & gas produced", "Melting", "Dissolving"], a: 1, exp: "New substances often produce gas, colour change, heat, or precipitate." },
+            { q: "Rusting needs water and…", o: ["Carbon dioxide", "Oxygen", "Nitrogen", "Hydrogen"], a: 1, exp: "Iron + O₂ + H₂O → hydrated iron(III) oxide." },
+          ]},
+          "ecosystems": { label: "Interactions within Ecosystems", questions: [
+            { q: "Plants are…", o: ["Consumers", "Producers", "Decomposers", "Predators"], a: 1, exp: "They make their own food via photosynthesis." },
+            { q: "Energy in a food chain originally comes from…", o: ["Soil", "Animals", "The Sun", "Water"], a: 2, exp: "Producers capture sunlight." },
+            { q: "Fungi and bacteria mostly act as…", o: ["Producers", "Herbivores", "Decomposers", "Predators"], a: 2, exp: "They break down dead organisms." },
+          ]},
+        }
+      },
+      "systems": {
+        label: "Systems",
+        emoji: "🫀",
+        topics: {
+          "electrical": { label: "Electrical Systems", questions: [
+            { q: "Current is measured in…", o: ["Volts", "Amperes", "Ohms", "Watts"], a: 1, exp: "A = coulombs per second." },
+            { q: "In a series circuit, if one bulb breaks…", o: ["Others stay on", "All go off", "Current increases", "Voltage doubles"], a: 1, exp: "One path; break it, all stops." },
+            { q: "A voltmeter is connected…", o: ["In series", "In parallel across the component", "Anywhere", "To the battery only"], a: 1, exp: "Voltmeters measure PD across a component." },
+          ]},
+          "digestive": { label: "Human Digestive System", questions: [
+            { q: "Digestion of starch begins in the…", o: ["Stomach", "Mouth", "Small intestine", "Large intestine"], a: 1, exp: "Salivary amylase starts starch digestion." },
+            { q: "Most nutrient absorption happens in the…", o: ["Stomach", "Large intestine", "Small intestine", "Oesophagus"], a: 2, exp: "Villi in the small intestine absorb nutrients." },
+            { q: "Bile is produced by the…", o: ["Pancreas", "Stomach", "Liver", "Gall bladder"], a: 2, exp: "Liver produces bile; gall bladder stores it." },
+          ]},
+          "transport": { label: "Transport Systems in Living Things", questions: [
+            { q: "Red blood cells carry oxygen using…", o: ["Plasma", "Haemoglobin", "Platelets", "White cells"], a: 1, exp: "Haemoglobin binds oxygen reversibly." },
+            { q: "Xylem in plants transports…", o: ["Sugars", "Water and minerals", "Oxygen", "Hormones"], a: 1, exp: "Xylem moves water up from roots." },
+            { q: "Which chamber pumps blood to the body?", o: ["Right atrium", "Right ventricle", "Left atrium", "Left ventricle"], a: 3, exp: "Left ventricle has the thickest muscle." },
+          ]},
+          "reproductive": { label: "Human Sexual Reproductive System", questions: [
+            { q: "Fertilisation in humans normally occurs in the…", o: ["Uterus", "Ovary", "Fallopian tube (oviduct)", "Vagina"], a: 2, exp: "Sperm meets egg in the oviduct." },
+            { q: "Where does the embryo implant?", o: ["Ovary", "Uterus lining", "Cervix", "Oviduct"], a: 1, exp: "Implantation in the endometrium." },
+            { q: "Which gland produces sperm?", o: ["Prostate", "Testes", "Seminal vesicle", "Bladder"], a: 1, exp: "Sperm are produced in the seminiferous tubules of the testes." },
+          ]},
+        }
+      },
+    }
+  },
+  "phy": {
+    label: "Physics",
+    level: "Sec 4",
+    color: "#ce82ff",
+    emoji: "⚛️",
+    themes: {
+      "measurement": {
+        label: "Measurement",
+        emoji: "📏",
+        topics: {
+          "quantities": { label: "Physical Quantities, Units & Measurement", questions: [
+            { q: "Which is a base SI unit?", o: ["Newton", "Joule", "Kilogram", "Watt"], a: 2, exp: "kg is base; N, J, W are derived." },
+            { q: "Vernier callipers measure to a precision of about…", o: ["1 mm", "0.1 mm", "0.01 mm", "1 cm"], a: 1, exp: "Standard vernier: 0.1 mm." },
+            { q: "Which is a scalar?", o: ["Velocity", "Force", "Mass", "Acceleration"], a: 2, exp: "Mass has magnitude only; no direction." },
+          ]},
+        }
+      },
+      "mechanics": {
+        label: "Newtonian Mechanics",
+        emoji: "🚗",
+        topics: {
+          "kinematics": { label: "Kinematics", questions: [
+            { q: "A car accelerates from rest. After 5 s, v = 20 m/s. a =", o: ["2 m/s²", "4 m/s²", "5 m/s²", "100 m/s²"], a: 1, exp: "a = (v − u)/t = 4 m/s²." },
+            { q: "Area under a v–t graph =", o: ["Acceleration", "Displacement", "Force", "Speed"], a: 1, exp: "∫v dt = displacement." },
+            { q: "Free-fall acceleration on Earth ≈", o: ["0", "5", "10", "20"], a: 2, exp: "g ≈ 9.81 m/s² ≈ 10." },
+          ]},
+          "dynamics": { label: "Dynamics", questions: [
+            { q: "Newton's 2nd Law: F =", o: ["mv", "ma", "m/a", "v/t"], a: 1, exp: "F = ma." },
+            { q: "Two equal opposite forces on a stationary object →", o: ["Forward", "Backward", "Stays still", "Spins"], a: 2, exp: "Net force = 0." },
+            { q: "Friction always acts…", o: ["With motion", "Opposite to motion", "Down", "Perpendicular"], a: 1, exp: "Friction opposes relative motion." },
+          ]},
+          "turning": { label: "Turning Effect of Forces", questions: [
+            { q: "Moment of a force = …", o: ["F × d", "F / d", "d / F", "F + d"], a: 0, exp: "Moment = force × perpendicular distance from pivot." },
+            { q: "For an object in equilibrium, total clockwise moments…", o: ["> anticlockwise", "< anticlockwise", "= anticlockwise", "= 0 always"], a: 2, exp: "Principle of moments." },
+            { q: "Unit of moment is…", o: ["N", "Nm", "J", "kg·m"], a: 1, exp: "Newton-metre." },
+          ]},
+          "pressure": { label: "Pressure", questions: [
+            { q: "Pressure = …", o: ["Force × Area", "Force / Area", "Area / Force", "Mass / Volume"], a: 1, exp: "P = F/A, units Pa." },
+            { q: "Pressure in a liquid depends on…", o: ["Surface area", "Depth and density", "Container shape", "Colour"], a: 1, exp: "P = hρg." },
+            { q: "Atmospheric pressure at sea level ≈", o: ["1 Pa", "100 Pa", "100 000 Pa", "10⁶ Pa"], a: 2, exp: "≈ 1.013 × 10⁵ Pa." },
+          ]},
+          "energy": { label: "Energy", questions: [
+            { q: "KE = …", o: ["mgh", "½mv²", "Fd", "mv"], a: 1, exp: "Kinetic energy formula." },
+            { q: "Work done = …", o: ["F × d (in direction of F)", "F + d", "F / d", "m × g"], a: 0, exp: "W = Fd." },
+            { q: "Which is renewable?", o: ["Coal", "Oil", "Solar", "Natural gas"], a: 2, exp: "Solar replenishes daily." },
+          ]},
+        }
+      },
+      "thermal": {
+        label: "Thermal Physics",
+        emoji: "🔥",
+        topics: {
+          "kpm": { label: "Kinetic Particle Model of Matter", questions: [
+            { q: "Gas pressure on container walls is due to…", o: ["Heat", "Particle collisions", "Gravity", "Sound"], a: 1, exp: "Collisions exert force per area." },
+            { q: "Heating a gas at constant volume causes…", o: ["No change", "Lower pressure", "Higher pressure", "Lower temperature"], a: 2, exp: "Faster particles collide more often, harder." },
+            { q: "Brownian motion is evidence for…", o: ["Light waves", "Random particle motion", "Gravity", "Magnetism"], a: 1, exp: "Smoke particles jostled by air molecules." },
+          ]},
+          "thermal-proc": { label: "Thermal Processes", questions: [
+            { q: "Heat transfer through metals is mainly by…", o: ["Convection", "Radiation", "Conduction", "Evaporation"], a: 2, exp: "Free electrons + lattice vibrations." },
+            { q: "Convection requires a…", o: ["Vacuum", "Solid", "Fluid", "Magnet"], a: 2, exp: "Currents form in liquids/gases." },
+            { q: "Best absorber of radiation is…", o: ["Shiny silver", "Dull black", "White", "Clear glass"], a: 1, exp: "Dull black absorbs and emits IR best." },
+          ]},
+          "thermal-props": { label: "Thermal Properties of Matter", questions: [
+            { q: "Specific heat capacity has units of…", o: ["J/kg", "J/kg·K", "J·K", "J/K"], a: 1, exp: "c = energy per kg per degree." },
+            { q: "Latent heat is energy absorbed during…", o: ["Heating", "State change at constant T", "Cooling", "Compression"], a: 1, exp: "Temperature stays constant during phase change." },
+            { q: "Evaporation causes…", o: ["Heating of liquid", "Cooling of liquid", "No change", "Boiling"], a: 1, exp: "Faster molecules leave; average KE drops." },
+          ]},
+        }
+      },
+      "waves": {
+        label: "Waves",
+        emoji: "🌊",
+        topics: {
+          "gen-waves": { label: "General Properties of Waves", questions: [
+            { q: "Wave speed = …", o: ["fλ", "f/λ", "λ/f", "f+λ"], a: 0, exp: "v = fλ." },
+            { q: "Sound is a…", o: ["Transverse wave", "Longitudinal wave", "Both", "Neither"], a: 1, exp: "Compressions and rarefactions parallel to motion." },
+            { q: "Amplitude relates to…", o: ["Pitch", "Loudness / intensity", "Speed", "Frequency"], a: 1, exp: "Bigger amplitude = louder sound / brighter light." },
+          ]},
+          "em-spectrum": { label: "Electromagnetic Spectrum", questions: [
+            { q: "Which has the longest wavelength?", o: ["X-rays", "Visible light", "Radio waves", "UV"], a: 2, exp: "Radio waves > microwaves > IR > visible > UV > X > γ." },
+            { q: "All EM waves travel at… in vacuum.", o: ["340 m/s", "3 × 10⁵ m/s", "3 × 10⁸ m/s", "Different speeds"], a: 2, exp: "c = 3 × 10⁸ m/s." },
+            { q: "Used for medical imaging of bones:", o: ["Radio", "Infrared", "X-rays", "Microwaves"], a: 2, exp: "X-rays penetrate soft tissue; bone absorbs." },
+          ]},
+          "light": { label: "Light", questions: [
+            { q: "Angle of incidence = angle of…", o: ["Refraction", "Reflection", "Diffraction", "Dispersion"], a: 1, exp: "Law of reflection." },
+            { q: "Light entering glass from air…", o: ["Speeds up", "Slows down", "Stops", "Reflects fully"], a: 1, exp: "Denser medium → slower light, bends toward normal." },
+            { q: "Total internal reflection occurs when…", o: ["Going from less to more dense", "Angle > critical angle, dense to less dense", "At any angle", "Light is white"], a: 1, exp: "TIR: dense → less dense, θ > θc." },
+          ]},
+        }
+      },
+      "electricity": {
+        label: "Electricity & Magnetism",
+        emoji: "🔌",
+        topics: {
+          "static": { label: "Static Electricity", questions: [
+            { q: "Like charges…", o: ["Attract", "Repel", "Cancel", "Don't interact"], a: 1, exp: "Like repel; unlike attract." },
+            { q: "Rubbing a balloon on hair transfers…", o: ["Protons", "Electrons", "Neutrons", "Atoms"], a: 1, exp: "Only electrons move in insulators." },
+            { q: "An earthed conductor…", o: ["Stays charged", "Loses excess charge to earth", "Gains charge", "Heats up"], a: 1, exp: "Charge flows to ground." },
+          ]},
+          "current": { label: "Current of Electricity", questions: [
+            { q: "Current I = …", o: ["Q/t", "Qt", "t/Q", "QV"], a: 0, exp: "Charge per unit time." },
+            { q: "Ohm's law: V =", o: ["IR", "I/R", "R/I", "I+R"], a: 0, exp: "V = IR for ohmic conductors." },
+            { q: "EMF is measured in…", o: ["Amps", "Volts", "Ohms", "Watts"], a: 1, exp: "EMF is energy per unit charge — volts." },
+          ]},
+          "dc-circuits": { label: "D.C. Circuits", questions: [
+            { q: "Two 6 Ω resistors in parallel give…", o: ["12 Ω", "6 Ω", "3 Ω", "0 Ω"], a: 2, exp: "1/R = 1/6 + 1/6 → 3 Ω." },
+            { q: "In a series circuit, current is…", o: ["Same everywhere", "Different at each component", "Zero", "Halved"], a: 0, exp: "One path → same I." },
+            { q: "Potential divider output = …", o: ["V × R1/(R1+R2)", "V × R2/(R1+R2)", "V/(R1×R2)", "V + R2"], a: 1, exp: "Standard divider formula across R2." },
+          ]},
+          "practical": { label: "Practical Electricity", questions: [
+            { q: "Power P = …", o: ["VI", "V/I", "I/V", "V+I"], a: 0, exp: "P = VI = I²R = V²/R." },
+            { q: "The live wire colour in UK plug is…", o: ["Blue", "Green/yellow", "Brown", "Black"], a: 2, exp: "Brown = live, blue = neutral, green/yellow = earth." },
+            { q: "Fuses protect circuits by…", o: ["Boosting current", "Melting when current is too high", "Cooling wires", "Storing charge"], a: 1, exp: "Thin wire melts, breaking the circuit." },
+          ]},
+          "magnetism": { label: "Magnetism", questions: [
+            { q: "Like poles…", o: ["Attract", "Repel", "Cancel", "Have no effect"], a: 1, exp: "N–N or S–S repel; N–S attract." },
+            { q: "Which is NOT a magnetic material?", o: ["Iron", "Cobalt", "Copper", "Nickel"], a: 2, exp: "Copper is not ferromagnetic." },
+            { q: "Magnetic field lines go from…", o: ["S to N outside magnet", "N to S outside magnet", "N to N", "Randomly"], a: 1, exp: "Outside: N → S; inside: S → N." },
+          ]},
+          "em": { label: "Electromagnetism", questions: [
+            { q: "A current-carrying wire produces a…", o: ["Gravity field", "Magnetic field", "Electric field only", "Sound"], a: 1, exp: "Right-hand grip rule applies." },
+            { q: "Force on a current in a B-field, F =", o: ["BIL", "B/IL", "IL/B", "B+I+L"], a: 0, exp: "F = BIL sin θ." },
+            { q: "Fleming's left-hand rule predicts the direction of…", o: ["Induced EMF", "Force on a current", "Field strength", "Resistance"], a: 1, exp: "Left-hand rule: motor effect." },
+          ]},
+          "em-induction": { label: "Electromagnetic Induction", questions: [
+            { q: "Faraday: induced EMF is proportional to…", o: ["Flux", "Rate of change of flux", "Resistance", "Current"], a: 1, exp: "ε = −dΦ/dt." },
+            { q: "Lenz's law states induced current opposes…", o: ["The wire", "The change that caused it", "The battery", "Gravity"], a: 1, exp: "Conservation of energy in EM induction." },
+            { q: "A step-up transformer has…", o: ["More turns on secondary", "More turns on primary", "Same turns", "No core"], a: 0, exp: "Ns > Np increases voltage." },
+          ]},
+        }
+      },
+      "radioactivity": {
+        label: "Radioactivity",
+        emoji: "☢️",
+        topics: {
+          "radio": { label: "Radioactivity", questions: [
+            { q: "Which radiation is most penetrating?", o: ["Alpha", "Beta", "Gamma", "All equal"], a: 2, exp: "γ > β > α in penetration." },
+            { q: "Half-life is the time for…", o: ["All atoms to decay", "Half the nuclei to decay", "Activity to double", "Mass to halve"], a: 1, exp: "Statistical: half remaining nuclei decay." },
+            { q: "Alpha particles are…", o: ["Electrons", "Helium nuclei", "Photons", "Neutrons"], a: 1, exp: "α = 2p + 2n = He nucleus." },
+          ]},
+        }
+      },
+    }
+  }
+};
+
+// Flatten themes/topics into the simpler {topics:{}} shape the rest of the code uses.
+for (const subj of Object.values(QUESTION_BANK)) {
+  subj.topics = {};
+  for (const [themeKey, theme] of Object.entries(subj.themes)) {
+    for (const [tk, t] of Object.entries(theme.topics)) {
+      subj.topics[tk] = { ...t, theme: themeKey, themeLabel: theme.label, themeEmoji: theme.emoji };
+    }
+  }
+}
+
+// ---------- State (localStorage-backed) ----------
+const DEFAULT_STATE = {
+  name: null,
+  avatar: "🐼",
+  xp: 0,
+  gems: 0,
+  streak: 0,
+  lastPlayedDate: null,
+  dailyGoal: 5, // questions per day
+  todayQuestions: 0,
+  todayDate: null,
+  correctTotal: 0,
+  attemptedTotal: 0,
+  rank: "Bronze",
+  ownedRewards: [],
+  badges: [],
+  history: [] // {date, subject, topic, correct, total, xp}
+};
+let state = loadState();
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem("quizquest_state");
+    if (raw) return { ...DEFAULT_STATE, ...JSON.parse(raw) };
+  } catch(e){}
+  return { ...DEFAULT_STATE };
+}
+function saveState() {
+  localStorage.setItem("quizquest_state", JSON.stringify(state));
+}
+
+// Fake leaderboard (mixes in real player)
+const FAKE_PLAYERS = [
+  { name: "Aiden",   avatar: "🦊", xp: 0 },
+  { name: "Mei Lin", avatar: "🐰", xp: 0 },
+  { name: "Rajesh",  avatar: "🦁", xp: 0 },
+  { name: "Sophie",  avatar: "🦉", xp: 0 },
+  { name: "Kai",     avatar: "🐼", xp: 0 },
+  { name: "Zara",    avatar: "🐯", xp: 0 },
+  { name: "Wei Jie", avatar: "🐸", xp: 0 },
+  { name: "Priya",   avatar: "🦄", xp: 0 },
+  { name: "Hakim",   avatar: "🐲", xp: 0 },
+  { name: "Yu Xuan", avatar: "🐨", xp: 0 },
+];
+
+function seededRandom(seed) {
+  // deterministic so leaderboard is stable per day
+  let s = 0;
+  for (let i = 0; i < seed.length; i++) s = (s * 31 + seed.charCodeAt(i)) >>> 0;
+  return () => { s = (s * 1664525 + 1013904223) >>> 0; return (s & 0xfffffff) / 0xfffffff; };
+}
+
+function getLeaderboard(period) {
+  // period: 'daily' | 'weekly' | 'alltime'
+  const today = new Date().toISOString().slice(0, 10);
+  const seed = period === "daily" ? today : period === "weekly" ? today.slice(0,7) : "alltime";
+  const rng = seededRandom(seed);
+  const players = FAKE_PLAYERS.map(p => ({
+    ...p,
+    xp: Math.floor(rng() * (period === "alltime" ? 8000 : period === "weekly" ? 1500 : 350))
+  }));
+  let myXp = state.xp;
+  if (period === "daily") myXp = state.todayDate === today ? Math.min(state.xp, state.todayQuestions * 10) : 0;
+  if (period === "weekly") myXp = Math.min(state.xp, 1200);
+  players.push({ name: state.name || "You", avatar: state.avatar, xp: myXp, isMe: true });
+  players.sort((a,b) => b.xp - a.xp);
+  return players;
+}
+
+// ---------- Levels & Ranks ----------
+const RANKS = [
+  { name: "Cadet",         min: 0,    color: "#9d9dbf", emoji: "🌑" },
+  { name: "Pilot",         min: 200,  color: "#7dd3fc", emoji: "🌒" },
+  { name: "Navigator",     min: 500,  color: "#22d3ee", emoji: "🌓" },
+  { name: "Commander",     min: 1200, color: "#c084fc", emoji: "🌔" },
+  { name: "Captain",       min: 2500, color: "#e879f9", emoji: "🌕" },
+  { name: "Star Admiral",  min: 5000, color: "#fbbf24", emoji: "🌟" },
+];
+function getRank(xp) {
+  let r = RANKS[0];
+  for (const rank of RANKS) if (xp >= rank.min) r = rank;
+  return r;
+}
+function getNextRank(xp) {
+  return RANKS.find(r => r.min > xp);
+}
+function levelFromXp(xp) { return Math.floor(xp / 50) + 1; }
+
+// ---------- Badges ----------
+const BADGES = [
+  { id: "first_quiz",  name: "First Steps",       emoji: "👶", req: s => s.attemptedTotal >= 1 },
+  { id: "streak_3",    name: "On Fire",           emoji: "🔥", req: s => s.streak >= 3 },
+  { id: "streak_7",    name: "Week Warrior",      emoji: "⚡", req: s => s.streak >= 7 },
+  { id: "streak_30",   name: "Unstoppable",       emoji: "🏆", req: s => s.streak >= 30 },
+  { id: "perfect_5",   name: "Sharp Shooter",     emoji: "🎯", req: s => (s.history||[]).some(h => h.total >= 5 && h.correct === h.total) },
+  { id: "xp_500",      name: "Scholar",           emoji: "📚", req: s => s.xp >= 500 },
+  { id: "xp_2000",     name: "Brainiac",          emoji: "🧠", req: s => s.xp >= 2000 },
+  { id: "all_subjects",name: "Polymath",          emoji: "🌟", req: s => {
+      const subjects = new Set((s.history||[]).map(h => h.subject));
+      return subjects.size >= 3;
+  }},
+];
+function checkBadges() {
+  const newBadges = [];
+  for (const b of BADGES) {
+    if (b.req(state) && !state.badges.includes(b.id)) {
+      state.badges.push(b.id);
+      newBadges.push(b);
+    }
+  }
+  return newBadges;
+}
+
+// ---------- Rewards Shop ----------
+const REWARDS = [
+  { id: "sticker_pack",   name: "CuriousLab Sticker Pack",  cost: 50,  emoji: "🌟", desc: "Physical sticker pack mailed to you." },
+  { id: "bookmark",       name: "Holographic Bookmark",     cost: 80,  emoji: "🔖", desc: "Limited edition CuriousLab bookmark." },
+  { id: "notebook",       name: "Curious Notebook",         cost: 150, emoji: "📓", desc: "A5 dotted notebook with formula reference." },
+  { id: "tshirt",         name: "CuriousLab T-Shirt",       cost: 400, emoji: "👕", desc: "Premium cotton tee. Pick your size on redeem." },
+  { id: "bubble_tea",     name: "Bubble Tea Voucher",       cost: 200, emoji: "🧋", desc: "$8 voucher at participating shops." },
+  { id: "tuition_credit", name: "1 Free Tuition Session",   cost: 800, emoji: "🎓", desc: "One free 1-on-1 CuriousLab session." },
+  { id: "avatar_dragon",  name: "Dragon Avatar",            cost: 120, emoji: "🐉", desc: "Unlock a rare avatar.", type: "avatar", value: "🐉" },
+  { id: "avatar_unicorn", name: "Unicorn Avatar",           cost: 120, emoji: "🦄", desc: "Unlock a rare avatar.", type: "avatar", value: "🦄" },
+  { id: "avatar_astro",   name: "Astronaut Avatar",         cost: 250, emoji: "👨‍🚀", desc: "Unlock a rare avatar.", type: "avatar", value: "👨‍🚀" },
+];
+
+// ---------- Daily reset logic ----------
+function checkDaily() {
+  const today = new Date().toISOString().slice(0, 10);
+  if (state.todayDate !== today) {
+    state.todayDate = today;
+    state.todayQuestions = 0;
+  }
+  saveState();
+}
+
+function updateStreak() {
+  const today = new Date().toISOString().slice(0, 10);
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  if (state.lastPlayedDate === today) return;
+  if (state.lastPlayedDate === yesterday) {
+    state.streak += 1;
+  } else {
+    state.streak = 1;
+  }
+  state.lastPlayedDate = today;
+  saveState();
+}
+
+// ---------- Router ----------
+let route = { name: "home", params: {} };
+let quizSession = null; // { subjectKey, topicKey, difficulty, qCount, questions, idx, correct, selected, locked }
+
+function go(name, params = {}) {
+  route = { name, params };
+  render();
+}
+
+// ---------- Renderers ----------
+const screenEl = document.getElementById("screen");
+const navEl = document.getElementById("nav");
+
+function render() {
+  checkDaily();
+  if (!state.name) { renderOnboarding(); return; }
+  switch (route.name) {
+    case "home":        renderHome(); break;
+    case "subject":     renderSubjectPicker(); break;
+    case "setup":       renderQuizSetup(); break;
+    case "quiz":        renderQuiz(); break;
+    case "results":     renderResults(); break;
+    case "leaderboard": renderLeaderboard(); break;
+    case "shop":        renderShop(); break;
+    case "profile":     renderProfile(); break;
+    default:            renderHome();
+  }
+  renderNav();
+}
+
+function renderNav() {
+  if (route.name === "quiz" || !state.name) { navEl.style.display = "none"; return; }
+  navEl.style.display = "flex";
+  const tab = (key, label, svg) => `
+    <div class="tab-btn ${route.name === key ? 'active' : ''}" onclick="go('${key}')">
+      ${svg}
+      <span>${label}</span>
+    </div>`;
+  navEl.innerHTML = `
+    ${tab("home", "Home", `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 11l9-8 9 8v10a2 2 0 01-2 2h-4v-7H9v7H5a2 2 0 01-2-2V11z"/></svg>`)}
+    ${tab("subject", "Quiz", `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M9 9.5a3 3 0 116 0c0 1.5-1.5 2-2.5 3-.5.5-.5 1.5-.5 2"/><circle cx="12" cy="17.5" r="0.8" fill="currentColor"/></svg>`)}
+    ${tab("leaderboard", "Ranks", `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 22h16M6 18h4v-8H6v8zm8 0h4V6h-4v12zM3 4h7l-1 4H4V4z"/></svg>`)}
+    ${tab("shop", "Shop", `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 7h18l-2 13H5L3 7zm4 0V4a3 3 0 016 0v3"/></svg>`)}
+    ${tab("profile", "Me", `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>`)}
+  `;
+}
+
+// ----- Onboarding -----
+function renderOnboarding() {
+  navEl.style.display = "none";
+  const avatars = ["🦊","🐼","🐰","🦁","🐯","🐸","🐨","🦉","🐲","🦄"];
+  screenEl.innerHTML = `
+    <div class="p-6 flex flex-col items-center justify-center min-h-full text-center">
+      <div class="mascot mb-4 bounce">🚀</div>
+      <h1 class="text-4xl font-black mb-2 glow-cyan" style="color:#a5f3fc; letter-spacing:1px;">STARQUEST</h1>
+      <p class="font-bold mb-8" style="color:var(--muted)">Daily science missions across the galaxy. ✨</p>
+      <div class="w-full max-w-sm space-y-4">
+        <div>
+          <label class="text-sm font-bold uppercase text-gray-500 block mb-2 text-left">Cadet name</label>
+          <input id="ob-name" placeholder="e.g. Captain Alex" class="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 font-bold focus:border-blue-400 focus:outline-none" />
+        </div>
+        <div>
+          <label class="text-sm font-bold uppercase text-gray-500 block mb-2 text-left">Choose your space ranger</label>
+          <div id="ob-avatars" class="grid grid-cols-5 gap-2">
+            ${avatars.map((a,i) => `<button onclick="pickAvatar('${a}', this)" class="text-3xl p-3 rounded-2xl border-2 ${i===0?'border-blue-400 bg-blue-50':'border-gray-200 bg-white'} hover:bg-gray-50">${a}</button>`).join("")}
+          </div>
+        </div>
+        <button id="ob-start" class="btn-3d btn-purple w-full py-4 text-lg mt-6" onclick="finishOnboarding()">🚀 Launch Mission</button>
+      </div>
+    </div>
+  `;
+  document.getElementById("ob-name").focus();
+}
+window.pickAvatar = function(a, el) {
+  state.avatar = a;
+  document.querySelectorAll("#ob-avatars button").forEach(b => { b.classList.remove("border-blue-400","bg-blue-50"); b.classList.add("border-gray-200","bg-white"); });
+  el.classList.remove("border-gray-200","bg-white");
+  el.classList.add("border-blue-400","bg-blue-50");
+};
+window.finishOnboarding = function() {
+  const name = document.getElementById("ob-name").value.trim();
+  if (!name) { document.getElementById("ob-name").classList.add("shake","border-red-400"); return; }
+  state.name = name;
+  saveState();
+  go("home");
+};
+
+// ----- Home -----
+function renderHome() {
+  const today = new Date().toISOString().slice(0, 10);
+  const todayDone = state.todayDate === today ? state.todayQuestions : 0;
+  const goalPct = Math.min(100, (todayDone / state.dailyGoal) * 100);
+  const rank = getRank(state.xp);
+  const nextRank = getNextRank(state.xp);
+  const lvl = levelFromXp(state.xp);
+
+  const recent = (state.history || []).slice(-3).reverse();
+
+  screenEl.innerHTML = `
+    <div class="p-4 space-y-4">
+      <!-- Top bar -->
+      <div class="flex items-center justify-between pt-2">
+        <div class="flex items-center gap-3">
+          <div class="text-4xl">${state.avatar}</div>
+          <div>
+            <div class="text-xs font-bold uppercase text-gray-500">Welcome back</div>
+            <div class="text-lg font-black">${state.name}</div>
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <div class="flex items-center gap-1 bg-orange-100 px-3 py-1.5 rounded-full font-black text-orange-600">
+            🔥 <span>${state.streak}</span>
+          </div>
+          <div class="flex items-center gap-1 bg-yellow-100 px-3 py-1.5 rounded-full font-black text-yellow-700">
+            💎 <span>${state.gems}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Daily Goal Card -->
+      <div class="bg-white rounded-3xl p-5 border-2 border-gray-200" style="border-bottom-width:4px;">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <div class="text-xs font-bold uppercase text-gray-500">Daily Goal</div>
+            <div class="text-xl font-black">${todayDone}/${state.dailyGoal} questions</div>
+          </div>
+          <div class="text-3xl ${todayDone >= state.dailyGoal ? '' : 'opacity-30'}">${todayDone >= state.dailyGoal ? '🏅' : '🎯'}</div>
+        </div>
+        <div class="progress-bar mb-3"><div class="progress-fill" style="width:${goalPct}%; background:${todayDone >= state.dailyGoal ? 'var(--yellow)' : 'var(--green)'}"></div></div>
+        <button class="btn-3d btn-green w-full py-3" onclick="go('subject')">${todayDone === 0 ? "Start Today's Quiz" : todayDone >= state.dailyGoal ? 'Bonus Round' : 'Continue Practising'}</button>
+      </div>
+
+      <!-- Rank & Level -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-white rounded-2xl p-4 border-2 border-gray-200" style="border-bottom-width:4px;">
+          <div class="text-xs font-bold uppercase text-gray-500">Level</div>
+          <div class="text-3xl font-black flex items-center gap-1">⭐ ${lvl}</div>
+          <div class="text-xs text-gray-500 mt-1 font-semibold">${state.xp} XP total</div>
+        </div>
+        <div class="bg-white rounded-2xl p-4 border-2 border-gray-200" style="border-bottom-width:4px;">
+          <div class="text-xs font-bold uppercase text-gray-500">Rank</div>
+          <div class="text-2xl font-black flex items-center gap-1" style="color:${rank.color}">${rank.emoji} ${rank.name}</div>
+          ${nextRank ? `<div class="text-xs text-gray-500 mt-1 font-semibold">${nextRank.min - state.xp} XP to ${nextRank.name}</div>` : `<div class="text-xs text-gray-500 mt-1 font-semibold">Max rank!</div>`}
+        </div>
+      </div>
+
+      <!-- Streak strip -->
+      <div class="rounded-2xl p-4 text-white relative overflow-hidden" style="background: linear-gradient(135deg, #7c3aed 0%, #db2777 50%, #06b6d4 100%); box-shadow: 0 4px 0 0 rgba(0,0,0,0.4), 0 0 32px rgba(192,132,252,0.4); border: 1px solid rgba(255,255,255,0.15);">
+        <div class="flex items-center justify-between relative">
+          <div>
+            <div class="text-xs font-black uppercase opacity-90">Streak</div>
+            <div class="text-2xl font-black">${state.streak} day${state.streak === 1 ? '' : 's'} 🚀</div>
+          </div>
+          <div class="flex gap-1">
+            ${[0,1,2,3,4,5,6].map(d => {
+              const filled = d < (state.streak % 7) || (state.streak >= 7 && d < 7);
+              return `<div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black ${filled ? 'bg-white text-purple-700' : 'bg-white/15 text-white/70'}">${"MTWTFSS"[d]}</div>`;
+            }).join("")}
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick subjects -->
+      <div>
+        <div class="flex items-center justify-between mb-2 px-1">
+          <div class="text-sm font-black uppercase text-gray-500">Jump In</div>
+          <button onclick="go('subject')" class="text-xs font-bold text-blue-500 uppercase">See all</button>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          ${Object.entries(QUESTION_BANK).map(([k, s]) => `
+            <button onclick="go('subject')" class="bg-white rounded-2xl p-4 border-2 border-gray-200 text-left flex items-center gap-3" style="border-bottom-width:4px; border-left:6px solid ${s.color};">
+              <div class="text-4xl">${s.emoji}</div>
+              <div>
+                <div class="text-xs font-black uppercase text-gray-500">${s.level}</div>
+                <div class="text-sm font-black leading-tight">${s.label}</div>
+                <div class="text-[10px] font-bold text-gray-400 mt-0.5">${Object.keys(s.themes).length} themes</div>
+              </div>
+            </button>`).join("")}
+        </div>
+      </div>
+
+      ${recent.length > 0 ? `
+      <div>
+        <div class="text-sm font-black uppercase text-gray-500 mb-2 px-1">Recent</div>
+        <div class="space-y-2">
+          ${recent.map(h => `
+            <div class="bg-white rounded-2xl p-3 border-2 border-gray-200 flex items-center gap-3" style="border-bottom-width:4px;">
+              <div class="text-2xl">${QUESTION_BANK[h.subject]?.emoji || '📘'}</div>
+              <div class="flex-1">
+                <div class="font-black text-sm">${QUESTION_BANK[h.subject]?.topics[h.topic]?.label || h.topic}</div>
+                <div class="text-xs text-gray-500 font-semibold">${h.correct}/${h.total} correct • +${h.xp} XP</div>
+              </div>
+              <div class="text-xs font-bold text-gray-400">${h.date}</div>
+            </div>`).join("")}
+        </div>
+      </div>` : ''}
+    </div>
+  `;
+}
+
+// ----- Subject Picker -----
+function renderSubjectPicker() {
+  screenEl.innerHTML = `
+    <div class="p-4 space-y-4">
+      <div class="pt-2">
+        <div class="text-xs font-bold uppercase text-gray-500">Pick a subject</div>
+        <div class="text-2xl font-black">What's the vibe today?</div>
+      </div>
+      <div class="space-y-3">
+        ${Object.entries(QUESTION_BANK).map(([k, s]) => `
+          <button onclick="go('setup', {subject:'${k}'})" class="w-full bg-white rounded-2xl p-4 border-2 border-gray-200 flex items-center gap-4 text-left" style="border-bottom-width:4px; border-left:6px solid ${s.color};">
+            <div class="text-5xl">${s.emoji}</div>
+            <div class="flex-1">
+              <div class="font-black text-lg">${s.label}</div>
+              <div class="text-sm text-gray-500 font-bold">${s.level} • ${Object.keys(s.topics).length} topics</div>
+            </div>
+            <div class="text-gray-300 text-2xl">›</div>
+          </button>`).join("")}
+      </div>
+    </div>`;
+}
+
+// ----- Quiz Setup -----
+function renderQuizSetup() {
+  const subjectKey = route.params.subject;
+  const subj = QUESTION_BANK[subjectKey];
+  if (!subj) { go("subject"); return; }
+  const sel = route.params;
+  sel.topic = sel.topic || Object.keys(subj.topics)[0];
+  sel.difficulty = sel.difficulty || "medium";
+  sel.qCount = sel.qCount || 5;
+
+  const diffs = [
+    { id: "easy",   label: "Easy",   emoji: "🌱", color: "var(--green)" },
+    { id: "medium", label: "Medium", emoji: "🔥", color: "var(--orange)" },
+    { id: "hard",   label: "Hard",   emoji: "💀", color: "var(--red)" },
+  ];
+  const counts = [3, 5, 10, 15];
+
+  screenEl.innerHTML = `
+    <div class="p-4 space-y-5">
+      <div class="flex items-center gap-3 pt-2">
+        <button onclick="go('subject')" class="text-2xl text-gray-400">‹</button>
+        <div>
+          <div class="text-xs font-bold uppercase text-gray-500">${subj.level}</div>
+          <div class="text-xl font-black">${subj.label}</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="text-sm font-black uppercase text-gray-500 mb-2">Topic</div>
+        <div class="space-y-4">
+          ${Object.entries(subj.themes).map(([thk, th]) => `
+            <div>
+              <div class="flex items-center gap-2 mb-2 px-1">
+                <span class="text-lg">${th.emoji}</span>
+                <span class="text-xs font-black uppercase text-gray-600 tracking-wider">${th.label}</span>
+              </div>
+              <div class="space-y-2">
+                ${Object.entries(th.topics).map(([tk, t]) => `
+                  <button onclick="go('setup', ${JSON.stringify({...sel, topic: tk}).replace(/"/g,'&quot;')})" class="w-full text-left p-3 rounded-2xl border-2 flex items-center justify-between font-bold ${sel.topic === tk ? 'border-blue-400 bg-blue-50 text-blue-700' : 'border-gray-200 bg-white'}">
+                    <span class="text-sm leading-tight">${t.label}</span>
+                    <span class="text-xs text-gray-500 font-bold ml-2 flex-shrink-0">${t.questions.length} qns</span>
+                  </button>`).join("")}
+              </div>
+            </div>`).join("")}
+        </div>
+      </div>
+
+      <div>
+        <div class="text-sm font-black uppercase text-gray-500 mb-2">Difficulty</div>
+        <div class="grid grid-cols-3 gap-2">
+          ${diffs.map(d => `
+            <button onclick="go('setup', ${JSON.stringify({...sel, difficulty: d.id}).replace(/"/g,'&quot;')})" class="p-3 rounded-2xl border-2 font-black ${sel.difficulty === d.id ? 'border-blue-400 bg-blue-50' : 'border-gray-200 bg-white'}">
+              <div class="text-2xl">${d.emoji}</div>
+              <div class="text-xs mt-1">${d.label}</div>
+            </button>`).join("")}
+        </div>
+      </div>
+
+      <div>
+        <div class="text-sm font-black uppercase text-gray-500 mb-2">How many questions?</div>
+        <div class="grid grid-cols-4 gap-2">
+          ${counts.map(c => `
+            <button onclick="go('setup', ${JSON.stringify({...sel, qCount: c}).replace(/"/g,'&quot;')})" class="p-3 rounded-2xl border-2 font-black ${sel.qCount === c ? 'border-blue-400 bg-blue-50 text-blue-700' : 'border-gray-200 bg-white'}">
+              ${c}
+            </button>`).join("")}
+        </div>
+      </div>
+
+      <div class="bg-gray-50 rounded-2xl p-3 text-sm font-bold text-gray-600 text-center">
+        Earn up to <span class="text-yellow-600">+${sel.qCount * 10} XP</span> · <span class="text-purple-600">+${sel.qCount * 2} 💎</span>
+      </div>
+
+      <button onclick="startQuiz('${subjectKey}','${sel.topic}','${sel.difficulty}',${sel.qCount})" class="btn-3d btn-green w-full py-4 text-lg">Let's Go!</button>
+    </div>`;
+}
+
+// ----- Quiz -----
+async function startQuiz(subjectKey, topicKey, difficulty, qCount) {
+  // === Swap this with real fetch ===
+  const pool = await fetchQuestions(subjectKey, topicKey, difficulty, qCount);
+  // shuffle
+  const shuffled = [...pool].sort(() => Math.random() - 0.5).slice(0, qCount);
+  quizSession = {
+    subjectKey, topicKey, difficulty, qCount,
+    questions: shuffled,
+    idx: 0, correct: 0,
+    selected: null, locked: false,
+    answersLog: []
+  };
+  go("quiz");
+}
+
+// Mock fetcher — replace with your backend call.
+async function fetchQuestions(subject, topic, difficulty, count) {
+  const t = QUESTION_BANK[subject]?.topics[topic];
+  if (!t) return [];
+  let pool = [...t.questions];
+  while (pool.length < count) pool = pool.concat(t.questions);
+  return pool;
+}
+
+function renderQuiz() {
+  if (!quizSession) { go("home"); return; }
+  const { questions, idx, qCount, selected, locked } = quizSession;
+  const q = questions[idx];
+  const pct = (idx / qCount) * 100;
+  const letters = ["A","B","C","D"];
+
+  screenEl.innerHTML = `
+    <div class="p-4">
+      <!-- Top: progress + close -->
+      <div class="flex items-center gap-3 pt-2 mb-4">
+        <button onclick="confirmQuit()" class="text-2xl text-gray-400 font-black">✕</button>
+        <div class="progress-bar flex-1"><div class="progress-fill" style="width:${pct}%"></div></div>
+        <div class="text-sm font-black text-gray-500">${idx + 1}/${qCount}</div>
+      </div>
+
+      <div class="slide-up" key="${idx}">
+        <div class="text-xs font-black uppercase text-gray-500 mb-1">Question ${idx + 1}</div>
+        <h2 class="text-xl font-black leading-snug mb-6">${q.q}</h2>
+
+        <div class="space-y-3">
+          ${q.o.map((opt, i) => {
+            let cls = "answer-tile";
+            if (locked) {
+              if (i === q.a) cls += " correct";
+              else if (i === selected) cls += " wrong";
+              cls += " locked";
+            } else if (selected === i) cls += " selected";
+            return `<div class="${cls}" ${locked ? '' : `onclick="selectAnswer(${i})"`}>
+              <div class="letter">${letters[i]}</div>
+              <div>${opt}</div>
+            </div>`;
+          }).join("")}
+        </div>
+      </div>
+    </div>
+
+    <div id="feedback" class="feedback-bar">
+      <div id="feedback-content"></div>
+    </div>
+  `;
+
+  if (!locked) {
+    // Render check button at bottom
+    const fb = document.getElementById("feedback");
+    fb.className = "feedback-bar show";
+    fb.style.background = "white";
+    fb.style.borderTopColor = "var(--border)";
+    document.getElementById("feedback-content").innerHTML = `
+      <button id="check-btn" class="btn-3d ${selected === null ? 'btn-disabled' : 'btn-green'} w-full py-4 text-lg" ${selected === null ? '' : 'onclick="checkAnswer()"'}>Check</button>
+    `;
+  }
+}
+
+window.selectAnswer = function(i) {
+  if (!quizSession || quizSession.locked) return;
+  quizSession.selected = i;
+  renderQuiz();
+};
+
+window.checkAnswer = function() {
+  if (quizSession.selected === null) return;
+  quizSession.locked = true;
+  const q = quizSession.questions[quizSession.idx];
+  const isCorrect = quizSession.selected === q.a;
+  if (isCorrect) quizSession.correct += 1;
+  quizSession.answersLog.push({ qIdx: quizSession.idx, picked: quizSession.selected, correct: isCorrect });
+
+  renderQuiz();
+
+  const fb = document.getElementById("feedback");
+  fb.className = `feedback-bar show ${isCorrect ? 'correct' : 'wrong'}`;
+  document.getElementById("feedback-content").innerHTML = `
+    <div class="flex items-center gap-3 mb-3">
+      <div class="text-4xl">${isCorrect ? '🎉' : '💔'}</div>
+      <div class="flex-1">
+        <div class="font-black text-lg" style="color:${isCorrect ? 'var(--green-dark)' : 'var(--red-dark)'}">${isCorrect ? 'Nice!' : 'Not quite.'}</div>
+        <div class="text-sm font-bold text-gray-700">${q.exp}</div>
+      </div>
+    </div>
+    <button class="btn-3d ${isCorrect ? 'btn-green' : 'btn-red'} w-full py-4 text-lg" onclick="nextQuestion()">${quizSession.idx + 1 === quizSession.qCount ? 'Finish' : 'Continue'}</button>
+  `;
+  if (isCorrect) burstConfetti(20);
+};
+
+window.nextQuestion = function() {
+  if (quizSession.idx + 1 >= quizSession.qCount) {
+    finishQuiz();
+    return;
+  }
+  quizSession.idx += 1;
+  quizSession.selected = null;
+  quizSession.locked = false;
+  renderQuiz();
+};
+
+window.confirmQuit = function() {
+  if (confirm("Quit this quiz? Your progress won't be saved.")) {
+    quizSession = null;
+    go("home");
+  }
+};
+
+function finishQuiz() {
+  const { correct, qCount, subjectKey, topicKey } = quizSession;
+  const xpGained = correct * 10;
+  const gemsGained = correct * 2;
+  const perfectBonus = correct === qCount ? 20 : 0;
+  const totalXp = xpGained + perfectBonus;
+
+  state.xp += totalXp;
+  state.gems += gemsGained;
+  state.attemptedTotal += qCount;
+  state.correctTotal += correct;
+  state.todayQuestions += qCount;
+  state.history = (state.history || []).concat([{
+    date: new Date().toISOString().slice(5,10),
+    subject: subjectKey, topic: topicKey,
+    correct, total: qCount, xp: totalXp
+  }]);
+  if (state.history.length > 50) state.history = state.history.slice(-50);
+
+  updateStreak();
+  const newBadges = checkBadges();
+  state.rank = getRank(state.xp).name;
+  saveState();
+
+  quizSession = { ...quizSession, results: { correct, qCount, xpGained: totalXp, gemsGained, perfectBonus, newBadges } };
+  go("results");
+}
+
+// ----- Results -----
+function renderResults() {
+  if (!quizSession?.results) { go("home"); return; }
+  const { correct, qCount, xpGained, gemsGained, perfectBonus, newBadges } = quizSession.results;
+  const pct = Math.round((correct / qCount) * 100);
+  const mascot = pct === 100 ? '🏆' : pct >= 80 ? '🎉' : pct >= 50 ? '💪' : '🌱';
+  const msg = pct === 100 ? "Perfect Score!" : pct >= 80 ? "Crushing it!" : pct >= 50 ? "Good effort!" : "Keep going!";
+
+  burstConfetti(pct >= 80 ? 60 : 20);
+
+  screenEl.innerHTML = `
+    <div class="p-6 space-y-5 text-center flex flex-col min-h-full">
+      <div class="pt-8">
+        <div class="text-7xl pop-in mb-2">${mascot}</div>
+        <div class="text-3xl font-black" style="color:var(--green-dark)">${msg}</div>
+        <div class="text-gray-500 font-bold">You got ${correct} out of ${qCount}</div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2 my-4">
+        <div class="bg-blue-50 rounded-2xl p-3 border-2 border-blue-200" style="border-bottom-width:4px;">
+          <div class="text-xs font-black uppercase text-blue-500">Score</div>
+          <div class="text-2xl font-black text-blue-700">${pct}%</div>
+        </div>
+        <div class="bg-yellow-50 rounded-2xl p-3 border-2 border-yellow-200" style="border-bottom-width:4px;">
+          <div class="text-xs font-black uppercase text-yellow-600">XP</div>
+          <div class="text-2xl font-black text-yellow-700">+${xpGained}</div>
+        </div>
+        <div class="bg-purple-50 rounded-2xl p-3 border-2 border-purple-200" style="border-bottom-width:4px;">
+          <div class="text-xs font-black uppercase text-purple-500">Gems</div>
+          <div class="text-2xl font-black text-purple-700">+${gemsGained}</div>
+        </div>
+      </div>
+
+      ${perfectBonus ? `<div class="bg-yellow-100 rounded-2xl p-3 border-2 border-yellow-300 font-black text-yellow-800 pop-in">🌟 Perfect Bonus +${perfectBonus} XP</div>` : ''}
+
+      <div class="bg-orange-100 rounded-2xl p-4 border-2 border-orange-300 flex items-center gap-3">
+        <div class="text-3xl">🔥</div>
+        <div class="flex-1 text-left">
+          <div class="text-xs font-black uppercase text-orange-600">Streak</div>
+          <div class="text-xl font-black text-orange-800">${state.streak} day${state.streak === 1 ? '' : 's'}</div>
+        </div>
+        <div class="text-xs font-bold text-orange-700">Goal: ${state.todayQuestions}/${state.dailyGoal}</div>
+      </div>
+
+      ${newBadges.length ? `
+      <div class="bg-white rounded-2xl p-4 border-2 border-yellow-300" style="border-bottom-width:4px;">
+        <div class="text-xs font-black uppercase text-gray-500 mb-2">🎖️ New badge${newBadges.length>1?'s':''}!</div>
+        <div class="flex gap-3 justify-center flex-wrap">
+          ${newBadges.map(b => `<div class="pop-in"><div class="text-4xl">${b.emoji}</div><div class="text-xs font-black mt-1">${b.name}</div></div>`).join("")}
+        </div>
+      </div>` : ''}
+
+      <div class="flex-1"></div>
+
+      <div class="space-y-2">
+        <button onclick="startQuiz('${quizSession.subjectKey}','${quizSession.topicKey}','${quizSession.difficulty}',${quizSession.qCount})" class="btn-3d btn-green w-full py-4 text-lg">Practice Again</button>
+        <button onclick="quizSession=null; go('home')" class="btn-3d btn-white w-full py-3">Home</button>
+      </div>
+    </div>`;
+}
+
+// ----- Leaderboard -----
+let lbPeriod = "daily";
+function renderLeaderboard() {
+  const board = getLeaderboard(lbPeriod);
+  const myIdx = board.findIndex(p => p.isMe);
+  screenEl.innerHTML = `
+    <div class="p-4 space-y-4">
+      <div class="pt-2">
+        <div class="text-xs font-bold uppercase text-gray-500">Leaderboard</div>
+        <div class="text-2xl font-black">Who's grinding today?</div>
+      </div>
+
+      <div class="grid grid-cols-3 bg-white rounded-2xl p-1 border-2 border-gray-200">
+        ${["daily","weekly","alltime"].map(p => `
+          <button onclick="lbPeriod='${p}'; render()" class="py-2 rounded-xl text-xs font-black uppercase ${lbPeriod === p ? 'bg-blue-500 text-white' : 'text-gray-500'}">${p === 'alltime' ? 'All-time' : p}</button>
+        `).join("")}
+      </div>
+
+      <!-- Top 3 podium -->
+      <div class="flex items-end gap-2 justify-center py-2">
+        ${[1,0,2].map(i => {
+          if (!board[i]) return '';
+          const heights = [100, 80, 60];
+          const colors = ['#ffc800', '#c0c0c0', '#cd7f32'];
+          const rank = i + 1;
+          return `<div class="flex-1 flex flex-col items-center">
+            <div class="text-3xl mb-1 ${rank===1?'bounce':''}">${board[i].avatar}</div>
+            <div class="text-xs font-black truncate w-full text-center">${board[i].name}${board[i].isMe?' (You)':''}</div>
+            <div class="text-xs font-bold text-gray-500">${board[i].xp} XP</div>
+            <div class="w-full rounded-t-xl mt-1 flex items-center justify-center font-black text-white" style="height:${heights[rank-1]}px; background:${colors[rank-1]}">${rank}</div>
+          </div>`;
+        }).join("")}
+      </div>
+
+      <!-- Rest -->
+      <div class="bg-white rounded-2xl border-2 border-gray-200 overflow-hidden">
+        ${board.slice(3).map((p, i) => `
+          <div class="flex items-center gap-3 p-3 ${i > 0 ? 'border-t border-gray-100' : ''} ${p.isMe ? 'bg-blue-50' : ''}">
+            <div class="w-7 text-center font-black text-gray-400">${i+4}</div>
+            <div class="text-2xl">${p.avatar}</div>
+            <div class="flex-1 font-black ${p.isMe ? 'text-blue-700' : ''}">${p.name}${p.isMe?' (You)':''}</div>
+            <div class="text-sm font-black text-gray-600">${p.xp} XP</div>
+          </div>`).join("")}
+      </div>
+
+      <div class="text-center text-xs font-bold text-gray-400">You're #${myIdx + 1} ${lbPeriod === 'daily' ? 'today' : lbPeriod === 'weekly' ? 'this week' : 'overall'}</div>
+    </div>`;
+}
+
+// ----- Shop -----
+function renderShop() {
+  screenEl.innerHTML = `
+    <div class="p-4 space-y-4">
+      <div class="pt-2 flex items-center justify-between">
+        <div>
+          <div class="text-xs font-bold uppercase text-gray-500">Rewards Shop</div>
+          <div class="text-2xl font-black">Spend your gems 💎</div>
+        </div>
+        <div class="bg-purple-100 px-3 py-2 rounded-xl font-black text-purple-700">💎 ${state.gems}</div>
+      </div>
+
+      <div class="bg-blue-50 rounded-2xl p-3 text-sm font-bold text-blue-700 border-2 border-blue-200">
+        💡 Earn 2 💎 per correct answer. Real rewards ship to your school once a month.
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        ${REWARDS.map(r => {
+          const owned = state.ownedRewards.includes(r.id);
+          const affordable = state.gems >= r.cost;
+          return `
+            <div class="reward-card p-3 text-center">
+              <div class="text-4xl mb-2">${r.emoji}</div>
+              <div class="font-black text-sm leading-tight">${r.name}</div>
+              <div class="text-[10px] font-bold text-gray-500 my-1 leading-tight">${r.desc}</div>
+              <button onclick="redeem('${r.id}')" class="btn-3d ${owned ? 'btn-white' : affordable ? 'btn-purple' : 'btn-disabled'} w-full py-2 text-xs mt-2" ${owned || !affordable ? 'disabled' : ''}>
+                ${owned ? 'Owned ✓' : `💎 ${r.cost}`}
+              </button>
+            </div>`;
+        }).join("")}
+      </div>
+    </div>`;
+}
+window.redeem = function(id) {
+  const r = REWARDS.find(x => x.id === id);
+  if (!r || state.ownedRewards.includes(id) || state.gems < r.cost) return;
+  if (!confirm(`Spend ${r.cost} 💎 on ${r.name}?`)) return;
+  state.gems -= r.cost;
+  state.ownedRewards.push(id);
+  if (r.type === "avatar") state.avatar = r.value;
+  saveState();
+  alert(`🎉 Redeemed! ${r.type === "avatar" ? "Avatar equipped." : "We'll mail it to your school next dispatch."}`);
+  render();
+};
+
+// ----- Profile -----
+function renderProfile() {
+  const rank = getRank(state.xp);
+  const nextRank = getNextRank(state.xp);
+  const acc = state.attemptedTotal === 0 ? 0 : Math.round((state.correctTotal / state.attemptedTotal) * 100);
+  const lvl = levelFromXp(state.xp);
+
+  screenEl.innerHTML = `
+    <div class="p-4 space-y-4">
+      <div class="pt-4 flex flex-col items-center text-center">
+        <div class="text-7xl mb-2">${state.avatar}</div>
+        <div class="text-2xl font-black">${state.name}</div>
+        <div class="flex items-center gap-2 font-black mt-1" style="color:${rank.color}">${rank.emoji} ${rank.name} · Lvl ${lvl}</div>
+        ${nextRank ? `<div class="text-xs font-bold text-gray-500 mt-1">${nextRank.min - state.xp} XP to ${nextRank.name}</div>` : ''}
+      </div>
+
+      <div class="grid grid-cols-3 gap-2">
+        <div class="bg-white rounded-2xl p-3 text-center border-2 border-gray-200" style="border-bottom-width:4px;">
+          <div class="text-xs font-black uppercase text-gray-500">XP</div>
+          <div class="text-xl font-black">${state.xp}</div>
+        </div>
+        <div class="bg-white rounded-2xl p-3 text-center border-2 border-gray-200" style="border-bottom-width:4px;">
+          <div class="text-xs font-black uppercase text-gray-500">Accuracy</div>
+          <div class="text-xl font-black">${acc}%</div>
+        </div>
+        <div class="bg-white rounded-2xl p-3 text-center border-2 border-gray-200" style="border-bottom-width:4px;">
+          <div class="text-xs font-black uppercase text-gray-500">Streak</div>
+          <div class="text-xl font-black">🔥 ${state.streak}</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="text-sm font-black uppercase text-gray-500 mb-2 px-1">Badges</div>
+        <div class="grid grid-cols-4 gap-2">
+          ${BADGES.map(b => {
+            const earned = state.badges.includes(b.id);
+            return `<div class="${earned ? 'badge-card' : 'locked-badge'} p-3 rounded-2xl text-center" style="border-radius:16px;">
+              <div class="text-3xl ${earned ? '' : 'grayscale opacity-50'}">${earned ? b.emoji : '🔒'}</div>
+              <div class="text-[10px] font-black uppercase mt-1 leading-tight">${b.name}</div>
+            </div>`;
+          }).join("")}
+        </div>
+      </div>
+
+      <div>
+        <div class="text-sm font-black uppercase text-gray-500 mb-2 px-1">Daily Goal</div>
+        <div class="bg-white rounded-2xl p-4 border-2 border-gray-200" style="border-bottom-width:4px;">
+          <div class="flex items-center gap-2">
+            ${[3,5,10,15].map(n => `
+              <button onclick="setGoal(${n})" class="flex-1 py-2 rounded-xl font-black border-2 ${state.dailyGoal === n ? 'border-blue-400 bg-blue-50 text-blue-700' : 'border-gray-200 bg-white'}">${n}</button>
+            `).join("")}
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <button onclick="resetProgress()" class="btn-3d btn-white w-full py-3 text-sm">Reset Progress</button>
+        <div class="text-center text-xs font-bold text-gray-400">QuizQuest · CuriousLab Prototype</div>
+      </div>
+    </div>`;
+}
+window.setGoal = function(n) { state.dailyGoal = n; saveState(); render(); };
+window.resetProgress = function() {
+  if (!confirm("Wipe ALL progress? This can't be undone.")) return;
+  localStorage.removeItem("quizquest_state");
+  state = { ...DEFAULT_STATE };
+  go("home");
+};
+
+// ----- Confetti -----
+function burstConfetti(n) {
+  const colors = ["#58cc02","#1cb0f6","#ffc800","#ff4b4b","#ce82ff","#ff86c8"];
+  for (let i = 0; i < n; i++) {
+    const c = document.createElement("div");
+    c.className = "confetti";
+    c.style.left = Math.random() * 100 + "vw";
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    c.style.animation = `fall ${1.5 + Math.random() * 1.5}s linear forwards`;
+    c.style.animationDelay = Math.random() * 0.3 + "s";
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 3500);
+  }
+}
+
+// ---------- Boot ----------
+render();
+</script>
+</body>
+</html>
