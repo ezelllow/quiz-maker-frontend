@@ -8,7 +8,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000
 // HomePage — friendly landing screen modelled on the QuizQuest renderHome layout.
 // Mapped to HabitGo data (streak / rank / Daily Challenge / history). Mobile-first;
 // expands to a 2-col grid on desktop for the side-by-side cards.
-export default function HomePage({ authToken, user, rank, onNavigate }) {
+export default function HomePage({ authToken, user, rank, progression, onNavigate }) {
   const token = authToken || localStorage.getItem('auth_token')
   const [streak, setStreak] = useState(null)
   const [dailyDone, setDailyDone] = useState(null)   // null until loaded
@@ -159,18 +159,57 @@ export default function HomePage({ authToken, user, rank, onNavigate }) {
           {rank ? (
             <>
               <div className="text-3xl flex items-center gap-2 mt-1 font-black text-quiz-blue">
-                <span className="text-4xl leading-none">{rank.tier_icon}</span>
-                <span className="text-lg">{rank.tier_name}</span>
+                <span className="text-4xl leading-none">{rank.tier_icon || rank.icon}</span>
+                <span className="text-lg">{rank.tier_name || rank.name}</span>
               </div>
-              <div className="text-xs text-quiz-muted mt-1 font-bold">
-                {rank.rank_score}% at placement
-              </div>
+              {progression && (
+                <div className="text-xs text-quiz-muted mt-1 font-bold">
+                  Lv {progression.level} · {progression.xp} XP
+                </div>
+              )}
             </>
           ) : (
-            <div className="text-quiz-muted text-sm mt-2">Take the placement quiz to get ranked.</div>
+            <div className="text-quiz-muted text-sm mt-2">Start a quiz to earn your first rank.</div>
           )}
         </Card>
       </div>
+
+      {/* XP progress toward next tier */}
+      {progression && rank && (() => {
+        const xp = progression.xp ?? 0
+        const xpMin  = rank.xp_min  ?? 0
+        const xpNext = rank.xp_next                // null = maxed
+        const atMax  = xpNext == null
+        const span   = atMax ? 1 : Math.max(1, xpNext - xpMin)
+        const pct    = atMax ? 100 : Math.min(100, Math.max(0, Math.round(((xp - xpMin) / span) * 100)))
+        const toGo   = atMax ? 0 : Math.max(0, xpNext - xp)
+        return (
+          <Card variant="solid" className="!p-4 mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-[10px] font-black uppercase tracking-widest text-quiz-muted">
+                Next tier
+              </div>
+              <div className="text-[11px] font-black text-quiz-blue">
+                {atMax
+                  ? '⭐ Max tier — Legend'
+                  : <>{toGo} XP to {rank.next_name || rank.tier_name}</>}
+              </div>
+            </div>
+            <div className="h-3 rounded-full bg-white/5 overflow-hidden border border-quiz-border">
+              <div
+                className="h-full bg-gradient-to-r from-quiz-blue via-quiz-purple to-quiz-cyan
+                           transition-all duration-700 ease-out"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-[10px] font-bold text-quiz-muted mt-1.5">
+              <span>{xpMin} XP</span>
+              <span className="text-quiz-text">{xp} XP · Lv {progression.level}</span>
+              <span>{atMax ? '∞' : `${xpNext} XP`}</span>
+            </div>
+          </Card>
+        )
+      })()}
 
       {/* Weekly strip — Mon→Sun of THIS calendar week, with per-day status */}
       <div className="rounded-3xl p-4 mb-4 relative overflow-hidden border border-white/15 shadow-xl"

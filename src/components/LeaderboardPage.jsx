@@ -15,14 +15,20 @@ const TABS = [
 const METRIC_SUFFIX = { daily: '✓', weekly: '✓', alltime: 'XP' }
 const PERIOD_LABEL  = { daily: 'today', weekly: 'this week', alltime: 'overall' }
 
-export default function LeaderboardPage({ user, authToken }) {
+export default function LeaderboardPage({ user, authToken, progression }) {
   const token = authToken || localStorage.getItem('auth_token')
   const [period, setPeriod] = useState('weekly')
   const [entries, setEntries] = useState([])
   const [totalUsers, setTotalUsers] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [lastFetched, setLastFetched] = useState(null)  // Date — for 'last updated' indicator
+  const [bumpKey, setBumpKey] = useState(0)             // increment to force a refetch
 
+  // Refetch on: period change, manual bump, OR the current user's XP changing.
+  // The XP dep makes the leaderboard auto-update right after a quiz / test grant
+  // for the current player. Other players' changes are picked up via the
+  // refresh button or by re-navigating into the page.
   useEffect(() => {
     let cancelled = false
     setLoading(true); setError(null)
@@ -34,11 +40,12 @@ export default function LeaderboardPage({ user, authToken }) {
         if (cancelled) return
         setEntries(d.entries || [])
         setTotalUsers(d.total_users || 0)
+        setLastFetched(new Date())
         setLoading(false)
       })
       .catch((e) => { if (!cancelled) { setError(e.message); setLoading(false) } })
     return () => { cancelled = true }
-  }, [period, token])
+  }, [period, token, bumpKey, progression?.xp])
 
   // Find me in the slice the API gave us. Use the explicit is_me flag — it's
   // user_id-matched on the backend so it's authoritative even across renames.
@@ -66,10 +73,37 @@ export default function LeaderboardPage({ user, authToken }) {
     )
   }
 
+  const fmtAgo = (d) => {
+    if (!d) return ''
+    const s = Math.round((Date.now() - d.getTime()) / 1000)
+    if (s < 5)  return 'just now'
+    if (s < 60) return `${s}s ago`
+    const m = Math.round(s / 60)
+    if (m < 60) return `${m} min ago`
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }
+
   const Header = () => (
-    <header className="mb-4">
-      <div className="text-[10px] font-black uppercase tracking-widest text-quiz-muted">Leaderboard</div>
-      <h1 className="!text-2xl !font-black tracking-tight">Who's grinding today?</h1>
+    <header className="mb-4 flex items-start justify-between gap-3">
+      <div>
+        <div className="text-[10px] font-black uppercase tracking-widest text-quiz-muted">Leaderboard</div>
+        <h1 className="!text-2xl !font-black tracking-tight">Who's grinding today?</h1>
+        {lastFetched && (
+          <div className="text-[10px] font-bold text-quiz-muted mt-0.5">
+            Updated {fmtAgo(lastFetched)}
+          </div>
+        )}
+      </div>
+      <button
+        onClick={() => setBumpKey((k) => k + 1)}
+        disabled={loading}
+        title="Refresh"
+        className="shrink-0 px-3 py-2 rounded-full text-xs font-black
+                   bg-white/5 border border-quiz-border
+                   hover:bg-white/10 disabled:opacity-50 transition-colors"
+      >
+        {loading ? '…' : '🔄'}
+      </button>
     </header>
   )
 
@@ -162,8 +196,14 @@ export default function LeaderboardPage({ user, authToken }) {
             >
               <div className="w-7 text-center font-black text-quiz-muted">{p.rank}</div>
               <div className="shrink-0"><Avatar p={p} /></div>
-              <div className={'flex-1 font-black truncate ' + (p.is_me ? 'text-quiz-blue' : '')}>
-                {p.name}{p.is_me ? ' (You)' : ''}
+              <div className={'flex-1 font-black truncate flex items-center gap-1.5 ' + (p.is_me ? 'text-quiz-blue' : '')}>
+                <span className="truncate">{p.name}{p.is_me ? ' (You)' : ''}</span>
+                {p.level != null && (
+                  <span className="shrink-0 px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase
+                                   tracking-widest bg-quiz-purple/15 border border-quiz-purple/30 text-quiz-purple">
+                    Lv {p.level}
+                  </span>
+                )}
               </div>
               <div className="text-sm font-black text-quiz-muted shrink-0">
                 {p.score} {METRIC_SUFFIX[period]}

@@ -3,6 +3,7 @@ import Screen from './ui/Screen'
 import Card from './ui/Card'
 import Button3d from './ui/Button3d'
 import StreakTestPanel from './StreakTestPanel'
+import ProgressionTestPanel from './ProgressionTestPanel'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -30,7 +31,11 @@ function resizeImageToDataUrl(file, size = 256) {
 // Settings / Profile — QuizQuest renderProfile pattern.
 // Centered hero (avatar + name + rank), 3-stat grid (Streak / Longest / Accuracy),
 // compact profile editor, logout.
-export default function Settings({ onLogout, user, onUserUpdate, rank }) {
+export default function Settings({
+  onLogout, user, onUserUpdate, rank,
+  level, gems, dailyGoal, freezes, freezeCap, onFreezesChange,
+  onGemsChange, onDailyGoalChange, onProgressionChange,
+}) {
   const token = localStorage.getItem('auth_token')
   const stored = user || JSON.parse(localStorage.getItem('user') || '{}')
 
@@ -196,6 +201,25 @@ export default function Settings({ onLogout, user, onUserUpdate, rank }) {
         </Button3d>
       </Card>
 
+      {/* ===== StarQuest — daily goal + freeze shop ===== */}
+      <StarQuestPanel
+        token={token}
+        gems={gems}
+        dailyGoal={dailyGoal}
+        freezes={freezes}
+        freezeCap={freezeCap}
+        onFreezesChange={onFreezesChange}
+        onGemsChange={onGemsChange}
+        onDailyGoalChange={onDailyGoalChange}
+      />
+
+      {/* ===== Dev Tools — rank/XP/gems tester ===== */}
+      <ProgressionTestPanel
+        authToken={token}
+        onGemsChange={onGemsChange}
+        onProgressionChange={onProgressionChange}
+      />
+
       {/* ===== Dev Tools — temporary streak tester ===== */}
       <StreakTestPanel authToken={token} />
 
@@ -203,8 +227,134 @@ export default function Settings({ onLogout, user, onUserUpdate, rank }) {
       <Button3d variant="red" size="md" full onClick={(e) => { e.preventDefault(); onLogout && onLogout() }}>
         🚪 Logout
       </Button3d>
-
-      <div className="text-center text-xs font-bold text-quiz-muted mt-6">QuizMaker · CuriousLab</div>
     </Screen>
+  )
+}
+
+
+// StarQuestPanel — daily-goal picker + buy-streak-freeze button.
+// Reads gems / dailyGoal from props (controlled by App). Saves via API and
+// notifies parent via onGemsChange / onDailyGoalChange so the navbar reflects
+// the new totals instantly without a refetch round-trip.
+function StarQuestPanel({ token, gems, dailyGoal, freezes, freezeCap, onFreezesChange, onGemsChange, onDailyGoalChange }) {
+  const [busy, setBusy] = React.useState(false)
+  const [error, setError] = React.useState(null)
+  const [success, setSuccess] = React.useState(null)
+  const FREEZE_COST = 30
+
+  const setGoal = async (goal) => {
+    if (goal === dailyGoal) return
+    setBusy(true); setError(null); setSuccess(null)
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/profile/daily-goal`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ goal }),
+      })
+      const d = await res.json()
+      if (!res.ok) throw new Error(d.detail || 'Failed to save')
+      if (onDailyGoalChange) onDailyGoalChange(d.daily_goal)
+      setSuccess(`Daily goal set to ${d.daily_goal}`)
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const buyFreeze = async () => {
+    setBusy(true); setError(null); setSuccess(null)
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/freeze/purchase`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const d = await res.json()
+      if (!res.ok) throw new Error(d.detail || 'Purchase failed')
+      if (onGemsChange) onGemsChange(d.gems_total)
+      if (onFreezesChange) onFreezesChange(d.freezes_available)
+      setSuccess(`Bought a freeze! ${d.freezes_available}/${d.freeze_cap} held.`)
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const canAfford = (gems ?? 0) >= FREEZE_COST
+  const opts = [10, 15, 20]
+
+  return (
+    <Card variant="solid" className="!p-5 mb-4">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="!text-lg !font-black">⭐ StarQuest</h2>
+        <span className="text-xs font-bold text-quiz-cyan">💎 {gems ?? 0}</span>
+      </div>
+
+      {/* Daily goal picker */}
+      <div className="mb-4">
+        <div className="text-[10px] font-black uppercase tracking-widest text-quiz-muted mb-2">
+          Daily goal
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {opts.map((n) => {
+            const active = n === dailyGoal
+            return (
+              <button
+                key={n}
+                disabled={busy}
+                onClick={() => setGoal(n)}
+                className={[
+                  'py-2.5 rounded-xl text-sm font-black border-2 transition-all',
+                  active
+                    ? 'bg-gradient-to-r from-quiz-blue/30 to-quiz-purple/30 border-quiz-blue text-white'
+                    : 'bg-white/5 border-quiz-border text-quiz-muted hover:text-white',
+                ].join(' ')}
+              >
+                {n} Qs
+              </button>
+            )
+          })}
+        </div>
+        <p className="text-[11px] text-quiz-muted mt-2 leading-relaxed">
+          Cumulative correct answers needed each day to keep your streak.
+        </p>
+      </div>
+
+      {/* Buy streak freeze */}
+      <div className="border-t border-quiz-border/60 pt-4">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-[10px] font-black uppercase tracking-widest text-quiz-muted">
+            Streak shop
+          </div>
+          <div className="text-[10px] font-black text-quiz-blue">
+            🧊 {freezes ?? 0} / {freezeCap ?? 2} held
+          </div>
+        </div>
+        <Button3d
+          variant="blue"
+          size="md"
+          full
+          disabled={busy || !canAfford}
+          onClick={buyFreeze}
+        >
+          🧊 Buy Streak Freeze ({FREEZE_COST} 💎)
+        </Button3d>
+        <p className="text-[11px] text-quiz-muted mt-2 leading-relaxed">
+          Auto-fires to bridge one missed day. Cap of 2 held at once.
+        </p>
+      </div>
+
+      {error && (
+        <div className="mt-3 rounded-2xl border-2 border-quiz-red/50 bg-quiz-red/15 text-quiz-red px-3 py-2 text-xs font-bold">
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="mt-3 rounded-2xl border-2 border-quiz-green/50 bg-quiz-green/15 text-quiz-green px-3 py-2 text-xs font-bold">
+          {success}
+        </div>
+      )}
+    </Card>
   )
 }

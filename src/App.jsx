@@ -9,6 +9,7 @@ import Placement from './components/Placement'
 import DailyChallenge from './components/DailyChallenge'
 import HomePage from './components/HomePage'
 import LeaderboardPage from './components/LeaderboardPage'
+import ShopPage from './components/ShopPage'
 import PracticePage from './components/PracticePage'
 import StreakCelebration from './components/StreakCelebration'
 import LoginPage from './components/LoginPage'
@@ -27,6 +28,11 @@ function App() {
   // null = not checked yet, true = must take placement, false = already placed
   const [needsPlacement, setNeedsPlacement] = useState(null)
   const [ranks, setRanks] = useState([])
+  const [progression, setProgression] = useState(null)  // {xp, level, rank} — StarQuest
+  const [gems, setGems] = useState(0)                   // Crystals balance
+  const [dailyGoal, setDailyGoal] = useState(10)        // 10 / 15 / 20
+  const [freezes, setFreezes] = useState(0)             // streak freezes held
+  const [freezeCap, setFreezeCap] = useState(2)
   const [freezeReminder, setFreezeReminder] = useState(null)  // {streak, longest, usedDate}
 
   // Check whether the user has done their placement quiz yet.
@@ -42,7 +48,13 @@ function App() {
       }
       const data = await res.json()
       setRanks(data.ranks || [])
-      setNeedsPlacement(!data.has_placement)
+      setProgression(data.progression || null)
+      setGems(typeof data.gems === 'number' ? data.gems : 0)
+      setDailyGoal(data.daily_goal || 10)
+      setFreezes(typeof data.freezes_available === 'number' ? data.freezes_available : 0)
+      setFreezeCap(typeof data.freeze_cap === 'number' ? data.freeze_cap : 2)
+      // Placement quiz removed (2026-05-19) — everyone starts as Cadet, Lv 1, 0 XP.
+      setNeedsPlacement(false)
     } catch (err) {
       console.error('Placement check failed:', err)
       setNeedsPlacement(false)
@@ -122,8 +134,8 @@ function App() {
     setUser(userData)
     setCurrentPage('home')
     setIsSignup(false)
-    // New signups always go through placement.
-    setNeedsPlacement(true)
+    // Placement removed — new signups land directly on Home as Cadet.
+    setNeedsPlacement(false)
   }
 
   const handleLogout = () => {
@@ -140,9 +152,11 @@ function App() {
     setCurrentPage('quiz')
   }
 
-  // The rank shown app-wide. Physics is the only subject today; fall back gracefully.
-  const primaryRank =
-    ranks.find((r) => r.subject === 'Physics') || ranks[0] || null
+  // App-wide rank now comes from StarQuest progression (XP-derived: Cadet → Star Admiral).
+  // The per-subject placement bands (F9..A1) still live in `ranks` for the placement
+  // flow + Dashboard's per-subject section, but they're no longer the "headline" rank.
+  const primaryRank = progression?.rank || null
+  const primaryLevel = progression?.level ?? null
 
   if (loading) {
     return (
@@ -158,13 +172,15 @@ function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'home':
-        return <HomePage authToken={localStorage.getItem('auth_token')} user={user} rank={primaryRank} onNavigate={setCurrentPage} />
+        return <HomePage authToken={localStorage.getItem('auth_token')} user={user} rank={primaryRank} progression={progression} onNavigate={setCurrentPage} />
       case 'quiz':
-        return <QuizMaker authToken={localStorage.getItem('auth_token')} retakeAttempt={retakeAttempt} onRetakeClear={() => setRetakeAttempt(null)} mode="daily" />
+        return <QuizMaker authToken={localStorage.getItem('auth_token')} retakeAttempt={retakeAttempt} onRetakeClear={() => setRetakeAttempt(null)} mode="daily" onProgressionChange={setProgression} onGemsChange={setGems} onFreezesChange={setFreezes} />
       case 'practice':
-        return <PracticePage authToken={localStorage.getItem('auth_token')} />
+        return <PracticePage authToken={localStorage.getItem('auth_token')} onProgressionChange={setProgression} onGemsChange={setGems} onFreezesChange={setFreezes} />
       case 'leaderboard':
-        return <LeaderboardPage authToken={localStorage.getItem('auth_token')} user={user} />
+        return <LeaderboardPage authToken={localStorage.getItem('auth_token')} user={user} progression={progression} />
+      case 'shop':
+        return <ShopPage authToken={localStorage.getItem('auth_token')} gems={gems} onGemsChange={setGems} />
       case 'daily':
         return <DailyChallenge authToken={localStorage.getItem('auth_token')} subject="Physics" onExit={() => setCurrentPage('home')} />
       case 'dashboard':
@@ -174,9 +190,13 @@ function App() {
       case 'history':
         return <History authToken={localStorage.getItem('auth_token')} />
       case 'settings':
-        return <Settings onLogout={handleLogout} user={user} onUserUpdate={setUser} rank={primaryRank} />
+        return <Settings onLogout={handleLogout} user={user} onUserUpdate={setUser} rank={primaryRank}
+                         level={primaryLevel} gems={gems} dailyGoal={dailyGoal}
+                         freezes={freezes} freezeCap={freezeCap} onFreezesChange={setFreezes}
+                         onGemsChange={setGems} onDailyGoalChange={setDailyGoal}
+                         onProgressionChange={setProgression} />
       default:
-        return <HomePage authToken={localStorage.getItem('auth_token')} user={user} rank={primaryRank} onNavigate={setCurrentPage} />
+        return <HomePage authToken={localStorage.getItem('auth_token')} user={user} rank={primaryRank} progression={progression} onNavigate={setCurrentPage} />
     }
   }
 
@@ -207,6 +227,10 @@ function App() {
             userName={user?.name || 'Student'}
             userAvatar={user?.avatar_url || ''}
             rank={primaryRank}
+            level={primaryLevel}
+            gems={gems}
+            freezes={freezes}
+            freezeCap={freezeCap}
             onLogout={handleLogout}
           >
             {renderPage()}

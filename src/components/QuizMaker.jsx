@@ -14,7 +14,8 @@ function answerKey(val) {
   return s.toUpperCase()
 }
 
-export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mode = 'daily', initialSubject, onBackToHub }) {
+export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mode = 'daily', initialSubject, onBackToHub,
+  onProgressionChange, onGemsChange, onFreezesChange }) {
   const isPractice = mode === 'practice'
   const token = authToken || localStorage.getItem('auth_token')
 
@@ -39,9 +40,24 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
   const [retakeParentId, setRetakeParentId]               = useState(null)
   const [topicsOpen, setTopicsOpen]                       = useState(false)
   const [celebrationDismissed, setCelebrationDismissed]   = useState(false)
+  // Daily mode is locked once today's goal is met. Practice stays free.
+  const [dailyLocked, setDailyLocked] = useState(null)
 
   useEffect(() => { fetchFilters() }, [])
   useEffect(() => { if (retakeAttempt) loadRetakeQuiz() }, [retakeAttempt])
+
+  // Daily-lock check: read did_today from /api/streak so we can short-circuit
+  // entry into the build form once the user has already hit today's goal.
+  // Practice + retakes are always allowed.
+  useEffect(() => {
+    if (isPractice || isRetaking || retakeAttempt) { setDailyLocked(false); return }
+    let cancelled = false
+    fetch(`${API_BASE_URL}/api/streak`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (!cancelled) setDailyLocked(Boolean(d?.did_today)) })
+      .catch(() => { if (!cancelled) setDailyLocked(false) })
+    return () => { cancelled = true }
+  }, [isPractice, isRetaking, retakeAttempt, token, showResults])
 
   const loadRetakeQuiz = async () => {
     try {
@@ -163,6 +179,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
           parent_attempt_id:  (isRetaking && retakeParentId) || null,
           name:               !isRetaking ? (quizName.trim() || null) : null,
           questions:          quiz.questions.map((q, idx) => ({ ...q, index: idx })),
+          quiz_type:          isPractice ? 'practice' : 'daily',
         }),
       })
       if (!res.ok) throw new Error('Failed to save quiz results')
@@ -173,7 +190,20 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
         dailyProgress: d.daily_progress || null,
         streakAwarded: d.daily_progress?.streak_awarded === true,
         freezeUsed: d.daily_progress?.freeze_used === true,
+        // StarQuest reward fields
+        xpDelta:       d.xp_delta      ?? 0,
+        xpTotal:       d.xp_total      ?? 0,
+        xpBreakdown:   d.xp_breakdown  ?? null,
+        gemsDelta:     d.gems_delta    ?? 0,
+        gemsTotal:     d.gems_total    ?? 0,
+        gemsBreakdown: d.gems_breakdown ?? null,
+        rankUp:        d.rank_up === true,
+        newRank:       d.new_rank      ?? null,
+        progression:   d.progression   ?? null,
       })
+      // Bubble fresh totals to App so navbar pills + Leaderboard refetch react.
+      if (onProgressionChange && d.progression) onProgressionChange(d.progression)
+      if (onGemsChange && typeof d.gems_total === 'number') onGemsChange(d.gems_total)
       setSubmitSuccess(`Quiz saved! You scored ${correctCount}/${quiz.questions.length} (${percentage}%)`)
     } catch (err) {
       setError(`Error submitting quiz: ${err.message}`)
@@ -192,6 +222,27 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
     'w-full rounded-2xl bg-[#1a1a35] border-2 border-quiz-border px-4 py-3 text-base ' +
     'text-quiz-text placeholder:text-quiz-muted focus:outline-none focus:border-quiz-blue ' +
     'focus:ring-2 focus:ring-quiz-blue/40 transition-colors disabled:opacity-60'
+
+  // ===== DAILY LOCKED — user already hit today's goal =====
+  if (!isPractice && dailyLocked === true && !quiz && !showResults) {
+    return (
+      <Screen width="default" className="py-8">
+        <Card variant="solid" className="!p-8 text-center border-2 border-quiz-green/50
+                                        bg-gradient-to-br from-quiz-green/15 to-quiz-blue/15">
+          <div className="text-6xl mb-3">✅</div>
+          <h2 className="!text-2xl !font-black mb-2">Daily complete!</h2>
+          <p className="text-quiz-muted text-sm leading-relaxed mb-5">
+            You've hit today's goal — streak is safe. The Daily Challenge is
+            locked until tomorrow. Want to keep sharpening? Switch to Practice
+            (no XP or gems, just pure reps).
+          </p>
+          <p className="text-[11px] text-quiz-muted leading-relaxed">
+            Tip: tap <strong>✏️ Practice</strong> in the bottom nav.
+          </p>
+        </Card>
+      </Screen>
+    )
+  }
 
   // ===== CREATE FORM (QuizQuest renderQuizSetup pattern) =====
   if (!quiz) {
@@ -409,7 +460,10 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
 
   // ===== RESULTS =====
   if (showResults) {
-    const { correctCount, percentage, dailyProgress: dp, streakAwarded, freezeUsed } = showResults
+    const {
+      correctCount, percentage, dailyProgress: dp, streakAwarded, freezeUsed,
+      xpDelta, xpBreakdown, gemsDelta, gemsBreakdown, rankUp, newRank, progression,
+    } = showResults
     const showCelebration = streakAwarded && !celebrationDismissed && dp?.current_streak
     const pctCls = percentage >= 80 ? 'text-quiz-green' : percentage >= 50 ? 'text-quiz-yellow' : 'text-quiz-red'
     const target = dp?.target ?? 10
@@ -438,6 +492,59 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
             You got <strong>{correctCount}</strong> out of <strong>{quiz.questions.length}</strong> questions correct!
           </p>
         </Card>
+
+        {/* Rank-up banner (rare, only on tier crossings) */}
+        {rankUp && newRank && (
+          <Card variant="solid" className="!p-5 mb-4 text-center border-2 border-quiz-yellow/60
+                                          bg-gradient-to-r from-quiz-yellow/15 to-quiz-orange/15">
+            <div className="text-[10px] font-black uppercase tracking-widest text-quiz-yellow mb-1">
+              Rank up!
+            </div>
+            <div className="text-3xl mb-1">{newRank.icon || newRank.tier_icon}</div>
+            <div className="text-xl font-black text-quiz-yellow">{newRank.name || newRank.tier_name}</div>
+            <p className="text-xs text-quiz-muted mt-1">
+              {newRank.next_name
+                ? <>Next tier: {newRank.next_name} at {newRank.xp_next} XP</>
+                : <>Top of the cosmic ladder. Legend status.</>}
+            </p>
+          </Card>
+        )}
+
+        {/* StarQuest rewards earned this quiz */}
+        {(xpDelta > 0 || gemsDelta > 0) && (
+          <Card variant="solid" className="!p-4 mb-4">
+            <div className="text-[10px] font-black uppercase tracking-widest text-quiz-muted mb-2">
+              Rewards
+            </div>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-sm font-bold">⭐ XP</span>
+              <span className="text-sm font-black text-quiz-purple">+{xpDelta}</span>
+            </div>
+            {xpBreakdown && (
+              <div className="text-[11px] text-quiz-muted leading-relaxed mb-2 pl-2">
+                {xpBreakdown.base ? <>+{xpBreakdown.base} base </> : null}
+                {xpBreakdown.perfect ? <>· +{xpBreakdown.perfect} perfect </> : null}
+                {xpBreakdown.daily_goal ? <>· +{xpBreakdown.daily_goal} daily-goal </> : null}
+                {xpBreakdown.streak_milestone ? <>· +{xpBreakdown.streak_milestone} milestone</> : null}
+              </div>
+            )}
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold">💎 Crystals</span>
+              <span className="text-sm font-black text-quiz-cyan">+{gemsDelta}</span>
+            </div>
+            {gemsBreakdown && (
+              <div className="text-[11px] text-quiz-muted leading-relaxed pl-2">
+                +{gemsBreakdown.correct} correct · +{gemsBreakdown.quiz} quiz
+                {gemsBreakdown.rank_up ? <> · +{gemsBreakdown.rank_up} rank-up</> : null}
+              </div>
+            )}
+            {progression && (
+              <div className="text-[10px] text-quiz-muted mt-2 pt-2 border-t border-quiz-border/40 text-right">
+                Lv {progression.level} · {progression.xp} XP total
+              </div>
+            )}
+          </Card>
+        )}
 
         {/* Daily progress + streak award */}
         {dp && (
@@ -504,6 +611,8 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
     const a = userAnswers[i]; return a !== undefined && a !== null && a !== ''
   }).length
   const allAnswered = answeredCount === total
+  const _ca = userAnswers[currentQuestionIndex]
+  const currentAnswered = _ca !== undefined && _ca !== null && _ca !== ''
 
   const rawHeaders = q.table_headers || []
   const flatHeaders = Array.isArray(rawHeaders[0]) ? rawHeaders[rawHeaders.length - 1] : rawHeaders
@@ -640,12 +749,14 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
             </Button3d>
           ) : (
             <Button3d
-              variant="blue"
+              variant={currentAnswered ? 'blue' : 'disabled'}
               size="md"
+              disabled={!currentAnswered}
+              title={!currentAnswered ? 'Pick an answer to continue' : ''}
               onClick={() => setCurrentQuestionIndex(Math.min(total - 1, currentQuestionIndex + 1))}
               className="order-2 sm:order-3"
             >
-              Next →
+              {currentAnswered ? 'Next →' : '🔒 Pick an answer'}
             </Button3d>
           )}
         </div>
