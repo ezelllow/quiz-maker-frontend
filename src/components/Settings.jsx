@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import Screen from './ui/Screen'
 import Card from './ui/Card'
 import Button3d from './ui/Button3d'
+import StreakTestPanel from './StreakTestPanel'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -194,6 +195,9 @@ export default function Settings({ onLogout, user, onUserUpdate, rank }) {
           {saving ? 'Saving…' : dirty ? '💾 Save changes' : '✓ Saved'}
         </Button3d>
       </Card>
+
+      {/* ===== Dev Tools — temporary streak tester ===== */}
+      <StreakTestPanel authToken={token} />
 
       {/* ===== Logout ===== */}
       <Button3d variant="red" size="md" full onClick={(e) => { e.preventDefault(); onLogout && onLogout() }}>

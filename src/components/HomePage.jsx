@@ -13,6 +13,7 @@ export default function HomePage({ authToken, user, rank, onNavigate }) {
   const [streak, setStreak] = useState(null)
   const [dailyDone, setDailyDone] = useState(null)   // null until loaded
   const [dailyProgress, setDailyProgress] = useState(null)  // {today_correct, target, ...}
+  const [weekData, setWeekData] = useState(null)     // {days: [{date, weekday, status, is_today}, ...]}
   const [recent, setRecent] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -26,13 +27,16 @@ export default function HomePage({ authToken, user, rank, onNavigate }) {
       }).then((r) => (r.ok ? r.json() : null)),
       fetch(`${API_BASE_URL}/api/history`, { headers: { Authorization: `Bearer ${token}` } })
         .then((r) => (r.ok ? r.json() : { attempts: [] })),
+      fetch(`${API_BASE_URL}/api/streak/week`, { headers: { Authorization: `Bearer ${token}` } })
+        .then((r) => (r.ok ? r.json() : null)),
     ])
-      .then(([streakData, dc, hist]) => {
+      .then(([streakData, dc, hist, week]) => {
         if (cancelled) return
         setStreak(streakData)
         setDailyDone(dc?.already_passed_today === true)
         setDailyProgress(dc?.daily_progress || null)
         setRecent((hist?.attempts || []).slice(0, 3))
+        setWeekData(week)
       })
       .catch(() => { /* silent — degrade gracefully */ })
       .finally(() => { if (!cancelled) setLoading(false) })
@@ -46,9 +50,10 @@ export default function HomePage({ authToken, user, rank, onNavigate }) {
   const longestStreak = streak?.longest_streak ?? 0
   const freezes = streak?.freezes_available ?? 0
 
-  // 7-day strip: streak >= 7 → all filled; else first `currentStreak` filled.
-  const filledCount = currentStreak >= 7 ? 7 : currentStreak
-  const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+  // The 7-day strip is now backed by /api/streak/week so each cell shows the
+  // real per-day status (completed / freeze_used / today / missed / upcoming).
+  // The "Week N" label is just a count of how many ISO weeks the user has been
+  // active for — informational, not the source of the strip.
 
   const quickActions = [
     { id: 'quiz',      icon: '✏️', label: 'Practice',  sub: 'Pick topics & drill',  tint: 'from-quiz-green/20 to-quiz-blue/20  border-quiz-green/40' },
@@ -167,29 +172,28 @@ export default function HomePage({ authToken, user, rank, onNavigate }) {
         </Card>
       </div>
 
-      {/* 7-day streak strip */}
+      {/* Weekly strip — Mon→Sun of THIS calendar week, with per-day status */}
       <div className="rounded-3xl p-4 mb-4 relative overflow-hidden border border-white/15 shadow-xl"
            style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #db2777 50%, #06b6d4 100%)' }}>
-        <div className="flex items-center justify-between gap-3 relative z-10">
-          <div className="text-white">
-            <div className="text-[10px] font-black uppercase tracking-widest opacity-90">This week</div>
-            <div className="text-2xl font-black">
-              {currentStreak} day{currentStreak === 1 ? '' : 's'} 🚀
+        <div className="relative z-10">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div className="text-white">
+              <div className="text-[10px] font-black uppercase tracking-widest opacity-90">This week</div>
+              <div className="text-2xl font-black">
+                {currentStreak} day{currentStreak === 1 ? '' : 's'} 🚀
+              </div>
             </div>
           </div>
-          <div className="flex gap-1.5 shrink-0">
-            {[0,1,2,3,4,5,6].map((d) => {
-              const filled = d < filledCount
-              return (
-                <div
-                  key={d}
-                  className={'w-7 h-7 rounded-full flex items-center justify-center text-xs font-black ' +
-                    (filled ? 'bg-white text-purple-700 shadow-md' : 'bg-white/15 text-white/70')}
-                >
-                  {dayLabels[d]}
-                </div>
-              )
-            })}
+          <div className="grid grid-cols-7 gap-1.5">
+            {(weekData?.days || []).map((day) => (
+              <WeekCell key={day.date} day={day} />
+            ))}
+            {!weekData && [0,1,2,3,4,5,6].map((d) => (
+              <div key={d} className="aspect-square rounded-xl bg-white/10" />
+            ))}
+          </div>
+          <div className="flex items-center justify-center gap-3 mt-3 text-[10px] font-bold text-white/80">
+            <span>🔥 done</span><span>❄️ freeze</span><span>○ upcoming</span><span>✖ missed</span>
           </div>
         </div>
       </div>
@@ -247,5 +251,30 @@ export default function HomePage({ authToken, user, rank, onNavigate }) {
         </div>
       )}
     </Screen>
+  )
+}
+
+function WeekCell({ day }) {
+  const isToday = day.is_today || day.status === 'today'
+  const base = 'aspect-square rounded-xl flex flex-col items-center justify-center font-black border-2 transition-transform'
+  const styles = {
+    completed:   'bg-white text-purple-700 border-white shadow-md',
+    freeze_used: 'bg-cyan-200 text-cyan-900 border-cyan-300',
+    today:       'bg-white/30 text-white border-white border-dashed scale-105',
+    missed:      'bg-red-500/40 text-white border-red-400/60',
+    upcoming:    'bg-white/10 text-white/70 border-white/15',
+  }[day.status] || 'bg-white/10 text-white/70 border-white/15'
+  const icon = {
+    completed:   '🔥',
+    freeze_used: '❄️',
+    today:       '·',
+    missed:      '✖',
+    upcoming:    '○',
+  }[day.status] || '○'
+  return (
+    <div className={base + ' ' + styles + (isToday ? ' ring-2 ring-white/70' : '')}>
+      <div className="text-[9px] uppercase tracking-widest opacity-80 leading-none">{day.weekday}</div>
+      <div className="text-sm leading-none mt-1">{icon}</div>
+    </div>
   )
 }

@@ -9,6 +9,8 @@ import Placement from './components/Placement'
 import DailyChallenge from './components/DailyChallenge'
 import HomePage from './components/HomePage'
 import LeaderboardPage from './components/LeaderboardPage'
+import PracticePage from './components/PracticePage'
+import StreakCelebration from './components/StreakCelebration'
 import LoginPage from './components/LoginPage'
 import SignupPage from './components/SignupPage'
 import './App.css'
@@ -25,6 +27,7 @@ function App() {
   // null = not checked yet, true = must take placement, false = already placed
   const [needsPlacement, setNeedsPlacement] = useState(null)
   const [ranks, setRanks] = useState([])
+  const [freezeReminder, setFreezeReminder] = useState(null)  // {streak, longest, usedDate}
 
   // Check whether the user has done their placement quiz yet.
   const checkPlacement = async (token) => {
@@ -71,6 +74,40 @@ function App() {
 
     setLoading(false)
   }, [])
+
+  // Freeze-reminder check: when the user lands in the app and a freeze was used
+  // this calendar week (and we haven't already shown the reminder for that event),
+  // mount the freeze-variant celebration so they know the streak survived.
+  useEffect(() => {
+    if (!isAuthenticated || needsPlacement !== false) return
+    const token = localStorage.getItem('auth_token')
+    if (!token) return
+    let cancelled = false
+    fetch(`${API_BASE_URL}/api/streak`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (cancelled || !d || !d.freeze_used_date) return
+        // Same ISO-week check (Monday → Sunday): compute Monday of both dates and compare.
+        const mondayOf = (iso) => {
+          const x = new Date(iso + 'T00:00:00')
+          const day = x.getDay()           // 0=Sun, 1=Mon, ... 6=Sat
+          const diff = day === 0 ? -6 : 1 - day
+          x.setDate(x.getDate() + diff)
+          return x.toISOString().slice(0, 10)
+        }
+        const todayIso = new Date().toISOString().slice(0, 10)
+        if (mondayOf(d.freeze_used_date) !== mondayOf(todayIso)) return
+        const key = `freeze_reminder_${d.freeze_used_date}`
+        if (localStorage.getItem(key)) return
+        setFreezeReminder({
+          streak:   d.current_streak ?? 0,
+          longest:  d.longest_streak ?? 0,
+          usedDate: d.freeze_used_date,
+        })
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [isAuthenticated, needsPlacement])
 
   const handleLoginSuccess = (token, userData) => {
     setIsAuthenticated(true)
@@ -125,9 +162,9 @@ function App() {
       case 'quiz':
         return <QuizMaker authToken={localStorage.getItem('auth_token')} retakeAttempt={retakeAttempt} onRetakeClear={() => setRetakeAttempt(null)} mode="daily" />
       case 'practice':
-        return <QuizMaker authToken={localStorage.getItem('auth_token')} retakeAttempt={retakeAttempt} onRetakeClear={() => setRetakeAttempt(null)} mode="practice" />
+        return <PracticePage authToken={localStorage.getItem('auth_token')} />
       case 'leaderboard':
-        return <LeaderboardPage user={user} />
+        return <LeaderboardPage authToken={localStorage.getItem('auth_token')} user={user} />
       case 'daily':
         return <DailyChallenge authToken={localStorage.getItem('auth_token')} subject="Physics" onExit={() => setCurrentPage('home')} />
       case 'dashboard':
@@ -145,6 +182,17 @@ function App() {
 
   return (
     <div className="app">
+      {freezeReminder && (
+        <StreakCelebration
+          streak={freezeReminder.streak}
+          longest={freezeReminder.longest}
+          freezeUsed={true}
+          onDismiss={() => {
+            localStorage.setItem(`freeze_reminder_${freezeReminder.usedDate}`, '1')
+            setFreezeReminder(null)
+          }}
+        />
+      )}
       {isAuthenticated ? (
         needsPlacement === true ? (
           <Placement

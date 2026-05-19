@@ -286,6 +286,34 @@ input::placeholder, textarea::placeholder { color: var(--quiz-muted); }
 @keyframes pop { 0% { transform: scale(0.96); } 60% { transform: scale(1.02); } 100% { transform: scale(1); } }
 @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.35); } 50% { box-shadow: 0 0 32px 8px rgba(56, 189, 248, 0.25); } }
 
+/* Streak celebration keyframes */
+@keyframes streakBurst {
+  0%   { transform: scale(0) rotate(-30deg); opacity: 0; }
+  50%  { transform: scale(1.25) rotate(8deg); opacity: 1; }
+  70%  { transform: scale(0.92) rotate(-3deg); }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+@keyframes streakGlowPulse {
+  0%, 100% { text-shadow: 0 0 24px rgba(251, 146, 60, 0.55), 0 0 60px rgba(244, 63, 94, 0.25); }
+  50%      { text-shadow: 0 0 48px rgba(251, 146, 60, 0.95), 0 0 100px rgba(244, 63, 94, 0.55); }
+}
+@keyframes floatUpFade {
+  0%   { opacity: 0; transform: translateY(20px) scale(0.6); }
+  20%  { opacity: 1; transform: translateY(0) scale(1); }
+  80%  { opacity: 1; transform: translateY(-60px) scale(1.1); }
+  100% { opacity: 0; transform: translateY(-90px) scale(1.2); }
+}
+@keyframes sparkle {
+  0%   { opacity: 0; transform: scale(0) rotate(0); }
+  40%  { opacity: 1; transform: scale(1) rotate(180deg); }
+  100% { opacity: 0; transform: scale(0) rotate(360deg); }
+}
+@keyframes backdropFade {
+  from { opacity: 0; backdrop-filter: blur(0); }
+  to   { opacity: 1; backdrop-filter: blur(8px); }
+}
+
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 1ms !important;

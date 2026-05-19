@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Screen from './ui/Screen'
 import Card from './ui/Card'
 import Button3d from './ui/Button3d'
+import StreakCelebration from './StreakCelebration'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -13,13 +14,13 @@ function answerKey(val) {
   return s.toUpperCase()
 }
 
-export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mode = 'daily' }) {
+export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mode = 'daily', initialSubject, onBackToHub }) {
   const isPractice = mode === 'practice'
   const token = authToken || localStorage.getItem('auth_token')
 
   const [subtopics, setSubtopics]                 = useState([])
   const [difficulties, setDifficulties]           = useState([])
-  const [selectedSubject, setSelectedSubject]     = useState('Physics')
+  const [selectedSubject, setSelectedSubject]     = useState(initialSubject || 'Physics')
   const [selectedSubtopic, setSelectedSubtopic]   = useState('')
   const [selectedSubtopics, setSelectedSubtopics] = useState([])
   const [selectedDifficulty, setSelectedDifficulty] = useState('Medium')
@@ -37,6 +38,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
   const [isRetaking, setIsRetaking]                       = useState(false)
   const [retakeParentId, setRetakeParentId]               = useState(null)
   const [topicsOpen, setTopicsOpen]                       = useState(false)
+  const [celebrationDismissed, setCelebrationDismissed]   = useState(false)
 
   useEffect(() => { fetchFilters() }, [])
   useEffect(() => { if (retakeAttempt) loadRetakeQuiz() }, [retakeAttempt])
@@ -165,10 +167,12 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
       })
       if (!res.ok) throw new Error('Failed to save quiz results')
       const d = await res.json()
+      setCelebrationDismissed(false)
       setShowResults({
         correctCount, percentage, attemptId: d.attempt_id,
         dailyProgress: d.daily_progress || null,
         streakAwarded: d.daily_progress?.streak_awarded === true,
+        freezeUsed: d.daily_progress?.freeze_used === true,
       })
       setSubmitSuccess(`Quiz saved! You scored ${correctCount}/${quiz.questions.length} (${percentage}%)`)
     } catch (err) {
@@ -234,15 +238,24 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
     return (
       <Screen width="default">
         <header className="mb-6">
+          {onBackToHub && (
+            <button
+              type="button"
+              onClick={onBackToHub}
+              className="text-xs font-bold text-quiz-muted hover:text-quiz-blue mb-2 inline-flex items-center gap-1"
+            >
+              ← Back to subjects
+            </button>
+          )}
           <div className="text-xs font-black uppercase tracking-widest text-quiz-muted">
             {selectedSubject} · {isPractice ? 'Practice' : 'Daily Challenge'}
           </div>
           <h1 className="!text-3xl !font-black tracking-tight">
-            {isPractice ? 'Practice mode' : "Build today's quiz"}
+            {isPractice ? 'New practice quiz' : "Build today's quiz"}
           </h1>
           <p className="text-quiz-muted font-semibold mt-1 text-sm">
             {isPractice
-              ? 'Drill anything you want — no pressure. Correct answers still count toward your daily streak.'
+              ? 'Drill anything you want. Correct answers still count toward your daily streak.'
               : 'Hit 10 correct today to earn the streak — correct answers stack across attempts.'}
           </p>
         </header>
@@ -396,13 +409,23 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
 
   // ===== RESULTS =====
   if (showResults) {
-    const { correctCount, percentage, dailyProgress: dp, streakAwarded } = showResults
+    const { correctCount, percentage, dailyProgress: dp, streakAwarded, freezeUsed } = showResults
+    const showCelebration = streakAwarded && !celebrationDismissed && dp?.current_streak
     const pctCls = percentage >= 80 ? 'text-quiz-green' : percentage >= 50 ? 'text-quiz-yellow' : 'text-quiz-red'
     const target = dp?.target ?? 10
     const todayCorrect = dp?.today_correct ?? correctCount
     const passedToday = dp?.passed_today ?? false
     const progressPct = Math.min(100, Math.round((todayCorrect / target) * 100))
     return (
+      <>
+        {showCelebration && (
+          <StreakCelebration
+            streak={dp.current_streak}
+            longest={dp.longest_streak}
+            freezeUsed={freezeUsed}
+            onDismiss={() => setCelebrationDismissed(true)}
+          />
+        )}
       <Screen width="default" className="py-8">
         <Card variant="solid" className="!p-8 text-center mb-4">
           <h2 className="!text-2xl !font-black mb-5">📊 Quiz Results</h2>
@@ -461,7 +484,13 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
         <Button3d variant="green" size="lg" full onClick={handleRetakeQuizClick}>
           🔄 Take another
         </Button3d>
+        {onBackToHub && (
+          <Button3d variant="white" size="md" full onClick={onBackToHub} className="mt-2">
+            ← Back to subjects
+          </Button3d>
+        )}
       </Screen>
+      </>
     )
   }
 
