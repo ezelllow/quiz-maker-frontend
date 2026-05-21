@@ -132,7 +132,11 @@ export default function HomePage({ authToken, user, rank, progression, onNavigat
                 variant={passed ? 'blue' : 'orange'}
                 size="lg"
                 full
-                onClick={() => onNavigate('quiz')}
+                // Once the daily is done, "Bonus Practice" is just normal
+                // practice — route to the reward-free practice flow so it
+                // grants no XP/gems. Before the daily is done, this is the
+                // daily challenge itself ('quiz' route, rewarded).
+                onClick={() => onNavigate(passed ? 'practice' : 'quiz')}
               >
                 {passed
                   ? '✏️ Bonus Practice'
