@@ -43,6 +43,10 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
   const [celebrationDismissed, setCelebrationDismissed]   = useState(false)
   // Daily mode is locked once today's goal is met. Practice stays free.
   const [dailyLocked, setDailyLocked] = useState(null)
+  // Per-question flow: { [index]: true } once that question has been submitted
+  // and its correct/wrong result revealed. The user must submit a question
+  // before they can advance to the next one.
+  const [checked, setChecked] = useState({})
 
   useEffect(() => { fetchFilters() }, [])
   useEffect(() => { if (retakeAttempt) loadRetakeQuiz() }, [retakeAttempt])
@@ -87,7 +91,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
       setSelectedDifficulty(retakeAttempt.difficulty)
       setQuestionCount(retakeAttempt.count)
       setRetakeParentId(retakeAttempt.id)
-      setCurrentQuestionIndex(0); setUserAnswers({}); setShowResults(false)
+      setCurrentQuestionIndex(0); setUserAnswers({}); setChecked({}); setShowResults(false)
       setQuizStartTime(Date.now()); setSubmitSuccess(null)
       if (onRetakeClear) onRetakeClear()
     } catch (err) {
@@ -165,7 +169,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
       if (!res.ok) { const d = await res.json(); throw new Error(d.detail || 'Failed to create quiz') }
       const quizData = await res.json()
       setQuiz(quizData)
-      setCurrentQuestionIndex(0); setUserAnswers({}); setShowResults(false)
+      setCurrentQuestionIndex(0); setUserAnswers({}); setChecked({}); setShowResults(false)
       setQuizStartTime(Date.now()); setSubmitSuccess(null)
     } catch (err) {
       setError(`Error creating quiz: ${err.message}`)
@@ -242,7 +246,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
   }
 
   const handleRetakeQuizClick = () => {
-    setQuiz(null); setCurrentQuestionIndex(0); setUserAnswers({}); setShowResults(false)
+    setQuiz(null); setCurrentQuestionIndex(0); setUserAnswers({}); setChecked({}); setShowResults(false)
     setError(null); setSubmitSuccess(null); setIsRetaking(false); setRetakeParentId(null)
     if (onRetakeClear) onRetakeClear()
   }
@@ -743,24 +747,47 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
   const q = quiz.questions[currentQuestionIndex]
   const total = quiz.questions.length
   const isLast = currentQuestionIndex === total - 1
-  const setAnswer = (val) => setUserAnswers({ ...userAnswers, [currentQuestionIndex]: val })
 
-  const answeredCount = quiz.questions.filter((_, i) => {
-    const a = userAnswers[i]; return a !== undefined && a !== null && a !== ''
-  }).length
-  const allAnswered = answeredCount === total
+  // Per-question submit: a question must be "checked" before the user can move
+  // on. Once checked the answer is locked and correct/wrong is revealed inline.
+  const isChecked = checked[currentQuestionIndex] === true
+  const setAnswer = (val) => {
+    if (isChecked) return                       // answer locked after checking
+    setUserAnswers({ ...userAnswers, [currentQuestionIndex]: val })
+  }
+
+  const correctKey = answerKey(q.answer)
+  const chosenKey  = answerKey(userAnswers[currentQuestionIndex])
+  const isCorrect  = Boolean(chosenKey) && chosenKey === correctKey
+
   const _ca = userAnswers[currentQuestionIndex]
   const currentAnswered = _ca !== undefined && _ca !== null && _ca !== ''
+  const checkedCount = quiz.questions.filter((_, i) => checked[i]).length
+
+  const handleCheckQuestion = () => {
+    if (!currentAnswered || isChecked) return
+    setError(null)
+    setChecked({ ...checked, [currentQuestionIndex]: true })
+  }
 
   const rawHeaders = q.table_headers || []
   const flatHeaders = Array.isArray(rawHeaders[0]) ? rawHeaders[rawHeaders.length - 1] : rawHeaders
 
-  const optionCls = (selected) => [
-    'flex items-center gap-3 w-full text-left px-4 py-3 rounded-2xl border-2 cursor-pointer transition-all',
-    selected
+  // Option styling — before checking: blue = selected. After checking:
+  // green = the correct option, red = the option the user wrongly picked.
+  const optionCls = (selected, optKey) => {
+    const base = 'flex items-center gap-3 w-full text-left px-4 py-3 rounded-2xl border-2 transition-all '
+    if (isChecked) {
+      if (optKey && optKey === correctKey)
+        return base + 'bg-quiz-green/20 border-quiz-green text-white'
+      if (selected)
+        return base + 'bg-quiz-red/20 border-quiz-red text-white'
+      return base + 'bg-[#1a1a35] border-quiz-border opacity-60'
+    }
+    return base + 'cursor-pointer ' + (selected
       ? 'bg-quiz-blue/20 border-quiz-blue text-white shadow-lg scale-[1.01]'
-      : 'bg-[#1a1a35] border-quiz-border hover:border-quiz-blue/60 hover:bg-white/5',
-  ].join(' ')
+      : 'bg-[#1a1a35] border-quiz-border hover:border-quiz-blue/60 hover:bg-white/5')
+  }
 
   return (
     <Screen width="default" className="py-8">
@@ -824,15 +851,23 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                   const cells = flatHeaders.length > 0
                     ? flatHeaders.map((h) => (isObj ? (row[h] ?? '') : ''))
                     : (isObj && Array.isArray(row._cells) ? row._cells : [])
+                  let rowCls = 'transition-colors '
+                  if (isChecked) {
+                    if (letter === correctKey)   rowCls += 'bg-quiz-green/20'
+                    else if (selected)           rowCls += 'bg-quiz-red/20'
+                    else                         rowCls += 'opacity-60'
+                  } else {
+                    rowCls += 'cursor-pointer ' + (selected ? 'bg-quiz-blue/20' : 'hover:bg-white/5')
+                  }
                   return (
-                    <tr key={rIdx} onClick={() => setAnswer(letter)}
-                        className={'cursor-pointer transition-colors ' + (selected ? 'bg-quiz-blue/20' : 'hover:bg-white/5')}>
+                    <tr key={rIdx} onClick={() => setAnswer(letter)} className={rowCls}>
                       <td className="px-3 py-2 border-t border-quiz-border text-center font-black text-quiz-blue">{letter}</td>
                       {cells.map((c, cIdx) => (
                         <td key={cIdx} className="px-3 py-2 border-t border-quiz-border">{c}</td>
                       ))}
                       <td className="px-3 py-2 text-center border-t border-quiz-border">
-                        <input type="radio" checked={selected} onChange={() => setAnswer(letter)} className="accent-quiz-blue" />
+                        <input type="radio" checked={selected} disabled={isChecked}
+                               onChange={() => setAnswer(letter)} className="accent-quiz-blue" />
                       </td>
                     </tr>
                   )
@@ -845,8 +880,9 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
             {['A', 'B', 'C', 'D'].map((letter) => {
               const selected = userAnswers[currentQuestionIndex] === letter
               return (
-                <label key={letter} className={optionCls(selected) + ' justify-center'}>
-                  <input type="radio" checked={selected} onChange={() => setAnswer(letter)} className="sr-only" />
+                <label key={letter} className={optionCls(selected, letter) + ' justify-center'}>
+                  <input type="radio" checked={selected} disabled={isChecked}
+                         onChange={() => setAnswer(letter)} className="sr-only" />
                   <span className="text-2xl font-black">{letter}</span>
                 </label>
               )
@@ -862,13 +898,21 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
               const m = t.match(/^([A-Da-d])[\.\)\:\-]?\s+(.*)$/)
               const letter = m ? m[1].toUpperCase() : ''
               const body = m ? m[2] : t
+              const optKey = answerKey(t)
+              const isCorrectOpt = isChecked && optKey === correctKey
+              const isWrongPick  = isChecked && selected && optKey !== correctKey
               return (
-                <label key={i} className={optionCls(selected)}>
-                  <input type="radio" checked={selected} onChange={() => setAnswer(t)} className="sr-only" />
+                <label key={i} className={optionCls(selected, optKey)}>
+                  <input type="radio" checked={selected} disabled={isChecked}
+                         onChange={() => setAnswer(t)} className="sr-only" />
                   {letter && (
                     <span className={
                       'shrink-0 w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm border ' +
-                      (selected
+                      (isCorrectOpt
+                        ? 'bg-quiz-green text-white border-quiz-green'
+                        : isWrongPick
+                        ? 'bg-quiz-red text-white border-quiz-red'
+                        : selected && !isChecked
                         ? 'bg-quiz-blue text-white border-quiz-blue'
                         : 'bg-white/5 text-quiz-muted border-quiz-border')
                     }>
@@ -876,9 +920,25 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                     </span>
                   )}
                   <span className="font-semibold">{body}</span>
+                  {isCorrectOpt && <span className="ml-auto font-black text-quiz-green">✓</span>}
+                  {isWrongPick && <span className="ml-auto font-black text-quiz-red">✗</span>}
                 </label>
               )
             })}
+          </div>
+        )}
+
+        {/* Inline correct/wrong feedback — shown once the question is submitted */}
+        {isChecked && (
+          <div className={
+            'rounded-2xl border-2 px-4 py-3 text-sm font-black ' +
+            (isCorrect
+              ? 'border-quiz-green/50 bg-quiz-green/15 text-quiz-green'
+              : 'border-quiz-red/50 bg-quiz-red/15 text-quiz-red')
+          }>
+            {isCorrect
+              ? '✅ Correct! Nice one.'
+              : `❌ Not quite — the correct answer is ${correctKey || '—'}.`}
           </div>
         )}
 
@@ -892,29 +952,38 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
             ← Previous
           </Button3d>
           <span className="text-sm font-bold text-quiz-muted order-3 sm:order-2 w-full sm:w-auto text-center">
-            {answeredCount}/{total} answered
+            {checkedCount}/{total} done
           </span>
-          {isLast ? (
-            <Button3d
-              variant={allAnswered ? 'green' : 'disabled'}
-              size="md"
-              onClick={handleSubmitQuiz}
-              disabled={loading || !allAnswered}
-              title={!allAnswered ? `${total - answeredCount} unanswered — please answer all` : ''}
-              className="order-2 sm:order-3"
-            >
-              {loading ? '⏳ Submitting…' : allAnswered ? '✅ Submit Practice Quiz' : `⚠️ ${total - answeredCount} unanswered`}
-            </Button3d>
-          ) : (
+          {!isChecked ? (
+            // Must submit the current question before moving on.
             <Button3d
               variant={currentAnswered ? 'blue' : 'disabled'}
               size="md"
               disabled={!currentAnswered}
-              title={!currentAnswered ? 'Pick an answer to continue' : ''}
+              title={!currentAnswered ? 'Pick an answer first' : ''}
+              onClick={handleCheckQuestion}
+              className="order-2 sm:order-3"
+            >
+              {currentAnswered ? '✅ Submit answer' : '🔒 Pick an answer'}
+            </Button3d>
+          ) : isLast ? (
+            <Button3d
+              variant="green"
+              size="md"
+              onClick={handleSubmitQuiz}
+              disabled={loading}
+              className="order-2 sm:order-3"
+            >
+              {loading ? '⏳ Submitting…' : '🏁 See results'}
+            </Button3d>
+          ) : (
+            <Button3d
+              variant="blue"
+              size="md"
               onClick={() => setCurrentQuestionIndex(Math.min(total - 1, currentQuestionIndex + 1))}
               className="order-2 sm:order-3"
             >
-              {currentAnswered ? 'Next →' : '🔒 Pick an answer'}
+              Next →
             </Button3d>
           )}
         </div>
