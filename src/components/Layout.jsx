@@ -47,7 +47,7 @@ export default function Layout({
           >
             <span className="text-2xl">🎯</span>
             <span className="bg-gradient-to-r from-quiz-blue to-quiz-purple bg-clip-text text-transparent">
-              QuizMaker
+              HabitGo
             </span>
           </button>
 

@@ -34,6 +34,7 @@ function App() {
   const [freezes, setFreezes] = useState(0)             // streak freezes held
   const [freezeCap, setFreezeCap] = useState(2)
   const [freezeReminder, setFreezeReminder] = useState(null)  // {streak, longest, usedDate}
+  const [quizInProgress, setQuizInProgress] = useState(false)  // true while a quiz attempt is live
 
   // Check whether the user has done their placement quiz yet.
   const checkPlacement = async (token) => {
@@ -107,7 +108,8 @@ function App() {
           x.setDate(x.getDate() + diff)
           return x.toISOString().slice(0, 10)
         }
-        const todayIso = new Date().toISOString().slice(0, 10)
+        // Honour the dev-tools simulated clock when present (production: real today).
+        const todayIso = d.effective_today || new Date().toISOString().slice(0, 10)
         if (mondayOf(d.freeze_used_date) !== mondayOf(todayIso)) return
         const key = `freeze_reminder_${d.freeze_used_date}`
         if (localStorage.getItem(key)) return
@@ -135,7 +137,9 @@ function App() {
     setCurrentPage('home')
     setIsSignup(false)
     // Placement removed — new signups land directly on Home as Cadet.
-    setNeedsPlacement(false)
+    // checkPlacement also hydrates freezes / gems / progression so the navbar
+    // pills are correct immediately after signup, not just after a reload.
+    checkPlacement(token)
   }
 
   const handleLogout = () => {
@@ -150,6 +154,19 @@ function App() {
   const handleRetakeQuiz = (attempt) => {
     setRetakeAttempt(attempt)
     setCurrentPage('quiz')
+  }
+
+  // Navigation guard: if a quiz attempt is live, confirm before leaving so an
+  // accidental tap on the logo / Profile / a nav tab doesn't wipe the attempt.
+  const guardedNavigate = (page) => {
+    if (quizInProgress && page !== currentPage) {
+      const ok = window.confirm(
+        'Leave this quiz? Your progress on this attempt will be lost.'
+      )
+      if (!ok) return
+      setQuizInProgress(false)
+    }
+    setCurrentPage(page)
   }
 
   // App-wide rank now comes from StarQuest progression (XP-derived: Cadet → Star Admiral).
@@ -172,11 +189,11 @@ function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'home':
-        return <HomePage authToken={localStorage.getItem('auth_token')} user={user} rank={primaryRank} progression={progression} onNavigate={setCurrentPage} />
+        return <HomePage authToken={localStorage.getItem('auth_token')} user={user} rank={primaryRank} progression={progression} onNavigate={setCurrentPage} onFreezesChange={setFreezes} />
       case 'quiz':
-        return <QuizMaker authToken={localStorage.getItem('auth_token')} retakeAttempt={retakeAttempt} onRetakeClear={() => setRetakeAttempt(null)} mode="daily" onProgressionChange={setProgression} onGemsChange={setGems} onFreezesChange={setFreezes} />
+        return <QuizMaker authToken={localStorage.getItem('auth_token')} retakeAttempt={retakeAttempt} onRetakeClear={() => setRetakeAttempt(null)} mode="daily" onProgressionChange={setProgression} onGemsChange={setGems} onFreezesChange={setFreezes} onQuizActiveChange={setQuizInProgress} />
       case 'practice':
-        return <PracticePage authToken={localStorage.getItem('auth_token')} onProgressionChange={setProgression} onGemsChange={setGems} onFreezesChange={setFreezes} />
+        return <PracticePage authToken={localStorage.getItem('auth_token')} onProgressionChange={setProgression} onGemsChange={setGems} onFreezesChange={setFreezes} onQuizActiveChange={setQuizInProgress} />
       case 'leaderboard':
         return <LeaderboardPage authToken={localStorage.getItem('auth_token')} user={user} progression={progression} />
       case 'shop':
@@ -196,7 +213,7 @@ function App() {
                          onGemsChange={setGems} onDailyGoalChange={setDailyGoal}
                          onProgressionChange={setProgression} />
       default:
-        return <HomePage authToken={localStorage.getItem('auth_token')} user={user} rank={primaryRank} progression={progression} onNavigate={setCurrentPage} />
+        return <HomePage authToken={localStorage.getItem('auth_token')} user={user} rank={primaryRank} progression={progression} onNavigate={setCurrentPage} onFreezesChange={setFreezes} />
     }
   }
 
@@ -223,7 +240,7 @@ function App() {
         ) : (
           <Layout
             currentPage={currentPage}
-            onNavigate={setCurrentPage}
+            onNavigate={guardedNavigate}
             userName={user?.name || 'Student'}
             userAvatar={user?.avatar_url || ''}
             rank={primaryRank}

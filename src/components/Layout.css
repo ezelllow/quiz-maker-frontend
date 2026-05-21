@@ -197,7 +197,7 @@
 
 /* Sidebar logo header */
 .bottom-nav::before {
-  content: '⚡  QuizMaker';
+  content: '⚡  HabitGo';
   display: flex;
   align-items: center;
   gap: 8px;

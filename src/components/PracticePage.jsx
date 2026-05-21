@@ -10,7 +10,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000
 //   picker  → user chooses a subject
 //   hub     → that subject's saved quizzes + "Create new" CTA
 //   quiz    → QuizMaker (create form → quiz-taking → results)
-export default function PracticePage({ authToken, onProgressionChange, onGemsChange, onFreezesChange }) {
+export default function PracticePage({ authToken, onProgressionChange, onGemsChange, onFreezesChange, onQuizActiveChange }) {
   const [step, setStep] = useState('picker')
   const [subject, setSubject] = useState(null)
   const [retakeAttempt, setRetakeAttempt] = useState(null)
@@ -47,6 +47,7 @@ export default function PracticePage({ authToken, onProgressionChange, onGemsCha
       onProgressionChange={onProgressionChange}
       onGemsChange={onGemsChange}
       onFreezesChange={onFreezesChange}
+      onQuizActiveChange={onQuizActiveChange}
     />
   )
 }

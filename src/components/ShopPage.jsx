@@ -5,6 +5,11 @@ import Button3d from './ui/Button3d'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
+// Shop launch flag — flip to `false` to re-enable the live rewards shop.
+// While `true`, the Shop tab stays in the navbar but shows a locked
+// "Coming Soon" screen instead of the redeemable catalogue.
+const SHOP_LOCKED = true
+
 // ShopPage — StarQuest §05 rewards shop. Mirrors newFrontend/index.html's
 // renderShop: 2-col grid of cards, gem-balance pill in the header, "💡 earn
 // rate" info banner. Each card shows emoji, name, blurb, and a button that's
@@ -38,7 +43,36 @@ export default function ShopPage({ authToken, gems, onGemsChange }) {
     }
   }
 
-  useEffect(() => { load() }, [token])
+  useEffect(() => { if (!SHOP_LOCKED) load() }, [token])
+
+  // ── Locked screen ────────────────────────────────────────────────────────
+  // Shop isn't launched yet. Tab stays in the navbar; this placeholder shows
+  // instead of the live catalogue. Flip SHOP_LOCKED to false to relaunch.
+  if (SHOP_LOCKED) {
+    return (
+      <Screen width="default">
+        <header className="mb-4">
+          <div className="text-[10px] font-black uppercase tracking-widest text-quiz-muted">
+            Rewards Shop
+          </div>
+          <h1 className="!text-2xl !font-black tracking-tight">Spend your gems 💎</h1>
+        </header>
+        <Card variant="solid" className="!p-10 text-center">
+          <div className="text-6xl mb-4">🔒</div>
+          <div className="font-black text-lg mb-2">Shop coming soon</div>
+          <p className="text-sm font-bold text-quiz-muted leading-relaxed mb-5">
+            The rewards shop isn't open yet. Keep playing — every correct answer,
+            quiz, and rank-up still banks 💎. You'll be able to spend them here
+            once the shop launches.
+          </p>
+          <span className="inline-flex items-center gap-1 px-3 py-2 rounded-2xl text-base font-black
+                           bg-quiz-cyan/15 border border-quiz-cyan/40 text-quiz-cyan">
+            💎 {gems ?? 0} saved up
+          </span>
+        </Card>
+      </Screen>
+    )
+  }
 
   const redeem = async (item) => {
     if (busyId) return

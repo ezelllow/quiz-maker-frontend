@@ -15,7 +15,7 @@ function answerKey(val) {
 }
 
 export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mode = 'daily', initialSubject, onBackToHub,
-  onProgressionChange, onGemsChange, onFreezesChange }) {
+  onProgressionChange, onGemsChange, onFreezesChange, onQuizActiveChange }) {
   const isPractice = mode === 'practice'
   const token = authToken || localStorage.getItem('auth_token')
 
@@ -27,6 +27,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
   const [selectedDifficulty, setSelectedDifficulty] = useState('Medium')
   const [questionCount, setQuestionCount]         = useState(10)
   const [quizName, setQuizName]                   = useState('')
+  const [levelCat, setLevelCat]                   = useState(null)  // 'pure' | 'nonpure'
 
   const [quiz, setQuiz]                                   = useState(null)
   const [loading, setLoading]                             = useState(false)
@@ -58,6 +59,13 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
       .catch(() => { if (!cancelled) setDailyLocked(false) })
     return () => { cancelled = true }
   }, [isPractice, isRetaking, retakeAttempt, token, showResults])
+
+  // Report to App whether a quiz attempt is live (questions loaded, not yet on
+  // the results screen) so it can confirm before the user navigates away.
+  useEffect(() => {
+    if (onQuizActiveChange) onQuizActiveChange(Boolean(quiz) && !showResults)
+  }, [quiz, showResults])
+  useEffect(() => () => { onQuizActiveChange && onQuizActiveChange(false) }, [])
 
   const loadRetakeQuiz = async () => {
     try {
@@ -92,24 +100,42 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
 
   const fetchFilters = async () => {
     try {
-      const [subRes, difRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/subtopics`),
-        fetch(`${API_BASE_URL}/api/difficulties`),
-      ])
-      if (!subRes.ok || !difRes.ok) throw new Error('Failed to fetch filters')
-      setSubtopics(await subRes.json())
+      const difRes = await fetch(`${API_BASE_URL}/api/difficulties`)
+      if (!difRes.ok) throw new Error('Failed to fetch difficulties')
       setDifficulties(await difRes.json())
     } catch (err) {
       setError(`Error loading filters: ${err.message}`)
     }
   }
 
+  // Topics depend on the chosen physics level (pure / non-pure). Refetch
+  // whenever the level changes; the list is empty until a level is picked.
+  useEffect(() => {
+    if (!levelCat) { setSubtopics([]); return }
+    let cancelled = false
+    fetch(`${API_BASE_URL}/api/subtopics?level=${levelCat}`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((d) => { if (!cancelled) setSubtopics(Array.isArray(d) ? d : []) })
+      .catch(() => { if (!cancelled) setSubtopics([]) })
+    return () => { cancelled = true }
+  }, [levelCat])
+
   const handleCreateQuiz = async (e) => {
     e.preventDefault(); setError(null)
     if (!token) { setError('Error: No authorization token found. Please log in again.'); return }
     const count = parseInt(questionCount, 10) || 0
     const topics = selectedSubtopics.filter(Boolean)
-    if (topics.length < 1) {
+    if (!levelCat) {
+      setError('Choose Pure or Non-Pure Physics first.')
+      return
+    }
+    if (count < 1) {
+      setError('Choose at least 1 question.')
+      return
+    }
+    // Practice allows "all topics" (no picks); the Daily Challenge requires
+    // the student to pick specific topics.
+    if (!isPractice && topics.length < 1) {
       setError('Pick at least 1 topic.')
       setTopicsOpen(true)
       return
@@ -133,6 +159,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
           subtopics:  topics.length > 0 ? topics : null,
           subtopic:   topics[0] || null,
           count,
+          level:      levelCat,
         }),
       })
       if (!res.ok) { const d = await res.json(); throw new Error(d.detail || 'Failed to create quiz') }
@@ -179,7 +206,9 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
           parent_attempt_id:  (isRetaking && retakeParentId) || null,
           name:               !isRetaking ? (quizName.trim() || null) : null,
           questions:          quiz.questions.map((q, idx) => ({ ...q, index: idx })),
-          quiz_type:          isPractice ? 'practice' : 'daily',
+          // A retake is a re-do, never a fresh daily attempt — submit it as
+          // 'practice' so it grants no XP/gems and never touches the daily quota.
+          quiz_type:          (isPractice || isRetaking) ? 'practice' : 'daily',
         }),
       })
       if (!res.ok) throw new Error('Failed to save quiz results')
@@ -323,6 +352,40 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
         )}
 
         <form onSubmit={handleCreateQuiz} className="space-y-6">
+          {/* Step 1 — choose Pure or Non-Pure Physics before anything else. */}
+          <div>
+            <div className="text-xs font-black uppercase tracking-widest text-quiz-muted mb-2 px-1">Physics level</div>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { id: 'pure',    label: 'Pure Physics',     emoji: '🧪' },
+                { id: 'combined', label: 'Combined Physics', emoji: '⚛️' },
+              ].map((lv) => (
+                <button
+                  key={lv.id}
+                  type="button"
+                  onClick={() => { setLevelCat(lv.id); setSelectedSubtopics([]) }}
+                  className={
+                    'p-3 rounded-2xl border-2 font-black transition-all text-center ' +
+                    (levelCat === lv.id
+                      ? 'border-quiz-blue bg-quiz-blue/15 text-white shadow-lg scale-[1.02]'
+                      : 'border-quiz-border bg-[#1a1a35] text-quiz-text hover:border-quiz-blue/60 hover:bg-white/5')
+                  }
+                >
+                  <div className="text-2xl">{lv.emoji}</div>
+                  <div className="text-xs mt-1">{lv.label}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {!levelCat && (
+            <p className="text-sm font-bold text-quiz-muted px-1">
+              👆 Choose a physics level to see its topics.
+            </p>
+          )}
+
+          {levelCat && (
+            <>
           {/* Topics — collapsible. Selected chips stay visible. */}
           <div className="qq-card-solid !p-3">
             <button
@@ -334,14 +397,25 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                 <div className="text-xs font-black uppercase tracking-widest text-quiz-muted">Topics</div>
                 <div className="text-sm font-bold mt-0.5">
                   {topicCount === 0
-                    ? <span className="text-quiz-red">Pick 1 to {MAX_TOPICS}</span>
+                    ? (isPractice
+                        ? <span className="text-quiz-blue">All topics — random mix</span>
+                        : <span className="text-quiz-red">Pick 1 to {MAX_TOPICS}</span>)
                     : <span>{topicCount} / {MAX_TOPICS} picked</span>}
                 </div>
               </div>
               <span className={'text-xl text-quiz-muted transition-transform ' + (topicsOpen ? 'rotate-180' : '')}>▾</span>
             </button>
 
-            {topicCount > 0 && (
+            {topicCount === 0 ? (
+              isPractice ? (
+                <div className="flex flex-wrap gap-1.5 px-2 pb-2">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold
+                                   bg-quiz-blue/20 border border-quiz-blue/40 text-quiz-blue">
+                    ✨ All topics
+                  </span>
+                </div>
+              ) : null
+            ) : (
               <div className="flex flex-wrap gap-1.5 px-2 pb-2">
                 {topicsSelected.map((sub) => (
                   <button
@@ -359,7 +433,21 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
             )}
 
             {topicsOpen && (
-              <div className="flex flex-wrap gap-1.5 mt-2 px-1 pb-1">
+              <div className="flex flex-wrap gap-1.5 mt-2 px-1 pb-1 max-h-56 overflow-y-auto">
+                {isPractice && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSubtopics([])}
+                    className={
+                      'inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ' +
+                      (topicCount === 0
+                        ? 'bg-quiz-blue/25 border-quiz-blue text-white'
+                        : 'bg-[#1a1a35] border-quiz-border text-quiz-text hover:border-quiz-blue/60')
+                    }
+                  >
+                    ✨ All topics{topicCount === 0 ? ' ✓' : ''}
+                  </button>
+                )}
                 {subtopics.map((sub) => {
                   const isSelected = topicsSelected.includes(sub)
                   const isMaxed = !isSelected && topicCount >= MAX_TOPICS
@@ -389,7 +477,9 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
           <div>
             <div className="flex items-center justify-between mb-2 px-1">
               <div className="text-xs font-black uppercase tracking-widest text-quiz-muted">Difficulty</div>
-              <div className="text-[10px] font-bold text-quiz-muted">XP multiplier</div>
+              {!isPractice && (
+                <div className="text-[10px] font-bold text-quiz-muted">XP multiplier</div>
+              )}
             </div>
             <div className="grid grid-cols-3 gap-2">
               {diffSlots.map((d) => {
@@ -408,31 +498,77 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                   >
                     <div className="text-2xl">{d.emoji}</div>
                     <div className="text-xs mt-1">{d.label}</div>
-                    <div className="text-[11px] mt-0.5 font-black text-quiz-yellow">{d.mult}</div>
+                    {!isPractice && (
+                      <div className="text-[11px] mt-0.5 font-black text-quiz-yellow">{d.mult}</div>
+                    )}
                   </button>
                 )
               })}
             </div>
           </div>
 
-          {/* Question count — 10 / 15 / 20 */}
+          {/* Question count — free choice */}
           <div>
             <div className="text-xs font-black uppercase tracking-widest text-quiz-muted mb-2 px-1">How many questions?</div>
-            <div className="grid grid-cols-3 gap-2">
-              {countOptions.map((c) => {
-                const active = Number(questionCount) === c
-                return (
+            {isPractice ? (
+              <>
+                <div className="flex items-center gap-2">
                   <button
-                    key={c}
                     type="button"
-                    onClick={() => setQuestionCount(c)}
-                    className={selBtn(active) + ' text-center text-xl'}
-                  >
-                    {c}
-                  </button>
-                )
-              })}
-            </div>
+                    onClick={() => setQuestionCount((n) => Math.max(1, (parseInt(n, 10) || 1) - 1))}
+                    className="w-11 h-11 rounded-2xl bg-[#1a1a35] border-2 border-quiz-border font-black text-xl shrink-0"
+                  >−</button>
+                  <input
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={questionCount}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value, 10)
+                      setQuestionCount(Number.isFinite(v) ? Math.max(1, Math.min(100, v)) : '')
+                    }}
+                    className="flex-1 min-w-0 text-center rounded-2xl bg-[#1a1a35] border-2 border-quiz-border py-3 font-black text-xl
+                               text-quiz-text focus:outline-none focus:border-quiz-blue focus:ring-2 focus:ring-quiz-blue/40"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setQuestionCount((n) => Math.min(100, (parseInt(n, 10) || 0) + 1))}
+                    className="w-11 h-11 rounded-2xl bg-[#1a1a35] border-2 border-quiz-border font-black text-xl shrink-0"
+                  >+</button>
+                </div>
+                <div className="flex gap-2 mt-2">
+                  {[10, 15, 20].map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setQuestionCount(c)}
+                      className={
+                        'flex-1 py-1.5 rounded-xl text-xs font-black border transition-colors ' +
+                        (Number(questionCount) === c
+                          ? 'bg-quiz-blue/25 border-quiz-blue text-white'
+                          : 'bg-white/5 border-quiz-border text-quiz-muted hover:text-white')
+                      }
+                    >{c}</button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                {countOptions.map((c) => {
+                  const active = Number(questionCount) === c
+                  return (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setQuestionCount(c)}
+                      className={selBtn(active) + ' text-center text-xl'}
+                    >
+                      {c}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
           </div>
 
           {/* Optional quiz name */}
@@ -453,6 +589,8 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
           <Button3d type="submit" variant="green" size="lg" full disabled={loading}>
             {loading ? '⏳ Starting practice set...' : "🚀 Let's go!"}
           </Button3d>
+            </>
+          )}
         </form>
       </Screen>
     )
@@ -645,7 +783,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
           </div>
         )}
 
-        <h2 className="!text-xl !font-black leading-snug">{q.question_text}</h2>
+        <h2 className="!text-xl !font-black leading-snug whitespace-pre-line">{q.question_text}</h2>
 
         {q.setup_image_url && (
           <div className="rounded-2xl overflow-hidden border border-quiz-border bg-black/30">
@@ -671,22 +809,27 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
             <table className="w-full text-sm">
               {flatHeaders.length > 0 && (
                 <thead><tr className="bg-white/5">
+                  <th className="px-3 py-2 w-12 text-center font-bold text-quiz-muted">#</th>
                   {flatHeaders.map((h, i) => <th key={i} className="px-3 py-2 text-left font-bold text-quiz-muted">{h}</th>)}
                   <th className="px-3 py-2 w-16 text-center font-bold text-quiz-muted">Pick</th>
                 </tr></thead>
               )}
               <tbody>
                 {q.table_rows.map((row, rIdx) => {
-                  const letter = (row && typeof row === 'object' ? row._letter : null)
-                    || String.fromCharCode(65 + rIdx)
+                  const isObj = row && typeof row === 'object'
+                  const letter = (isObj ? row._letter : null) || String.fromCharCode(65 + rIdx)
                   const selected = userAnswers[currentQuestionIndex] === letter
+                  // Header-keyed cells when the table has headers; otherwise
+                  // fall back to the positional _cells list.
+                  const cells = flatHeaders.length > 0
+                    ? flatHeaders.map((h) => (isObj ? (row[h] ?? '') : ''))
+                    : (isObj && Array.isArray(row._cells) ? row._cells : [])
                   return (
                     <tr key={rIdx} onClick={() => setAnswer(letter)}
                         className={'cursor-pointer transition-colors ' + (selected ? 'bg-quiz-blue/20' : 'hover:bg-white/5')}>
-                      {flatHeaders.map((h, cIdx) => (
-                        <td key={cIdx} className="px-3 py-2 border-t border-quiz-border">
-                          {row && typeof row === 'object' ? (row[h] ?? '') : ''}
-                        </td>
+                      <td className="px-3 py-2 border-t border-quiz-border text-center font-black text-quiz-blue">{letter}</td>
+                      {cells.map((c, cIdx) => (
+                        <td key={cIdx} className="px-3 py-2 border-t border-quiz-border">{c}</td>
                       ))}
                       <td className="px-3 py-2 text-center border-t border-quiz-border">
                         <input type="radio" checked={selected} onChange={() => setAnswer(letter)} className="accent-quiz-blue" />
@@ -714,10 +857,25 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
             {q.options && String(q.options).split('\n').map((opt, i) => {
               const t = opt.trim(); if (!t) return null
               const selected = userAnswers[currentQuestionIndex] === t
+              // Split the leading A/B/C/D label off the answer body so the
+              // letter renders as a distinct badge, not part of the answer.
+              const m = t.match(/^([A-Da-d])[\.\)\:\-]?\s+(.*)$/)
+              const letter = m ? m[1].toUpperCase() : ''
+              const body = m ? m[2] : t
               return (
                 <label key={i} className={optionCls(selected)}>
                   <input type="radio" checked={selected} onChange={() => setAnswer(t)} className="sr-only" />
-                  <span className="font-semibold">{t}</span>
+                  {letter && (
+                    <span className={
+                      'shrink-0 w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm border ' +
+                      (selected
+                        ? 'bg-quiz-blue text-white border-quiz-blue'
+                        : 'bg-white/5 text-quiz-muted border-quiz-border')
+                    }>
+                      {letter}
+                    </span>
+                  )}
+                  <span className="font-semibold">{body}</span>
                 </label>
               )
             })}

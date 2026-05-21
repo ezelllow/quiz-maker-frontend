@@ -10,9 +10,9 @@ const TABS = [
   { id: 'alltime', label: 'All-time' },
 ]
 
-// Period-specific copy for the metric column. Daily/Weekly are correct-answer
-// counts from daily_challenges; All-time is users.xp.
-const METRIC_SUFFIX = { daily: '✓', weekly: '✓', alltime: 'XP' }
+// All three boards now rank by XP: daily = XP earned today, weekly = XP this
+// week, all-time = lifetime users.xp.
+const METRIC_SUFFIX = { daily: 'XP', weekly: 'XP', alltime: 'XP' }
 const PERIOD_LABEL  = { daily: 'today', weekly: 'this week', alltime: 'overall' }
 
 export default function LeaderboardPage({ user, authToken, progression }) {

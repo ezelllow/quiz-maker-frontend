@@ -82,7 +82,7 @@ export default function SignupPage({ onSignupSuccess }) {
       <Screen width="narrow">
         <div className="text-center mb-6">
           <div className="text-5xl mb-2">🚀</div>
-          <h1 className="!text-4xl !font-black mb-1 tracking-tight">Join QuizMaker</h1>
+          <h1 className="!text-4xl !font-black mb-1 tracking-tight">Join HabitGo</h1>
           <p className="text-quiz-muted font-semibold">Create your account and start climbing the ranks</p>
         </div>
 

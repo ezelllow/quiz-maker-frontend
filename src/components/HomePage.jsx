@@ -8,7 +8,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000
 // HomePage — friendly landing screen modelled on the QuizQuest renderHome layout.
 // Mapped to HabitGo data (streak / rank / Daily Challenge / history). Mobile-first;
 // expands to a 2-col grid on desktop for the side-by-side cards.
-export default function HomePage({ authToken, user, rank, progression, onNavigate }) {
+export default function HomePage({ authToken, user, rank, progression, onNavigate, onFreezesChange }) {
   const token = authToken || localStorage.getItem('auth_token')
   const [streak, setStreak] = useState(null)
   const [dailyDone, setDailyDone] = useState(null)   // null until loaded
@@ -33,6 +33,11 @@ export default function HomePage({ authToken, user, rank, progression, onNavigat
       .then(([streakData, dc, hist, week]) => {
         if (cancelled) return
         setStreak(streakData)
+        // Keep the navbar freeze pill in sync with the streak card — /api/streak
+        // is the authoritative freeze source (correct even for brand-new users).
+        if (onFreezesChange && typeof streakData?.freezes_available === 'number') {
+          onFreezesChange(streakData.freezes_available)
+        }
         setDailyDone(dc?.already_passed_today === true)
         setDailyProgress(dc?.daily_progress || null)
         setRecent((hist?.attempts || []).slice(0, 3))
@@ -203,8 +208,8 @@ export default function HomePage({ authToken, user, rank, progression, onNavigat
               />
             </div>
             <div className="flex justify-between text-[10px] font-bold text-quiz-muted mt-1.5">
-              <span>{xpMin} XP</span>
-              <span className="text-quiz-text">{xp} XP · Lv {progression.level}</span>
+              <span className="text-quiz-text">{xp} XP</span>
+              <span className="text-quiz-text">Lv {progression.level}</span>
               <span>{atMax ? '∞' : `${xpNext} XP`}</span>
             </div>
           </Card>

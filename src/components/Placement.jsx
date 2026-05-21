@@ -134,7 +134,7 @@ export default function Placement({ authToken, subject = 'Physics', onComplete }
             </p>
             <p className="text-quiz-muted leading-relaxed mb-6">{BAND_BLURB[result.rank_band] || ''}</p>
             <Button3d variant="green" size="lg" full onClick={() => onComplete && onComplete()}>
-              Continue to QuizMaker
+              Continue to HabitGo
             </Button3d>
           </Card>
         </Screen>

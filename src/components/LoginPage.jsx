@@ -75,7 +75,7 @@ export default function LoginPage({ onLoginSuccess }) {
       <Screen width="narrow">
         <div className="text-center mb-6">
           <div className="text-5xl mb-2">🎯</div>
-          <h1 className="!text-4xl !font-black mb-1 tracking-tight">QuizMaker</h1>
+          <h1 className="!text-4xl !font-black mb-1 tracking-tight">HabitGo</h1>
           <p className="text-quiz-muted font-semibold">Welcome back, ready to level up?</p>
         </div>
 
