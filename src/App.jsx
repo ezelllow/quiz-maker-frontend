@@ -1,22 +1,36 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, lazy, Suspense } from 'react'
 import Layout from './components/Layout'
-import QuizMaker from './components/QuizMaker'
-import Dashboard from './components/Dashboard'
-import SavedQuizzes from './components/SavedQuizzes'
-import History from './components/History'
-import Settings from './components/Settings'
-import Placement from './components/Placement'
-import DailyChallenge from './components/DailyChallenge'
-import HomePage from './components/HomePage'
-import LeaderboardPage from './components/LeaderboardPage'
-import ShopPage from './components/ShopPage'
-import PracticePage from './components/PracticePage'
 import StreakCelebration from './components/StreakCelebration'
 import LoginPage from './components/LoginPage'
 import SignupPage from './components/SignupPage'
 import './App.css'
 
+// Route components are code-split: each one downloads as its own small chunk
+// only the first time the user navigates to it. This keeps the initial bundle
+// small — in particular recharts (only used by Dashboard) no longer ships on
+// first paint, and the large QuizMaker screen loads on demand.
+const QuizMaker       = lazy(() => import('./components/QuizMaker'))
+const Dashboard       = lazy(() => import('./components/Dashboard'))
+const SavedQuizzes    = lazy(() => import('./components/SavedQuizzes'))
+const History         = lazy(() => import('./components/History'))
+const Settings        = lazy(() => import('./components/Settings'))
+const Placement       = lazy(() => import('./components/Placement'))
+const DailyChallenge  = lazy(() => import('./components/DailyChallenge'))
+const HomePage        = lazy(() => import('./components/HomePage'))
+const LeaderboardPage = lazy(() => import('./components/LeaderboardPage'))
+const ShopPage        = lazy(() => import('./components/ShopPage'))
+const PracticePage    = lazy(() => import('./components/PracticePage'))
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+
+// Lightweight fallback shown while a route chunk is being fetched.
+function PageFallback() {
+  return (
+    <div className="flex items-center justify-center py-24 text-quiz-muted font-bold">
+      ⏳ Loading…
+    </div>
+  )
+}
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -232,11 +246,13 @@ function App() {
       )}
       {isAuthenticated ? (
         needsPlacement === true ? (
-          <Placement
-            authToken={localStorage.getItem('auth_token')}
-            subject="Physics"
-            onComplete={() => checkPlacement(localStorage.getItem('auth_token'))}
-          />
+          <Suspense fallback={<PageFallback />}>
+            <Placement
+              authToken={localStorage.getItem('auth_token')}
+              subject="Physics"
+              onComplete={() => checkPlacement(localStorage.getItem('auth_token'))}
+            />
+          </Suspense>
         ) : (
           <Layout
             currentPage={currentPage}
@@ -250,7 +266,9 @@ function App() {
             freezeCap={freezeCap}
             onLogout={handleLogout}
           >
-            {renderPage()}
+            <Suspense fallback={<PageFallback />}>
+              {renderPage()}
+            </Suspense>
           </Layout>
         )
       ) : isSignup ? (
