@@ -14,6 +14,57 @@ function answerKey(val) {
   return s.toUpperCase()
 }
 
+// Easy -> Medium -> Hard scale used for difficulty-availability checks.
+const DIFF_ORDER = ['easy', 'medium', 'hard']
+// The backend builds a quiz from at most 3 picked topics.
+const MAX_QUIZ_TOPICS = 3
+
+function diffKey(val) {
+  const k = String(val ?? '').toLowerCase()
+  if (k.startsWith('eas')) return 'easy'
+  if (k.startsWith('med')) return 'medium'
+  if (k.startsWith('har')) return 'hard'
+  return null
+}
+
+// Question count for `topic` at `dk` difficulty (0 if none).
+function countAt(availability, topic, dk) {
+  const t = availability[topic]
+  return (t && t[dk]) || 0
+}
+
+// True if the chosen topics can supply a full `count`-question quiz at `dk`.
+// Mirrors the backend allocation: at most 3 topics, count split evenly so each
+// topic needs ceil(count / nTopics). Empty `topics` means "all topics", where
+// the whole level pool must cover count.
+function difficultyAvailable(dk, topics, availability, count) {
+  const allTopics = Object.keys(availability)
+  if (allTopics.length === 0) return true        // availability not loaded yet
+  const n = count || 0
+  if (n < 1) return true                         // count not chosen yet
+  const used = (topics || []).filter(Boolean).slice(0, MAX_QUIZ_TOPICS)
+  if (used.length === 0) {
+    const total = allTopics.reduce((sum, t) => sum + countAt(availability, t, dk), 0)
+    return total >= n
+  }
+  const perTopic = Math.ceil(n / used.length)
+  return used.every((t) => countAt(availability, t, dk) >= perTopic)
+}
+
+// Current difficulty if still valid; else the closest valid one, preferring
+// the easier side on a tie. Returns null if nothing is valid.
+function nearestValidDifficulty(currentDk, topics, availability, count) {
+  const valid = DIFF_ORDER.filter((dk) => difficultyAvailable(dk, topics, availability, count))
+  if (valid.length === 0) return null
+  if (currentDk && valid.includes(currentDk)) return currentDk
+  const i = DIFF_ORDER.indexOf(currentDk)
+  for (let d = 1; d < DIFF_ORDER.length; d++) {
+    if (i - d >= 0 && valid.includes(DIFF_ORDER[i - d])) return DIFF_ORDER[i - d]
+    if (i + d < DIFF_ORDER.length && valid.includes(DIFF_ORDER[i + d])) return DIFF_ORDER[i + d]
+  }
+  return valid[0]
+}
+
 export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mode = 'daily', initialSubject, onBackToHub,
   onProgressionChange, onGemsChange, onFreezesChange, onQuizActiveChange }) {
   const isPractice = mode === 'practice'
@@ -28,6 +79,8 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
   const [questionCount, setQuestionCount]         = useState(10)
   const [quizName, setQuizName]                   = useState('')
   const [levelCat, setLevelCat]                   = useState('pure')  // 'pure' | 'combined'
+  const [availability, setAvailability]           = useState({})      // { topic: { easy:N, medium:N, hard:N } }
+  const [snapKey, setSnapKey]                     = useState(null)    // diff key just auto-snapped to
 
   const [quiz, setQuiz]                                   = useState(null)
   const [loading, setLoading]                             = useState(false)
@@ -115,14 +168,42 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
   // Topics depend on the chosen physics level (pure / non-pure). Refetch
   // whenever the level changes; the list is empty until a level is picked.
   useEffect(() => {
-    if (!levelCat) { setSubtopics([]); return }
+    if (!levelCat) { setSubtopics([]); setAvailability({}); return }
     let cancelled = false
     fetch(`${API_BASE_URL}/api/subtopics?level=${levelCat}`)
       .then((r) => (r.ok ? r.json() : []))
       .then((d) => { if (!cancelled) setSubtopics(Array.isArray(d) ? d : []) })
       .catch(() => { if (!cancelled) setSubtopics([]) })
+    fetch(`${API_BASE_URL}/api/availability?level=${levelCat}`)
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((d) => { if (!cancelled) setAvailability(d && typeof d === 'object' ? d : {}) })
+      .catch(() => { if (!cancelled) setAvailability({}) })
     return () => { cancelled = true }
   }, [levelCat])
+
+  // Keep the difficulty valid for the chosen topics + question count. When any
+  // of those change -- or availability first loads -- snap a now-invalid
+  // difficulty to the nearest valid one (easier side on a tie). Never silently
+  // pushes the user to a harder difficulty than they chose.
+  useEffect(() => {
+    if (Object.keys(availability).length === 0) return
+    const topics = selectedSubtopics.filter(Boolean)
+    const count = parseInt(questionCount, 10) || 0
+    const currentDk = diffKey(selectedDifficulty)
+    const nearestDk = nearestValidDifficulty(currentDk, topics, availability, count)
+    if (nearestDk && nearestDk !== currentDk) {
+      const newId = difficulties.find((d) => diffKey(d) === nearestDk)
+        || (nearestDk.charAt(0).toUpperCase() + nearestDk.slice(1))
+      setSelectedDifficulty(newId)
+      setSnapKey(nearestDk)
+    }
+  }, [selectedSubtopics, availability, difficulties, selectedDifficulty, questionCount])
+
+  useEffect(() => {
+    if (!snapKey) return
+    const t = setTimeout(() => setSnapKey(null), 700)
+    return () => clearTimeout(t)
+  }, [snapKey])
 
   const handleCreateQuiz = async (e) => {
     e.preventDefault(); setError(null)
@@ -139,6 +220,11 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
     }
     if (!selectedDifficulty) {
       setError('Pick a difficulty.')
+      return
+    }
+    if (Object.keys(availability).length > 0 &&
+        !difficultyAvailable(diffKey(selectedDifficulty), topics, availability, count)) {
+      setError('Not enough questions for that topic and difficulty. Pick another difficulty, or lower the question count.')
       return
     }
     if (topics.length > count) {
@@ -299,6 +385,12 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
       { key: 'hard',   id: findDiff('hard')   || 'Hard',   label: 'Hard',   emoji: '💀', mult: '×2',   ring: 'border-quiz-red    bg-quiz-red/15' },
     ]
 
+    const availLoaded = Object.keys(availability).length > 0
+    const quizCount = parseInt(questionCount, 10) || 0
+    const validDiffCount = availLoaded
+      ? DIFF_ORDER.filter((k) => difficultyAvailable(k, topicsSelected, availability, quizCount)).length
+      : 3
+
     const countOptions = [10, 15, 20]
 
     const selBtn = (active) =>
@@ -446,7 +538,9 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
             )}
           </div>
 
-          {/* Difficulty — Easy / Medium / Hard with XP multipliers */}
+          {/* Difficulty — reacts to the topic selection. Options with no
+              questions for the chosen topics are greyed out; a stale pick
+              auto-snaps to the nearest valid one. */}
           <div>
             <div className="flex items-center justify-between mb-2 px-1">
               <div className="text-xs font-black uppercase tracking-widest text-quiz-muted">Difficulty</div>
@@ -456,17 +550,22 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
             </div>
             <div className="grid grid-cols-3 gap-2">
               {diffSlots.map((d) => {
-                const active = String(selectedDifficulty).toLowerCase() === String(d.id).toLowerCase()
+                const enabled = !availLoaded || difficultyAvailable(d.key, topicsSelected, availability, quizCount)
+                const active = enabled && String(selectedDifficulty).toLowerCase() === String(d.id).toLowerCase()
                 return (
                   <button
                     key={d.key}
                     type="button"
-                    onClick={() => setSelectedDifficulty(d.id)}
+                    disabled={!enabled}
+                    onClick={() => enabled && setSelectedDifficulty(d.id)}
+                    style={snapKey === d.key ? { transform: 'scale(1.12)' } : undefined}
                     className={
                       'p-3 rounded-2xl border-2 font-black transition-all text-center ' +
-                      (active
-                        ? d.ring + ' text-white shadow-lg scale-[1.03]'
-                        : 'border-quiz-border bg-[#1a1a35] text-quiz-text hover:border-quiz-blue/60 hover:bg-white/5')
+                      (!enabled
+                        ? 'opacity-[0.35] pointer-events-none border-quiz-border bg-[#1a1a35] text-quiz-muted'
+                        : active
+                          ? d.ring + ' text-white shadow-lg scale-[1.03]'
+                          : 'border-quiz-border bg-[#1a1a35] text-quiz-text hover:border-quiz-blue/60 hover:bg-white/5')
                     }
                   >
                     <div className="text-2xl">{d.emoji}</div>
@@ -478,6 +577,13 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                 )
               })}
             </div>
+            {availLoaded && validDiffCount < 3 && (
+              <p className="text-[11px] font-bold text-quiz-muted mt-2 px-1">
+                {validDiffCount === 0
+                  ? 'No questions available for this topic.'
+                  : 'Some difficulties unavailable for the selected topics.'}
+              </p>
+            )}
           </div>
 
           {/* Question count — free choice */}
@@ -559,7 +665,8 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
             />
           </div>
 
-          <Button3d type="submit" variant="green" size="lg" full disabled={loading}>
+          <Button3d type="submit" variant="green" size="lg" full
+            disabled={loading || (availLoaded && validDiffCount === 0)}>
             {loading ? '⏳ Starting practice set...' : "🚀 Let's go!"}
           </Button3d>
         </form>
