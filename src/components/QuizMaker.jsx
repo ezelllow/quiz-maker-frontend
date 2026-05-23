@@ -27,7 +27,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
   const [selectedDifficulty, setSelectedDifficulty] = useState('Medium')
   const [questionCount, setQuestionCount]         = useState(10)
   const [quizName, setQuizName]                   = useState('')
-  const [levelCat, setLevelCat]                   = useState(null)  // 'pure' | 'nonpure'
+  const [levelCat, setLevelCat]                   = useState('pure')  // 'pure' | 'combined'
 
   const [quiz, setQuiz]                                   = useState(null)
   const [loading, setLoading]                             = useState(false)
@@ -135,13 +135,6 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
     }
     if (count < 1) {
       setError('Choose at least 1 question.')
-      return
-    }
-    // Practice allows "all topics" (no picks); the Daily Challenge requires
-    // the student to pick specific topics.
-    if (!isPractice && topics.length < 1) {
-      setError('Pick at least 1 topic.')
-      setTopicsOpen(true)
       return
     }
     if (!selectedDifficulty) {
@@ -356,40 +349,22 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
         )}
 
         <form onSubmit={handleCreateQuiz} className="space-y-6">
-          {/* Step 1 — choose Pure or Non-Pure Physics before anything else. */}
+          {/* First filter — Pure / Combined Physics. Drives the topics list. */}
           <div>
             <div className="text-xs font-black uppercase tracking-widest text-quiz-muted mb-2 px-1">Physics level</div>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { id: 'pure',    label: 'Pure Physics',     emoji: '🧪' },
-                { id: 'combined', label: 'Combined Physics', emoji: '⚛️' },
-              ].map((lv) => (
-                <button
-                  key={lv.id}
-                  type="button"
-                  onClick={() => { setLevelCat(lv.id); setSelectedSubtopics([]) }}
-                  className={
-                    'p-3 rounded-2xl border-2 font-black transition-all text-center ' +
-                    (levelCat === lv.id
-                      ? 'border-quiz-blue bg-quiz-blue/15 text-white shadow-lg scale-[1.02]'
-                      : 'border-quiz-border bg-[#1a1a35] text-quiz-text hover:border-quiz-blue/60 hover:bg-white/5')
-                  }
-                >
-                  <div className="text-2xl">{lv.emoji}</div>
-                  <div className="text-xs mt-1">{lv.label}</div>
-                </button>
-              ))}
-            </div>
+            <select
+              value={levelCat}
+              onChange={(e) => {
+                setLevelCat(e.target.value)
+                setSelectedSubtopics([])
+              }}
+              className={nameInputCls + ' cursor-pointer font-bold'}
+            >
+              <option value="pure">🧪 Pure Physics</option>
+              <option value="combined">⚛️ Combined Physics</option>
+            </select>
           </div>
 
-          {!levelCat && (
-            <p className="text-sm font-bold text-quiz-muted px-1">
-              👆 Choose a physics level to see its topics.
-            </p>
-          )}
-
-          {levelCat && (
-            <>
           {/* Topics — collapsible. Selected chips stay visible. */}
           <div className="qq-card-solid !p-3">
             <button
@@ -401,9 +376,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                 <div className="text-xs font-black uppercase tracking-widest text-quiz-muted">Topics</div>
                 <div className="text-sm font-bold mt-0.5">
                   {topicCount === 0
-                    ? (isPractice
-                        ? <span className="text-quiz-blue">All topics — random mix</span>
-                        : <span className="text-quiz-red">Pick 1 to {MAX_TOPICS}</span>)
+                    ? <span className="text-quiz-blue">All topics — random mix</span>
                     : <span>{topicCount} / {MAX_TOPICS} picked</span>}
                 </div>
               </div>
@@ -411,14 +384,12 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
             </button>
 
             {topicCount === 0 ? (
-              isPractice ? (
-                <div className="flex flex-wrap gap-1.5 px-2 pb-2">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold
-                                   bg-quiz-blue/20 border border-quiz-blue/40 text-quiz-blue">
-                    ✨ All topics
-                  </span>
-                </div>
-              ) : null
+              <div className="flex flex-wrap gap-1.5 px-2 pb-2">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold
+                                 bg-quiz-blue/20 border border-quiz-blue/40 text-quiz-blue">
+                  ✨ All topics
+                </span>
+              </div>
             ) : (
               <div className="flex flex-wrap gap-1.5 px-2 pb-2">
                 {topicsSelected.map((sub) => (
@@ -438,20 +409,18 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
 
             {topicsOpen && (
               <div className="flex flex-wrap gap-1.5 mt-2 px-1 pb-1 max-h-56 overflow-y-auto">
-                {isPractice && (
-                  <button
-                    type="button"
-                    onClick={() => setSelectedSubtopics([])}
-                    className={
-                      'inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ' +
-                      (topicCount === 0
-                        ? 'bg-quiz-blue/25 border-quiz-blue text-white'
-                        : 'bg-[#1a1a35] border-quiz-border text-quiz-text hover:border-quiz-blue/60')
-                    }
-                  >
-                    ✨ All topics{topicCount === 0 ? ' ✓' : ''}
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => setSelectedSubtopics([])}
+                  className={
+                    'inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ' +
+                    (topicCount === 0
+                      ? 'bg-quiz-blue/25 border-quiz-blue text-white'
+                      : 'bg-[#1a1a35] border-quiz-border text-quiz-text hover:border-quiz-blue/60')
+                  }
+                >
+                  ✨ All topics{topicCount === 0 ? ' ✓' : ''}
+                </button>
                 {subtopics.map((sub) => {
                   const isSelected = topicsSelected.includes(sub)
                   const isMaxed = !isSelected && topicCount >= MAX_TOPICS
@@ -593,8 +562,6 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
           <Button3d type="submit" variant="green" size="lg" full disabled={loading}>
             {loading ? '⏳ Starting practice set...' : "🚀 Let's go!"}
           </Button3d>
-            </>
-          )}
         </form>
       </Screen>
     )

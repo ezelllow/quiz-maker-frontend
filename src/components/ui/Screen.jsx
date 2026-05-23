@@ -20,7 +20,7 @@ export default function Screen({
   children,
 }) {
   return (
-    <div className={`relative z-10 w-full ${WIDTH_CLASS[width] || WIDTH_CLASS.default} mx-auto px-4 sm:px-6 py-6 ${className}`.trim()}>
+    <div className={`relative z-10 w-full ${WIDTH_CLASS[width] || WIDTH_CLASS.default} mx-auto px-4 sm:px-6 py-3 sm:py-6 ${className}`.trim()}>
       {children}
     </div>
   )

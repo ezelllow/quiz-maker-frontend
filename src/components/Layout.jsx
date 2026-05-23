@@ -40,7 +40,7 @@ export default function Layout({
     <div className="min-h-screen flex flex-col">
       {/* ===== Top app bar ===== */}
       <header className="sticky top-0 z-30 backdrop-blur-xl bg-[rgba(10,10,31,0.7)] border-b border-quiz-border">
-        <div className={`${frame} flex items-center justify-between gap-3 px-4 py-3`}>
+        <div className={`${frame} flex items-center justify-between gap-3 px-4 py-2`}>
           <button
             onClick={() => onNavigate('home')}
             className="flex items-center gap-2 font-black text-lg tracking-tight"
