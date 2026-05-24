@@ -1005,14 +1005,21 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
         {/* Inline correct/wrong feedback — shown once the question is submitted */}
         {isChecked && (
           <div className={
-            'rounded-2xl border-2 px-4 py-3 text-sm font-black ' +
+            'rounded-2xl border-2 px-4 py-3 text-sm ' +
             (isCorrect
               ? 'border-quiz-green/50 bg-quiz-green/15 text-quiz-green'
               : 'border-quiz-red/50 bg-quiz-red/15 text-quiz-red')
           }>
-            {isCorrect
-              ? '✅ Correct! Nice one.'
-              : `❌ Not quite — the correct answer is ${correctKey || '—'}.`}
+            <div className="font-black">
+              {isCorrect
+                ? '✅ Correct! Nice one.'
+                : `❌ Not quite — the correct answer is ${correctKey || '—'}.`}
+            </div>
+            {q.explanation && (
+              <div className="mt-2 font-semibold leading-relaxed text-quiz-text whitespace-pre-line">
+                <span className="font-black">Why: </span>{q.explanation}
+              </div>
+            )}
           </div>
         )}
 
