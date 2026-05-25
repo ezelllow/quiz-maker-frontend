@@ -62,25 +62,6 @@ export default function Layout({
                 <span>{gems}</span>
               </span>
             )}
-            {freezes != null && (
-              <span
-                title={`${freezes}/${freezeCap ?? 2} Streak Freezes held`}
-                className="flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-black
-                           bg-quiz-blue/15 border border-quiz-blue/40 text-quiz-blue"
-              >
-                <span>🧊</span>
-                <span>{freezes}</span>
-              </span>
-            )}
-            {level != null && (
-              <span
-                title={`Level ${level}`}
-                className="px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest
-                           bg-quiz-purple/20 border border-quiz-purple/40 text-quiz-purple"
-              >
-                Lv {level}
-              </span>
-            )}
             {rank && (
               <button
                 onClick={() => onNavigate('home')}
@@ -91,7 +72,7 @@ export default function Layout({
                            hover:from-quiz-blue/30 hover:to-quiz-purple/30 transition-colors"
               >
                 <span className="text-sm">{rank.tier_icon || rank.icon}</span>
-                <span className="font-bold text-xs text-quiz-blue hidden xs:inline">
+                <span className="font-bold text-xs text-quiz-blue">
                   {rank.tier_name || rank.name}
                 </span>
               </button>
@@ -113,7 +94,33 @@ export default function Layout({
                 </span>
               </button>
               {profileMenuOpen && (
-                <div className="absolute right-0 mt-2 w-44 qq-card-solid !p-1.5 z-40 shadow-2xl">
+                <div className="absolute right-0 mt-2 w-56 qq-card-solid !p-1.5 z-40 shadow-2xl">
+                  {(level != null || freezes != null) && (
+                    <>
+                      <div className="px-2.5 pt-1.5 pb-1 text-[10px] font-black uppercase tracking-widest text-quiz-muted">
+                        Your stats
+                      </div>
+                      {level != null && (
+                        <div className="flex items-center justify-between gap-2 px-2.5 py-1.5">
+                          <span className="text-sm font-bold flex items-center gap-1.5">⭐ Level</span>
+                          <span className="px-2 py-0.5 rounded-full text-[11px] font-black
+                                           bg-quiz-purple/20 border border-quiz-purple/40 text-quiz-purple">
+                            Lv {level}
+                          </span>
+                        </div>
+                      )}
+                      {freezes != null && (
+                        <div className="flex items-center justify-between gap-2 px-2.5 py-1.5">
+                          <span className="text-sm font-bold flex items-center gap-1.5">🧊 Streak Freezes</span>
+                          <span className="px-2 py-0.5 rounded-full text-[11px] font-black
+                                           bg-quiz-blue/15 border border-quiz-blue/40 text-quiz-blue">
+                            {freezes}/{freezeCap ?? 2}
+                          </span>
+                        </div>
+                      )}
+                      <div className="h-px bg-quiz-border my-1" />
+                    </>
+                  )}
                   <button
                     onClick={() => { onNavigate('settings'); setProfileMenuOpen(false) }}
                     className="w-full text-left px-3 py-2 rounded-xl text-sm font-bold hover:bg-white/5 transition-colors"

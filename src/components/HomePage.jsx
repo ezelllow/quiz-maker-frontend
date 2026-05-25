@@ -86,11 +86,6 @@ export default function HomePage({ authToken, user, rank, progression, onNavigat
             <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-quiz-orange/15 border border-quiz-orange/40 font-black text-quiz-orange text-sm">
               🔥 <span>{currentStreak}</span>
             </div>
-            {rank && (
-              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-quiz-blue/20 to-quiz-purple/20 border border-quiz-blue/40 font-black text-quiz-blue text-sm">
-                {rank.tier_icon} <span className="hidden sm:inline">{rank.tier_name}</span>
-              </div>
-            )}
           </div>
         </StaggerItem>
 
@@ -162,7 +157,7 @@ export default function HomePage({ authToken, user, rank, progression, onNavigat
               <span className="text-sm sm:text-base font-bold text-quiz-muted">d</span>
             </div>
             <div className="text-[11px] text-quiz-muted mt-1 font-bold">
-              Longest {longestStreak}d · 🧊 {freezes}
+              Longest {longestStreak}d · {freezes} freeze{freezes === 1 ? '' : 's'}
             </div>
           </Card>
 
