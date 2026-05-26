@@ -1,8 +1,11 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import Layout from './components/Layout'
 import StreakCelebration from './components/StreakCelebration'
 import LoginPage from './components/LoginPage'
 import SignupPage from './components/SignupPage'
+import Modal from './components/ui/Modal'
+import { page as pageVariant } from './motion'
 import './App.css'
 
 // Route components are code-split: each one downloads as its own small chunk
@@ -49,6 +52,10 @@ function App() {
   const [freezeCap, setFreezeCap] = useState(2)
   const [freezeReminder, setFreezeReminder] = useState(null)  // {streak, longest, usedDate}
   const [quizInProgress, setQuizInProgress] = useState(false)  // true while a quiz attempt is live
+  // When the user tries to navigate away mid-quiz we stash the target page
+  // here and show a styled Modal (replaces the old window.confirm prompt).
+  // Same trigger, same wording, same outcome — just animated.
+  const [pendingNav, setPendingNav] = useState(null)
 
   // Check whether the user has done their placement quiz yet.
   const checkPlacement = async (token) => {
@@ -170,17 +177,23 @@ function App() {
     setCurrentPage('quiz')
   }
 
-  // Navigation guard: if a quiz attempt is live, confirm before leaving so an
-  // accidental tap on the logo / Profile / a nav tab doesn't wipe the attempt.
+  // Navigation guard: if a quiz attempt is live, open a Modal before leaving
+  // so an accidental tap on the logo / Profile / a nav tab doesn't wipe the
+  // attempt. The Modal is rendered at the bottom of the App and reads from
+  // pendingNav state.
   const guardedNavigate = (page) => {
     if (quizInProgress && page !== currentPage) {
-      const ok = window.confirm(
-        'Leave this quiz? Your progress on this attempt will be lost.'
-      )
-      if (!ok) return
-      setQuizInProgress(false)
+      setPendingNav(page)
+      return
     }
     setCurrentPage(page)
+  }
+  // Modal Confirm handler — commit the deferred navigation and clear the
+  // live-quiz flag. Cancel just closes the modal via setPendingNav(null).
+  const confirmLeaveQuiz = () => {
+    setQuizInProgress(false)
+    if (pendingNav) setCurrentPage(pendingNav)
+    setPendingNav(null)
   }
 
   // App-wide rank now comes from StarQuest progression (XP-derived: Cadet → Star Admiral).
@@ -244,6 +257,18 @@ function App() {
           }}
         />
       )}
+      {/* Styled replacement for window.confirm when the user navigates away
+          mid-quiz. Same wording, same options — just animated and on-brand. */}
+      <Modal
+        open={pendingNav !== null}
+        onClose={() => setPendingNav(null)}
+        onConfirm={confirmLeaveQuiz}
+        title="Leave this quiz?"
+        body="Your progress on this attempt will be lost."
+        confirmLabel="Leave"
+        cancelLabel="Stay"
+        tone="red"
+      />
       {isAuthenticated ? (
         needsPlacement === true ? (
           <Suspense fallback={<PageFallback />}>
@@ -266,9 +291,23 @@ function App() {
             freezeCap={freezeCap}
             onLogout={handleLogout}
           >
-            <Suspense fallback={<PageFallback />}>
-              {renderPage()}
-            </Suspense>
+            {/* AnimatePresence drives a fade+slide between pages whenever
+                currentPage changes. mode="wait" lets the outgoing page
+                finish its exit before the new page enters — keeps the
+                screen from briefly stacking two pages. */}
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={currentPage}
+                variants={pageVariant}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <Suspense fallback={<PageFallback />}>
+                  {renderPage()}
+                </Suspense>
+              </motion.div>
+            </AnimatePresence>
           </Layout>
         )
       ) : isSignup ? (

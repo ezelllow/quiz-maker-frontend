@@ -1,3 +1,4 @@
+import ProgressBar from './ui/ProgressBar'
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Screen from './ui/Screen'
@@ -170,12 +171,27 @@ export default function HomePage({ authToken, user, rank, progression, onNavigat
                   <span className="text-base sm:text-lg truncate">{rank.tier_name || rank.name}</span>
                 </div>
                 {progression && (
-                  <div className="text-[11px] text-quiz-muted mt-1 font-bold">
-                    Lv {progression.level} · {progression.xp} XP
-                    {xpToNext != null && (
-                      <span className="text-quiz-blue"> · {xpToNext} to {rank.next_name || 'next'}</span>
+                  <>
+                    <div className="text-[11px] text-quiz-muted mt-1 font-bold">
+                      Lv {progression.level} · {progression.xp} XP
+                      {xpToNext != null && (
+                        <span className="text-quiz-blue"> · {xpToNext} to {rank.next_name || 'next'}</span>
+                      )}
+                    </div>
+                    {/* Shimmering XP bar — mid-tier shows progress to next tier;
+                        max-tier (no xp_next) shows a 100% green bar instead. */}
+                    {rank?.xp_next > 0 ? (
+                      <ProgressBar
+                        value={Math.min(100, (progression.xp / rank.xp_next) * 100)}
+                        tone="accent"
+                        height="md"
+                        shimmer
+                        className="mt-2"
+                      />
+                    ) : (
+                      <ProgressBar value={100} tone="ok" height="md" shimmer className="mt-2" />
                     )}
-                  </div>
+                  </>
                 )}
               </>
             ) : (

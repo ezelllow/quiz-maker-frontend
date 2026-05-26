@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { motion } from 'framer-motion'
+import { ease } from '../motion'
 
 // Layout — QuizQuest-style mobile-app shell.
 // Top: sticky app bar (full-width, inner content centered to phone width).
@@ -153,14 +155,23 @@ export default function Layout({
                 onClick={() => onNavigate(item.id)}
                 title={item.label}
                 className={[
-                  'flex flex-col items-center justify-center gap-0.5 py-1.5 rounded-xl transition-all',
-                  active
-                    ? 'bg-gradient-to-b from-quiz-blue/25 to-quiz-purple/25 text-white scale-105'
-                    : 'text-quiz-muted hover:text-white',
+                  'relative flex flex-col items-center justify-center gap-0.5 py-1.5 rounded-xl transition-colors',
+                  active ? 'text-white scale-105' : 'text-quiz-muted hover:text-white',
                 ].join(' ')}
               >
-                <span className="text-lg leading-none">{item.icon}</span>
-                <span className="text-[10px] font-bold leading-none">{item.label}</span>
+                {/* Sliding indicator — shared-element via layoutId. The
+                    motion.span "moves" between buttons when active changes,
+                    instead of the active tab popping the gradient in/out.
+                    Same gradient, same active position — just transitioned. */}
+                {active && (
+                  <motion.span
+                    layoutId="navIndicator"
+                    className="absolute inset-0 rounded-xl bg-gradient-to-b from-quiz-blue/25 to-quiz-purple/25"
+                    transition={ease.spring}
+                  />
+                )}
+                <span className="relative text-lg leading-none">{item.icon}</span>
+                <span className="relative text-[10px] font-bold leading-none">{item.label}</span>
               </button>
             )
           })}

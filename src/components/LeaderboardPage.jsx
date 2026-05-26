@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { motion } from 'framer-motion'
 import Screen from './ui/Screen'
 import Card from './ui/Card'
+import { ease, burst } from '../motion'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -107,22 +109,32 @@ export default function LeaderboardPage({ user, authToken, progression }) {
     </header>
   )
 
+  // Same 3-tab grid, same period values — now with a layoutId-driven pill
+  // that slides between Daily / Weekly / All-time instead of popping in/out.
   const Tabs = () => (
     <div className="grid grid-cols-3 qq-card-solid !p-1 mb-4">
-      {TABS.map((t) => (
-        <button
-          key={t.id}
-          onClick={() => setPeriod(t.id)}
-          className={[
-            'py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all',
-            period === t.id
-              ? 'bg-gradient-to-r from-quiz-blue/30 to-quiz-purple/30 text-white shadow-md'
-              : 'text-quiz-muted hover:text-white',
-          ].join(' ')}
-        >
-          {t.label}
-        </button>
-      ))}
+      {TABS.map((t) => {
+        const active = period === t.id
+        return (
+          <button
+            key={t.id}
+            onClick={() => setPeriod(t.id)}
+            className={[
+              'relative py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-colors',
+              active ? 'text-white' : 'text-quiz-muted hover:text-white',
+            ].join(' ')}
+          >
+            {active && (
+              <motion.span
+                layoutId="lbTabIndicator"
+                className="absolute inset-0 rounded-xl bg-gradient-to-r from-quiz-blue/30 to-quiz-purple/30 shadow-md"
+                transition={ease.spring}
+              />
+            )}
+            <span className="relative">{t.label}</span>
+          </button>
+        )
+      })}
     </div>
   )
 
@@ -160,8 +172,19 @@ export default function LeaderboardPage({ user, authToken, progression }) {
           const p = top3[i]
           if (!p) return <div key={i} className="flex-1" />
           const rank = i + 1
+          // Stagger the podium so 2nd/1st/3rd land sequentially — index 1
+          // (gold) hits first with the biggest delay because it's centred.
+          const podiumDelay = rank === 1 ? 0.0 : rank === 2 ? 0.18 : 0.28
           return (
-            <div key={p.user_id} className="flex-1 flex flex-col items-center min-w-0">
+            <motion.div
+              key={p.user_id}
+              className="flex-1 flex flex-col items-center min-w-0"
+              initial={{ opacity: 0, y: 30, scale: 0.8 }}
+              animate={{
+                opacity: 1, y: 0, scale: 1,
+                transition: { ...ease.bouncy, delay: podiumDelay },
+              }}
+            >
               <div className={'mb-1 ' + (rank === 1 ? 'animate-bounce' : '')}>
                 <Avatar p={p} size="lg" />
               </div>
@@ -177,7 +200,7 @@ export default function LeaderboardPage({ user, authToken, progression }) {
               >
                 {rank}
               </div>
-            </div>
+            </motion.div>
           )
         })}
       </div>

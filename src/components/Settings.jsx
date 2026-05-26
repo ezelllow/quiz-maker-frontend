@@ -1,7 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { motion } from 'framer-motion'
 import Screen from './ui/Screen'
 import Card from './ui/Card'
 import Button3d from './ui/Button3d'
+import CountUp from './ui/CountUp'
+import SectionLabel from './ui/SectionLabel'
+import { Stagger, StaggerItem } from './ui/Motion'
+import { ease } from '../motion'
+import StreakCelebration from './StreakCelebration'
+import RankUpOverlay from './RankUpOverlay'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -26,9 +33,14 @@ function resizeImageToDataUrl(file, size = 256) {
   })
 }
 
+// Accuracy colour band — green strong · yellow ok · red weak.
+const accColor = (p) => (p >= 80 ? 'text-quiz-green' : p >= 50 ? 'text-quiz-yellow' : 'text-quiz-red')
+
 // Settings / Profile — QuizQuest renderProfile pattern.
 // Centered hero (avatar + name + rank), 3-stat grid (Streak / Longest / Accuracy),
-// compact profile editor, logout.
+// compact profile editor, logout. Same layout / same features as before — every
+// section now staggers in, the avatar springs on tap, the rank pill bounces in,
+// and the stat numbers count up from zero on first paint.
 export default function Settings({
   onLogout, user, onUserUpdate, rank,
   level, gems, dailyGoal, freezes, freezeCap, onFreezesChange,
@@ -47,6 +59,9 @@ export default function Settings({
   // Live stats for the 3-stat grid
   const [streak, setStreak] = useState(null)
   const [stats, setStats] = useState(null)
+  // Dev-only: which celebration overlay to preview ('streak' | 'milestone' |
+  // 'freeze' | 'rankup' | null). Triggered by the buttons further down.
+  const [preview, setPreview] = useState(null)
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/streak`, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => (r.ok ? r.json() : null)).then(setStreak).catch(() => {})
@@ -102,107 +117,238 @@ export default function Settings({
 
   return (
     <Screen width="default">
-      {/* ===== Hero ===== */}
-      <div className="flex flex-col items-center text-center pt-2 pb-5">
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="relative group mb-3"
-          title="Change photo"
-        >
-          <div className="w-28 h-28 rounded-full overflow-hidden bg-gradient-to-br from-quiz-blue to-quiz-purple
-                          ring-4 ring-quiz-border-bright shadow-2xl
-                          flex items-center justify-center text-5xl font-black text-white">
-            {avatarUrl
-              ? <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
-              : initials}
+      <Stagger delay={0.04} step={0.08}>
+        {/* ===== Hero ===== */}
+        <StaggerItem>
+          <div className="flex flex-col items-center text-center pt-2 pb-5">
+            {/* Avatar — same big circle, same camera-icon overlay. Now responds
+                to tap (squish) and hover (scale up) via Framer Motion. */}
+            <motion.button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="relative group mb-3"
+              title="Change photo"
+              whileTap={{ scale: 0.96 }}
+              whileHover={{ scale: 1.03 }}
+              transition={ease.spring}
+            >
+              <div className="w-28 h-28 rounded-full overflow-hidden bg-gradient-to-br from-quiz-blue to-quiz-purple
+                              ring-4 ring-quiz-border-bright shadow-2xl
+                              flex items-center justify-center text-5xl font-black text-white">
+                {avatarUrl
+                  ? <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                  : initials}
+              </div>
+              <motion.div
+                className="absolute bottom-0 right-0 w-9 h-9 rounded-full bg-quiz-blue border-4 border-[#0a0a1f]
+                           flex items-center justify-center text-sm shadow-lg"
+                whileHover={{ scale: 1.15, rotate: -5 }}
+                transition={ease.squish}
+              >
+                📷
+              </motion.div>
+            </motion.button>
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+
+            <div className="text-2xl font-black">{name || 'Student'}</div>
+            {rank && (
+              <motion.div
+                className="flex items-center gap-2 mt-1 px-3 py-1 rounded-full
+                           bg-gradient-to-r from-quiz-blue/20 to-quiz-purple/20
+                           border border-quiz-blue/40 text-quiz-blue font-black shadow-glow"
+                initial={{ opacity: 0, scale: 0.7, y: 8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ ...ease.bouncy, delay: 0.25 }}
+              >
+                <span className="text-lg">{rank.tier_icon}</span>
+                <span>{rank.tier_name}</span>
+              </motion.div>
+            )}
+            {rank?.tier_desc && (
+              <p className="text-xs text-quiz-muted leading-relaxed mt-2 max-w-md">{rank.tier_desc}</p>
+            )}
           </div>
-          <div className="absolute bottom-0 right-0 w-9 h-9 rounded-full bg-quiz-blue border-4 border-[#0a0a1f]
-                          flex items-center justify-center text-sm shadow-lg group-hover:scale-110 transition-transform">
-            📷
+        </StaggerItem>
+
+        {/* ===== 3-stat grid — same 3 cards, same labels, same positions ===== */}
+        <StaggerItem>
+          <div className="grid grid-cols-3 gap-2 mb-5">
+            <Card variant="solid" className="!p-3 text-center">
+              <SectionLabel>Streak</SectionLabel>
+              <div className="text-2xl font-black mt-1 text-quiz-orange">
+                🔥 <CountUp value={currentStreak} />
+              </div>
+            </Card>
+            <Card variant="solid" className="!p-3 text-center">
+              <SectionLabel>Longest</SectionLabel>
+              <div className="text-2xl font-black mt-1 text-quiz-yellow">
+                🏆 <CountUp value={longestStreak} />
+              </div>
+            </Card>
+            <Card variant="solid" className="!p-3 text-center">
+              <SectionLabel>Accuracy</SectionLabel>
+              <div className={'text-2xl font-black mt-1 ' + accColor(overallAccuracy)}>
+                🎯 <CountUp value={overallAccuracy} />%
+              </div>
+            </Card>
           </div>
-        </button>
-        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+        </StaggerItem>
 
-        <div className="text-2xl font-black">{name || 'Student'}</div>
-        {rank && (
-          <div className="flex items-center gap-2 mt-1 px-3 py-1 rounded-full
-                          bg-gradient-to-r from-quiz-blue/20 to-quiz-purple/20
-                          border border-quiz-blue/40 text-quiz-blue font-black">
-            <span className="text-lg">{rank.tier_icon}</span>
-            <span>{rank.tier_name}</span>
-          </div>
-        )}
-        {rank?.tier_desc && (
-          <p className="text-xs text-quiz-muted leading-relaxed mt-2 max-w-md">{rank.tier_desc}</p>
-        )}
-      </div>
+        {/* ===== Profile editor (compact) ===== */}
+        <StaggerItem>
+          <Card variant="solid" className="!p-5 mb-4 space-y-4">
+            <SectionLabel>Edit Profile</SectionLabel>
 
-      {/* ===== 3-stat grid ===== */}
-      <div className="grid grid-cols-3 gap-2 mb-5">
-        <Card variant="solid" className="!p-3 text-center">
-          <div className="text-[10px] font-black uppercase tracking-widest text-quiz-muted">Streak</div>
-          <div className="text-2xl font-black mt-1">🔥 {currentStreak}</div>
-        </Card>
-        <Card variant="solid" className="!p-3 text-center">
-          <div className="text-[10px] font-black uppercase tracking-widest text-quiz-muted">Longest</div>
-          <div className="text-2xl font-black mt-1">🏆 {longestStreak}</div>
-        </Card>
-        <Card variant="solid" className="!p-3 text-center">
-          <div className="text-[10px] font-black uppercase tracking-widest text-quiz-muted">Accuracy</div>
-          <div className="text-2xl font-black mt-1">🎯 {overallAccuracy}%</div>
-        </Card>
-      </div>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={ease.spring}
+                className="rounded-2xl border-2 border-quiz-red/50 bg-quiz-red/15 text-quiz-red px-4 py-3 text-sm font-bold"
+              >
+                {error}
+              </motion.div>
+            )}
+            {success && (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={ease.spring}
+                className="rounded-2xl border-2 border-quiz-green/50 bg-quiz-green/15 text-quiz-green px-4 py-3 text-sm font-bold"
+              >
+                {success}
+              </motion.div>
+            )}
 
-      {/* ===== Profile editor (compact) ===== */}
-      <Card variant="solid" className="!p-5 mb-4 space-y-4">
-        <div className="text-xs font-black uppercase tracking-widest text-quiz-muted">Edit Profile</div>
+            <div>
+              <label className="block text-sm font-bold text-quiz-muted mb-1.5">Display Name</label>
+              <input
+                type="text" value={name} onChange={(e) => setName(e.target.value)}
+                placeholder="Your name" maxLength={120} className={inputCls}
+              />
+            </div>
 
-        {error && (
-          <div className="rounded-2xl border-2 border-quiz-red/50 bg-quiz-red/15 text-quiz-red px-4 py-3 text-sm font-bold">
-            {error}
-          </div>
-        )}
-        {success && (
-          <div className="rounded-2xl border-2 border-quiz-green/50 bg-quiz-green/15 text-quiz-green px-4 py-3 text-sm font-bold">
-            {success}
-          </div>
-        )}
+            <div className="flex flex-wrap gap-2">
+              <Button3d size="sm" variant="blue" onClick={() => fileInputRef.current?.click()}>
+                {avatarUrl ? '🖼️ Change photo' : '📷 Upload photo'}
+              </Button3d>
+              {avatarUrl && (
+                <Button3d size="sm" variant="red" onClick={() => setAvatarUrl('')}>
+                  Remove photo
+                </Button3d>
+              )}
+            </div>
 
-        <div>
-          <label className="block text-sm font-bold text-quiz-muted mb-1.5">Display Name</label>
-          <input
-            type="text" value={name} onChange={(e) => setName(e.target.value)}
-            placeholder="Your name" maxLength={120} className={inputCls}
-          />
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          <Button3d size="sm" variant="blue" onClick={() => fileInputRef.current?.click()}>
-            {avatarUrl ? '🖼️ Change photo' : '📷 Upload photo'}
-          </Button3d>
-          {avatarUrl && (
-            <Button3d size="sm" variant="red" onClick={() => setAvatarUrl('')}>
-              Remove photo
+            <Button3d
+              variant={dirty ? 'green' : 'white'}
+              size="md"
+              full
+              disabled={!dirty && !saving}
+              loading={saving}
+              loadingLabel="Saving…"
+              onClick={handleSave}
+            >
+              {dirty ? '💾 Save changes' : '✓ Saved'}
             </Button3d>
-          )}
-        </div>
+          </Card>
+        </StaggerItem>
 
-        <Button3d
-          variant={dirty ? 'green' : 'white'}
-          size="md"
-          full
-          disabled={saving || !dirty}
-          onClick={handleSave}
-        >
-          {saving ? 'Saving…' : dirty ? '💾 Save changes' : '✓ Saved'}
-        </Button3d>
-      </Card>
+        {/* ===== Dev — preview celebrations =====
+            Tier-stepped buttons so each level of drama can be reviewed in
+            isolation. Streak tiers: regular → weekly → monthly → century →
+            annual. Rank-up tiers: normal → major → legendary. Pure additive
+            UI — feature placement of Edit Profile and Logout stays unchanged. */}
+        <StaggerItem>
+          <Card variant="solid" className="!p-4 mb-4">
+            <SectionLabel className="mb-2">Preview streak animations</SectionLabel>
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              <Button3d variant="orange" size="sm" onClick={() => setPreview('streak-regular')}>
+                🔥 Day 3 (regular)
+              </Button3d>
+              <Button3d variant="yellow" size="sm" onClick={() => setPreview('streak-weekly')}>
+                🌟 Day 7 (weekly)
+              </Button3d>
+              <Button3d variant="purple" size="sm" onClick={() => setPreview('streak-monthly')}>
+                💎 Day 30 (monthly)
+              </Button3d>
+              <Button3d variant="red" size="sm" onClick={() => setPreview('streak-century')}>
+                🏆 Day 100 (legendary)
+              </Button3d>
+              <Button3d variant="green" size="sm" onClick={() => setPreview('streak-annual')}>
+                👑 Day 365 (year mark)
+              </Button3d>
+              <Button3d variant="blue" size="sm" onClick={() => setPreview('freeze')}>
+                ❄️ Freeze used
+              </Button3d>
+            </div>
+            <SectionLabel className="mb-2">Preview rank-up animations</SectionLabel>
+            <div className="grid grid-cols-3 gap-2">
+              <Button3d variant="white" size="sm" onClick={() => setPreview('rankup-low')}>
+                Tier 1
+              </Button3d>
+              <Button3d variant="purple" size="sm" onClick={() => setPreview('rankup-mid')}>
+                Tier 2
+              </Button3d>
+              <Button3d variant="yellow" size="sm" onClick={() => setPreview('rankup-high')}>
+                Tier 3
+              </Button3d>
+            </div>
+            <div className="text-[10px] text-quiz-muted font-bold mt-2">
+              Dev preview — tap any to fire that overlay. Higher tiers ramp
+              up confetti, rings, build-up time, and add anticipation cues.
+              Tap backdrop or the continue button to dismiss.
+            </div>
+          </Card>
+        </StaggerItem>
 
-      {/* ===== Logout ===== */}
-      <Button3d variant="red" size="md" full onClick={(e) => { e.preventDefault(); onLogout && onLogout() }}>
-        🚪 Logout
-      </Button3d>
+        {/* Render the chosen preview overlay */}
+        {preview === 'streak-regular' && (
+          <StreakCelebration streak={3} longest={3} freezeUsed={false} onDismiss={() => setPreview(null)} />
+        )}
+        {preview === 'streak-weekly' && (
+          <StreakCelebration streak={7} longest={7} freezeUsed={false} onDismiss={() => setPreview(null)} />
+        )}
+        {preview === 'streak-monthly' && (
+          <StreakCelebration streak={30} longest={30} freezeUsed={false} onDismiss={() => setPreview(null)} />
+        )}
+        {preview === 'streak-century' && (
+          <StreakCelebration streak={100} longest={100} freezeUsed={false} onDismiss={() => setPreview(null)} />
+        )}
+        {preview === 'streak-annual' && (
+          <StreakCelebration streak={365} longest={365} freezeUsed={false} onDismiss={() => setPreview(null)} />
+        )}
+        {preview === 'freeze' && (
+          <StreakCelebration streak={5} longest={8} freezeUsed={true} onDismiss={() => setPreview(null)} />
+        )}
+        {preview === 'rankup-low' && (
+          <RankUpOverlay
+            newRank={{ tier_name: 'Pilot', tier_icon: '🚀', next_name: 'Lieutenant', xp_next: 500 }}
+            tier={1}
+            onDismiss={() => setPreview(null)}
+          />
+        )}
+        {preview === 'rankup-mid' && (
+          <RankUpOverlay
+            newRank={{ tier_name: 'Captain', tier_icon: '⭐', next_name: 'Admiral', xp_next: 2500 }}
+            tier={2}
+            onDismiss={() => setPreview(null)}
+          />
+        )}
+        {preview === 'rankup-high' && (
+          <RankUpOverlay
+            newRank={{ tier_name: 'Star Admiral', tier_icon: '🌟', next_name: null, xp_next: null }}
+            tier={3}
+            onDismiss={() => setPreview(null)}
+          />
+        )}
+
+        {/* ===== Logout ===== */}
+        <StaggerItem>
+          <Button3d variant="red" size="md" full onClick={(e) => { e.preventDefault(); onLogout && onLogout() }}>
+            🚪 Logout
+          </Button3d>
+        </StaggerItem>
+      </Stagger>
     </Screen>
   )
 }

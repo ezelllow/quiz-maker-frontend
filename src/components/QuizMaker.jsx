@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import Screen from './ui/Screen'
 import Card from './ui/Card'
 import Button3d from './ui/Button3d'
 import StreakCelebration from './StreakCelebration'
+import RankUpOverlay from './RankUpOverlay'
+import { correctPop, wrongShake, optionTap, questionEnter } from '../motion'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -65,6 +68,48 @@ function nearestValidDifficulty(currentDk, topics, availability, count) {
   return valid[0]
 }
 
+
+// QImage — diagnostic wrapper for question/diagram images. When the underlying
+// <img> fails to load (bad URL, 403, CORS, etc.), we surface a visible "failed"
+// placeholder with the attempted URL instead of silently hiding the element.
+// Also console.warns so failures are easy to spot in DevTools.
+function QImage({ src, alt, className = '' }) {
+  const [failed, setFailed] = React.useState(false)
+  if (!src) return null
+  if (failed) {
+    return (
+      <div className="rounded-2xl border-2 border-dashed border-quiz-yellow/50 bg-quiz-yellow/5 p-4 text-quiz-yellow">
+        <div className="font-black text-sm flex items-center gap-2">
+          <span>⚠️</span> Image failed to load
+        </div>
+        <div className="text-[11px] text-quiz-muted font-bold mt-1.5 break-all leading-snug">
+          <span className="text-quiz-yellow/80">URL:</span> {src}
+        </div>
+        <div className="text-[11px] text-quiz-muted font-bold mt-1 leading-snug">
+          The frontend asked the browser to load this URL but it returned an
+          error. Common causes: backend didn't resolve the IMAGE: reference,
+          Google Drive URL is the viewer page (not <code>uc?export=view&amp;id=</code>),
+          or the file isn't shared "Anyone with the link". Check the Network
+          tab in DevTools for the actual HTTP error.
+        </div>
+      </div>
+    )
+  }
+  return (
+    <div className="rounded-2xl overflow-hidden border border-quiz-border bg-black/30">
+      <img
+        src={src}
+        alt={alt}
+        className={'w-full max-h-80 object-contain ' + className}
+        onError={() => {
+          console.warn('[QuizMaker] Image failed to load:', src)
+          setFailed(true)
+        }}
+      />
+    </div>
+  )
+}
+
 export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mode = 'daily', initialSubject, onBackToHub,
   onProgressionChange, onGemsChange, onFreezesChange, onQuizActiveChange }) {
   const isPractice = mode === 'practice'
@@ -94,6 +139,10 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
   const [retakeParentId, setRetakeParentId]               = useState(null)
   const [topicsOpen, setTopicsOpen]                       = useState(false)
   const [celebrationDismissed, setCelebrationDismissed]   = useState(false)
+  // Rank-up overlay dismissal — separate from the streak celebration since
+  // both can fire from the same results screen but the user dismisses them
+  // independently. Reset whenever a new quiz starts.
+  const [rankUpDismissed, setRankUpDismissed] = useState(false)
   // Daily mode is locked once today's goal is met. Practice stays free.
   const [dailyLocked, setDailyLocked] = useState(null)
   // Per-question flow: { [index]: true } once that question has been submitted
@@ -696,6 +745,15 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
             onDismiss={() => setCelebrationDismissed(true)}
           />
         )}
+        {/* Rank-up hero overlay — fires once when the backend reports a
+            tier crossing. The existing rank-up banner card below remains
+            as a permanent reference on the results screen. */}
+        {rankUp && newRank && !rankUpDismissed && !showCelebration && (
+          <RankUpOverlay
+            newRank={newRank}
+            onDismiss={() => setRankUpDismissed(true)}
+          />
+        )}
       <Screen width="default" className="py-8">
         <Card variant="solid" className="!p-8 text-center mb-4">
           <h2 className="!text-2xl !font-black mb-5">📊 Quiz Results</h2>
@@ -886,23 +944,12 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
 
         <h2 className="!text-xl !font-black leading-snug whitespace-pre-line">{q.question_text}</h2>
 
-        {q.setup_image_url && (
-          <div className="rounded-2xl overflow-hidden border border-quiz-border bg-black/30">
-            <img src={q.setup_image_url} alt="Question diagram" className="w-full max-h-80 object-contain"
-                 onError={(e) => { e.target.style.display = 'none' }} />
-          </div>
-        )}
+        <QImage src={q.setup_image_url} alt="Question diagram" />
         {q.option_type === 'IMAGE' && q.image_url && q.image_url !== q.setup_image_url && (
-          <div className="rounded-2xl overflow-hidden border border-quiz-border bg-black/30">
-            <img src={q.image_url} alt="Answer options" className="w-full max-h-80 object-contain"
-                 onError={(e) => { e.target.style.display = 'none' }} />
-          </div>
+          <QImage src={q.image_url} alt="Answer options" />
         )}
         {q.option_type !== 'IMAGE' && !q.setup_image_url && q.image_url && (
-          <div className="rounded-2xl overflow-hidden border border-quiz-border bg-black/30">
-            <img src={q.image_url} alt="Question" className="w-full max-h-80 object-contain"
-                 onError={(e) => { e.target.style.display = 'none' }} />
-          </div>
+          <QImage src={q.image_url} alt="Question" />
         )}
 
         {q.option_type === 'TABLE' && Array.isArray(q.table_rows) ? (
@@ -969,34 +1016,54 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
               const selected = userAnswers[currentQuestionIndex] === t
               // Split the leading A/B/C/D label off the answer body so the
               // letter renders as a distinct badge, not part of the answer.
-              const m = t.match(/^([A-Da-d])[\.\)\:\-]?\s+(.*)$/)
-              const letter = m ? m[1].toUpperCase() : ''
-              const body = m ? m[2] : t
+              //   "A. Force is X"  → letter "A", body "Force is X"
+              //   "A"              → letter "A", body ""   (diagram-reference questions)
+              //   "Some sentence." → letter from index, body = the sentence
+              // Index-based fallback keeps the badge column aligned across
+              // every option, every question type.
+              const indexLetter = String.fromCharCode(65 + i)  // A, B, C, D
+              const labelMatch  = t.match(/^([A-Da-d])[\.\)\:\-]?\s+(.*)$/)
+              const letterOnly  = /^[A-Da-d]$/.test(t)
+              const letter = labelMatch
+                ? labelMatch[1].toUpperCase()
+                : (letterOnly ? t.toUpperCase() : indexLetter)
+              const body = labelMatch ? labelMatch[2] : (letterOnly ? '' : t)
               const optKey = answerKey(t)
               const isCorrectOpt = isChecked && optKey === correctKey
               const isWrongPick  = isChecked && selected && optKey !== correctKey
               return (
-                <label key={i} className={optionCls(selected, optKey)}>
+                <motion.label
+                  key={i}
+                  className={optionCls(selected, optKey)}
+                  // Duolingo-style: tap squishes + lifts, correct option pops
+                  // with overshoot, wrong option shakes. All run AFTER check;
+                  // before check the animate prop is undefined so the label
+                  // sits still and only whileTap fires on click.
+                  {...(isChecked ? {} : optionTap)}
+                  animate={isCorrectOpt ? correctPop : isWrongPick ? wrongShake : undefined}
+                >
                   <input type="radio" checked={selected} disabled={isChecked}
                          onChange={() => setAnswer(t)} className="sr-only" />
-                  {letter && (
-                    <span className={
-                      'shrink-0 w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm border ' +
-                      (isCorrectOpt
-                        ? 'bg-quiz-green text-white border-quiz-green'
-                        : isWrongPick
-                        ? 'bg-quiz-red text-white border-quiz-red'
-                        : selected && !isChecked
-                        ? 'bg-quiz-blue text-white border-quiz-blue'
-                        : 'bg-white/5 text-quiz-muted border-quiz-border')
-                    }>
-                      {letter}
-                    </span>
-                  )}
-                  <span className="font-semibold">{body}</span>
+                  {/* Letter badge is ALWAYS rendered so options align across
+                      diagram-reference questions (body = "") and full-text
+                      questions (body = "Force is required ..."). Same width,
+                      same position, same visual rhythm. */}
+                  <span className={
+                    'shrink-0 w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm border ' +
+                    (isCorrectOpt
+                      ? 'bg-quiz-green text-white border-quiz-green'
+                      : isWrongPick
+                      ? 'bg-quiz-red text-white border-quiz-red'
+                      : selected && !isChecked
+                      ? 'bg-quiz-blue text-white border-quiz-blue'
+                      : 'bg-white/5 text-quiz-muted border-quiz-border')
+                  }>
+                    {letter}
+                  </span>
+                  {body && <span className="font-semibold">{body}</span>}
                   {isCorrectOpt && <span className="ml-auto font-black text-quiz-green">✓</span>}
                   {isWrongPick && <span className="ml-auto font-black text-quiz-red">✗</span>}
-                </label>
+                </motion.label>
               )
             })}
           </div>

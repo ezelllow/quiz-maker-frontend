@@ -1,7 +1,14 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
 import Screen from './ui/Screen'
 import Card from './ui/Card'
 import Button3d from './ui/Button3d'
+import EmptyState from './ui/EmptyState'
+import SectionLabel from './ui/SectionLabel'
+import Badge from './ui/Badge'
+import Skeleton from './ui/Skeleton'
+import { Stagger, StaggerItem } from './ui/Motion'
+import { ease, burst, idlePulse } from '../motion'
 import QuizMaker from './QuizMaker'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
@@ -63,6 +70,7 @@ function SubjectPicker({ onPick }) {
       label: 'Physics',
       level: 'O-Level',
       color: '#38bdf8',
+      tint: 'from-quiz-blue/15 to-quiz-cyan/5',
       active: true,
       tagline: 'Forces, energy, electricity & more',
     },
@@ -72,6 +80,7 @@ function SubjectPicker({ onPick }) {
       label: 'Math',
       level: 'O-Level',
       color: '#c084fc',
+      tint: 'from-quiz-purple/15 to-quiz-magenta/5',
       active: false,
       tagline: 'Coming soon',
     },
@@ -79,39 +88,59 @@ function SubjectPicker({ onPick }) {
 
   return (
     <Screen width="default">
-      <header className="mb-6 pt-2">
-        <div className="text-xs font-black uppercase tracking-widest text-quiz-muted">Practice</div>
-        <h1 className="!text-3xl !font-black tracking-tight">Pick a subject</h1>
-        <p className="text-quiz-muted font-semibold mt-1 text-sm">What's the vibe today?</p>
-      </header>
+      <Stagger delay={0.04} step={0.08}>
+        {/* Header — same eyebrow + heading + tagline as before */}
+        <StaggerItem>
+          <header className="mb-6 pt-2">
+            <SectionLabel>Practice</SectionLabel>
+            <h1 className="!text-3xl !font-black tracking-tight mt-1">Pick a subject</h1>
+            <p className="text-quiz-muted font-semibold mt-1 text-sm">What's the vibe today?</p>
+          </header>
+        </StaggerItem>
 
-      <div className="space-y-3">
-        {subjects.map((s) => (
-          <button
-            key={s.id}
-            disabled={!s.active}
-            onClick={() => s.active && onPick(s.id)}
-            className={
-              'qq-card-solid !p-4 w-full text-left flex items-center gap-4 transition-transform ' +
-              (s.active
-                ? 'hover:-translate-y-0.5 cursor-pointer'
-                : 'opacity-50 cursor-not-allowed')
-            }
-            style={{ borderLeft: `6px solid ${s.color}` }}
-          >
-            <div className="text-5xl shrink-0">{s.emoji}</div>
-            <div className="flex-1 min-w-0">
-              <div className="font-black text-lg">{s.label}</div>
-              <div className="text-xs font-bold text-quiz-muted">
-                {s.level} · {s.tagline}
-              </div>
-            </div>
-            <div className="text-quiz-muted text-2xl shrink-0">
-              {s.active ? '›' : '🔒'}
-            </div>
-          </button>
-        ))}
-      </div>
+        {/* Subject cards — same 2 in same order. Each gains a tinted gradient,
+            a hover lift with subject-coloured glow, and a springy tap. */}
+        <div className="space-y-3">
+          {subjects.map((s) => (
+            <StaggerItem key={s.id}>
+              <motion.button
+                disabled={!s.active}
+                onClick={() => s.active && onPick(s.id)}
+                whileTap={s.active ? { scale: 0.98 } : undefined}
+                whileHover={s.active ? { y: -3 } : undefined}
+                transition={ease.spring}
+                className={
+                  'qq-card-solid !p-4 w-full text-left flex items-center gap-4 relative overflow-hidden ' +
+                  `bg-gradient-to-br ${s.tint} ` +
+                  (s.active ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed')
+                }
+                style={{
+                  borderLeft: `6px solid ${s.color}`,
+                  boxShadow: s.active ? `0 4px 18px ${s.color}33` : undefined,
+                }}
+              >
+                {/* Big subject emoji — bounces a touch on hover to feel alive. */}
+                <motion.div
+                  className="text-5xl shrink-0"
+                  whileHover={s.active ? { scale: 1.12, rotate: -6 } : undefined}
+                  transition={ease.bouncy}
+                >
+                  {s.emoji}
+                </motion.div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-black text-lg">{s.label}</div>
+                  <div className="text-xs font-bold text-quiz-muted">
+                    {s.level} · {s.tagline}
+                  </div>
+                </div>
+                <div className="text-quiz-muted text-2xl shrink-0">
+                  {s.active ? '›' : '🔒'}
+                </div>
+              </motion.button>
+            </StaggerItem>
+          ))}
+        </div>
+      </Stagger>
     </Screen>
   )
 }
@@ -147,6 +176,15 @@ function SubjectHub({ authToken, subject, onBack, onCreateNew, onRetake }) {
     Math:    { emoji: '➗', color: '#c084fc' },
   }[subject] || { emoji: '📚', color: '#5DA9FF' }
 
+  // Difficulty → Badge tone for the metadata chips.
+  const diffTone = (d) => {
+    const k = String(d || '').toLowerCase()
+    if (k.startsWith('eas')) return 'ok'
+    if (k.startsWith('med')) return 'warn'
+    if (k.startsWith('har')) return 'bad'
+    return 'muted'
+  }
+
   const formatDate = (s) => {
     const d = new Date(s)
     return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -154,82 +192,129 @@ function SubjectHub({ authToken, subject, onBack, onCreateNew, onRetake }) {
 
   return (
     <Screen width="default">
-      {/* Header */}
-      <button
-        type="button"
-        onClick={onBack}
-        className="text-xs font-bold text-quiz-muted hover:text-quiz-blue mb-2 inline-flex items-center gap-1"
-      >
-        ← Subjects
-      </button>
-      <header className="mb-5 flex items-center gap-3">
-        <div className="text-4xl shrink-0">{subjectMeta.emoji}</div>
-        <div className="min-w-0">
-          <div className="text-xs font-black uppercase tracking-widest text-quiz-muted">Practice</div>
-          <h1 className="!text-3xl !font-black tracking-tight">{subject}</h1>
-        </div>
-      </header>
+      <Stagger delay={0.04} step={0.06}>
+        {/* Back link — was a plain text button, now an IconButton for tap feel. */}
+        <StaggerItem>
+          <button
+            type="button"
+            onClick={onBack}
+            className="text-xs font-bold text-quiz-muted hover:text-quiz-blue mb-2 inline-flex items-center gap-1 transition-colors"
+          >
+            ← Subjects
+          </button>
+        </StaggerItem>
 
-      {/* Big Create-New CTA */}
-      <Button3d variant="green" size="lg" full onClick={onCreateNew} className="mb-5">
-        🚀 Create new quiz
-      </Button3d>
+        {/* Header — same content (subject emoji + Practice eyebrow + subject name).
+            The emoji bursts in on mount for a satisfying entrance. */}
+        <StaggerItem>
+          <header className="mb-5 flex items-center gap-3">
+            <motion.div
+              className="text-4xl shrink-0"
+              initial={burst.initial}
+              animate={burst.animate}
+              style={{ filter: `drop-shadow(0 4px 14px ${subjectMeta.color}66)` }}
+            >
+              {subjectMeta.emoji}
+            </motion.div>
+            <div className="min-w-0">
+              <SectionLabel>Practice</SectionLabel>
+              <h1 className="!text-3xl !font-black tracking-tight">{subject}</h1>
+            </div>
+          </header>
+        </StaggerItem>
 
-      {/* Saved quizzes */}
-      <div className="text-xs font-black uppercase tracking-widest text-quiz-muted mb-2 px-1">
-        Your saved quizzes
-      </div>
+        {/* Big Create-New CTA — wrapped in idlePulse so it gently breathes,
+            inviting the tap (Duolingo-style hero CTA). */}
+        <StaggerItem>
+          <motion.div {...idlePulse} className="mb-5">
+            <Button3d variant="green" size="lg" full onClick={onCreateNew}>
+              🚀 Create new quiz
+            </Button3d>
+          </motion.div>
+        </StaggerItem>
 
-      {loading && (
-        <Card variant="solid" className="!p-8 text-center text-quiz-muted">
-          Loading saved quizzes…
-        </Card>
-      )}
+        {/* Saved quizzes list */}
+        <StaggerItem>
+          <SectionLabel className="mb-2 px-1">Your saved quizzes</SectionLabel>
+        </StaggerItem>
 
-      {error && !loading && (
-        <Card variant="solid" className="!p-6 border-2 border-quiz-red/50 bg-quiz-red/10 text-quiz-red font-bold">
-          {error}
-        </Card>
-      )}
+        {loading && (
+          <StaggerItem>
+            {/* Skeleton placeholders — 3 card-shaped pulsing blocks instead of
+                a flat "Loading…" string. Feels alive while data arrives. */}
+            <div className="space-y-3">
+              {[0, 1, 2].map((i) => (
+                <Card key={i} variant="solid" className="!p-4 flex items-center gap-3">
+                  <Skeleton shape="circle" />
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <Skeleton width="w-2/3" />
+                    <Skeleton width="w-1/2" height="h-2" />
+                  </div>
+                  <Skeleton shape="block" width="w-20" height="h-9" />
+                </Card>
+              ))}
+            </div>
+          </StaggerItem>
+        )}
 
-      {!loading && !error && quizzes.length === 0 && (
-        <Card variant="solid" className="!p-8 text-center">
-          <div className="text-5xl mb-2">📝</div>
-          <p className="text-quiz-muted font-bold">No saved {subject} quizzes yet. Tap "Create new quiz" to start.</p>
-        </Card>
-      )}
+        {error && !loading && (
+          <StaggerItem>
+            <motion.div
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={ease.spring}
+            >
+              <Card variant="solid" className="!p-6 border-2 border-quiz-red/50 bg-quiz-red/10 text-quiz-red font-bold">
+                {error}
+              </Card>
+            </motion.div>
+          </StaggerItem>
+        )}
 
-      {!loading && !error && quizzes.length > 0 && (
-        <div className="space-y-3">
-          {quizzes.map((q) => (
-            <Card key={q.id} variant="solid" className="!p-4 flex items-center gap-3">
-              <div className="text-2xl shrink-0">📘</div>
-              <div className="flex-1 min-w-0">
-                <div className="font-black truncate">{q.name || `Quiz #${q.id}`}</div>
-                <div className="flex flex-wrap gap-1.5 mt-1 text-[11px] font-bold text-quiz-muted">
-                  {q.subtopic   && <span className="px-2 py-0.5 rounded-full bg-white/5 border border-quiz-border">{q.subtopic}</span>}
-                  {q.difficulty && <span className="px-2 py-0.5 rounded-full bg-white/5 border border-quiz-border">{q.difficulty}</span>}
-                  <span className="px-2 py-0.5 rounded-full bg-white/5 border border-quiz-border">{q.total_questions}Q</span>
-                  <span className="px-2 py-0.5 rounded-full bg-white/5 border border-quiz-border">
-                    🎯 {q.attempt_count || 1}×
-                  </span>
-                </div>
-                <div className="text-[11px] text-quiz-muted mt-1.5">📅 {formatDate(q.attempted_at)}</div>
-              </div>
-              <Button3d
-                variant="blue"
-                size="sm"
-                onClick={() => onRetake({
-                  id: q.id, subtopic: q.subtopic, difficulty: q.difficulty,
-                  count: q.total_questions, isRetake: true,
-                })}
-              >
-                🔄 Retake
-              </Button3d>
-            </Card>
-          ))}
-        </div>
-      )}
+        {!loading && !error && quizzes.length === 0 && (
+          <StaggerItem>
+            <EmptyState
+              icon="📝"
+              body={`No saved ${subject} quizzes yet. Tap "Create new quiz" to start.`}
+            />
+          </StaggerItem>
+        )}
+
+        {!loading && !error && quizzes.length > 0 && (
+          <div className="space-y-3">
+            {quizzes.map((q) => (
+              <StaggerItem key={q.id}>
+                <Card variant="solid" interactive className="!p-4 flex items-center gap-3">
+                  <div className="text-2xl shrink-0">📘</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-black truncate">{q.name || `Quiz #${q.id}`}</div>
+                    {/* Metadata chips — Badge primitive instead of bespoke pill markup.
+                        Difficulty gets a tone matching its rank (easy=ok, medium=warn,
+                        hard=bad) so colour communicates the level at a glance. */}
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {q.subtopic   && <Badge tone="muted">{q.subtopic}</Badge>}
+                      {q.difficulty && <Badge tone={diffTone(q.difficulty)}>{q.difficulty}</Badge>}
+                      <Badge tone="muted">{q.total_questions}Q</Badge>
+                      <Badge tone="accent" icon="🎯">{q.attempt_count || 1}×</Badge>
+                    </div>
+                    <div className="text-[11px] text-quiz-muted mt-1.5">📅 {formatDate(q.attempted_at)}</div>
+                  </div>
+                  <Button3d
+                    variant="blue"
+                    size="sm"
+                    onClick={() => onRetake({
+                      id: q.id, subtopic: q.subtopic, difficulty: q.difficulty,
+                      count: q.total_questions, isRetake: true,
+                    })}
+                  >
+                    🔄 Retake
+                  </Button3d>
+                </Card>
+              </StaggerItem>
+            ))}
+          </div>
+        )}
+      </Stagger>
     </Screen>
   )
 }
