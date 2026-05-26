@@ -7,8 +7,6 @@ import CountUp from './ui/CountUp'
 import SectionLabel from './ui/SectionLabel'
 import { Stagger, StaggerItem } from './ui/Motion'
 import { ease } from '../motion'
-import StreakCelebration from './StreakCelebration'
-import RankUpOverlay from './RankUpOverlay'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -59,9 +57,6 @@ export default function Settings({
   // Live stats for the 3-stat grid
   const [streak, setStreak] = useState(null)
   const [stats, setStats] = useState(null)
-  // Dev-only: which celebration overlay to preview ('streak' | 'milestone' |
-  // 'freeze' | 'rankup' | null). Triggered by the buttons further down.
-  const [preview, setPreview] = useState(null)
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/streak`, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => (r.ok ? r.json() : null)).then(setStreak).catch(() => {})
@@ -252,95 +247,6 @@ export default function Settings({
             </Button3d>
           </Card>
         </StaggerItem>
-
-        {/* ===== Dev — preview celebrations =====
-            Tier-stepped buttons so each level of drama can be reviewed in
-            isolation. Streak tiers: regular → weekly → monthly → century →
-            annual. Rank-up tiers: normal → major → legendary. Pure additive
-            UI — feature placement of Edit Profile and Logout stays unchanged. */}
-        <StaggerItem>
-          <Card variant="solid" className="!p-4 mb-4">
-            <SectionLabel className="mb-2">Preview streak animations</SectionLabel>
-            <div className="grid grid-cols-2 gap-2 mb-3">
-              <Button3d variant="orange" size="sm" onClick={() => setPreview('streak-regular')}>
-                🔥 Day 3 (regular)
-              </Button3d>
-              <Button3d variant="yellow" size="sm" onClick={() => setPreview('streak-weekly')}>
-                🌟 Day 7 (weekly)
-              </Button3d>
-              <Button3d variant="purple" size="sm" onClick={() => setPreview('streak-monthly')}>
-                💎 Day 30 (monthly)
-              </Button3d>
-              <Button3d variant="red" size="sm" onClick={() => setPreview('streak-century')}>
-                🏆 Day 100 (legendary)
-              </Button3d>
-              <Button3d variant="green" size="sm" onClick={() => setPreview('streak-annual')}>
-                👑 Day 365 (year mark)
-              </Button3d>
-              <Button3d variant="blue" size="sm" onClick={() => setPreview('freeze')}>
-                ❄️ Freeze used
-              </Button3d>
-            </div>
-            <SectionLabel className="mb-2">Preview rank-up animations</SectionLabel>
-            <div className="grid grid-cols-3 gap-2">
-              <Button3d variant="white" size="sm" onClick={() => setPreview('rankup-low')}>
-                Tier 1
-              </Button3d>
-              <Button3d variant="purple" size="sm" onClick={() => setPreview('rankup-mid')}>
-                Tier 2
-              </Button3d>
-              <Button3d variant="yellow" size="sm" onClick={() => setPreview('rankup-high')}>
-                Tier 3
-              </Button3d>
-            </div>
-            <div className="text-[10px] text-quiz-muted font-bold mt-2">
-              Dev preview — tap any to fire that overlay. Higher tiers ramp
-              up confetti, rings, build-up time, and add anticipation cues.
-              Tap backdrop or the continue button to dismiss.
-            </div>
-          </Card>
-        </StaggerItem>
-
-        {/* Render the chosen preview overlay */}
-        {preview === 'streak-regular' && (
-          <StreakCelebration streak={3} longest={3} freezeUsed={false} onDismiss={() => setPreview(null)} />
-        )}
-        {preview === 'streak-weekly' && (
-          <StreakCelebration streak={7} longest={7} freezeUsed={false} onDismiss={() => setPreview(null)} />
-        )}
-        {preview === 'streak-monthly' && (
-          <StreakCelebration streak={30} longest={30} freezeUsed={false} onDismiss={() => setPreview(null)} />
-        )}
-        {preview === 'streak-century' && (
-          <StreakCelebration streak={100} longest={100} freezeUsed={false} onDismiss={() => setPreview(null)} />
-        )}
-        {preview === 'streak-annual' && (
-          <StreakCelebration streak={365} longest={365} freezeUsed={false} onDismiss={() => setPreview(null)} />
-        )}
-        {preview === 'freeze' && (
-          <StreakCelebration streak={5} longest={8} freezeUsed={true} onDismiss={() => setPreview(null)} />
-        )}
-        {preview === 'rankup-low' && (
-          <RankUpOverlay
-            newRank={{ tier_name: 'Pilot', tier_icon: '🚀', next_name: 'Lieutenant', xp_next: 500 }}
-            tier={1}
-            onDismiss={() => setPreview(null)}
-          />
-        )}
-        {preview === 'rankup-mid' && (
-          <RankUpOverlay
-            newRank={{ tier_name: 'Captain', tier_icon: '⭐', next_name: 'Admiral', xp_next: 2500 }}
-            tier={2}
-            onDismiss={() => setPreview(null)}
-          />
-        )}
-        {preview === 'rankup-high' && (
-          <RankUpOverlay
-            newRank={{ tier_name: 'Star Admiral', tier_icon: '🌟', next_name: null, xp_next: null }}
-            tier={3}
-            onDismiss={() => setPreview(null)}
-          />
-        )}
 
         {/* ===== Logout ===== */}
         <StaggerItem>
