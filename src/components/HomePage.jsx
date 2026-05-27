@@ -1,4 +1,5 @@
 import ProgressBar from './ui/ProgressBar'
+import WeekStrip from './ui/WeekStrip'
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Screen from './ui/Screen'
@@ -117,15 +118,18 @@ export default function HomePage({ authToken, user, rank, progression, onNavigat
                       {passed ? '🏅' : '🎯'}
                     </div>
                   </div>
-                  <div className="h-2 rounded-full bg-white/5 overflow-hidden mb-3">
-                    <motion.div
-                      className={'h-full ' +
-                        (passed ? 'bg-quiz-yellow' : 'bg-gradient-to-r from-quiz-orange to-quiz-yellow')}
-                      initial={{ width: 0 }}
-                      animate={{ width: passed ? '100%' : `${pct}%` }}
-                      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.25 }}
-                    />
-                  </div>
+                  {/* Daily-challenge progress — same ProgressBar primitive
+                      the Rank XP bar uses, so it gets the visible border,
+                      shimmer sweep, and animated fill for free.
+                      tone="warn" (solid yellow) when done; tone="streak"
+                      (orange→yellow gradient) while in-progress. */}
+                  <ProgressBar
+                    value={passed ? 100 : pct}
+                    tone={passed ? 'warn' : 'streak'}
+                    height="md"
+                    shimmer
+                    className="mb-3"
+                  />
                   <Button3d
                     variant={passed ? 'blue' : 'orange'}
                     size="md"
@@ -212,17 +216,9 @@ export default function HomePage({ authToken, user, rank, progression, onNavigat
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-7 gap-1.5">
-              {(weekData?.days || []).map((day) => (
-                <WeekCell key={day.date} day={day} />
-              ))}
-              {!weekData && [0,1,2,3,4,5,6].map((d) => (
-                <div key={d} className="aspect-square rounded-xl bg-white/10" />
-              ))}
-            </div>
-            <div className="flex items-center justify-center gap-3 mt-2 text-[10px] font-bold text-white/80">
-              <span>🔥 done</span><span>❄️ freeze</span><span>○ upcoming</span><span>✖ missed</span>
-            </div>
+            {/* WeekStrip primitive — cells + legend handled internally so
+                this stays one line of JSX regardless of cell state. */}
+            <WeekStrip days={weekData?.days} loading={!weekData} />
           </div>
         </StaggerItem>
 
@@ -253,27 +249,3 @@ export default function HomePage({ authToken, user, rank, progression, onNavigat
   )
 }
 
-function WeekCell({ day }) {
-  const isToday = day.is_today || day.status === 'today'
-  const base = 'aspect-square rounded-xl flex flex-col items-center justify-center font-black border-2 transition-transform'
-  const styles = {
-    completed:   'bg-white text-purple-700 border-white shadow-md',
-    freeze_used: 'bg-cyan-200 text-cyan-900 border-cyan-300',
-    today:       'bg-white/30 text-white border-white border-dashed scale-105',
-    missed:      'bg-red-500/40 text-white border-red-400/60',
-    upcoming:    'bg-white/10 text-white/70 border-white/15',
-  }[day.status] || 'bg-white/10 text-white/70 border-white/15'
-  const icon = {
-    completed:   '🔥',
-    freeze_used: '❄️',
-    today:       '·',
-    missed:      '✖',
-    upcoming:    '○',
-  }[day.status] || '○'
-  return (
-    <div className={base + ' ' + styles + (isToday ? ' ring-2 ring-white/70' : '')}>
-      <div className="text-[9px] uppercase tracking-widest opacity-80 leading-none">{day.weekday}</div>
-      <div className="text-sm leading-none mt-1">{icon}</div>
-    </div>
-  )
-}
