@@ -100,7 +100,7 @@ function QImage({ src, alt, className = '' }) {
       <img
         src={src}
         alt={alt}
-        className={'w-full max-h-80 object-contain ' + className}
+        className={'w-full max-h-48 sm:max-h-72 object-contain ' + className}
         onError={() => {
           console.warn('[QuizMaker] Image failed to load:', src)
           setFailed(true)
@@ -908,7 +908,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
   // Option styling — before checking: blue = selected. After checking:
   // green = the correct option, red = the option the user wrongly picked.
   const optionCls = (selected, optKey) => {
-    const base = 'flex items-center gap-3 w-full text-left px-4 py-3 rounded-2xl border-2 transition-all '
+    const base = 'flex items-center gap-2.5 w-full text-left px-3 py-2.5 rounded-xl border-2 transition-all '
     if (isChecked) {
       if (optKey && optKey === correctKey)
         return base + 'bg-quiz-green/20 border-quiz-green text-white'
@@ -922,16 +922,16 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
   }
 
   return (
-    <Screen width="default" className="py-8">
-      <Card variant="solid" className="!p-6 sm:!p-8 space-y-5">
+    <Screen width="default" className="py-3 sm:py-6">
+      <Card variant="solid" className="!p-3 sm:!p-6 space-y-3 sm:space-y-4">
         <div className="flex items-center justify-between gap-3">
           <span className="px-3 py-1 rounded-full bg-quiz-green/20 border border-quiz-green/40 text-quiz-green text-xs font-bold">
             Practice · {selectedSubject}
           </span>
-          <span className="text-sm font-bold text-quiz-muted">Question {currentQuestionIndex + 1} of {total}</span>
+          <span className="text-xs sm:text-sm font-bold text-quiz-muted">Q{currentQuestionIndex + 1}/{total}</span>
         </div>
 
-        <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+        <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
           <div className="h-full bg-gradient-to-r from-quiz-green via-quiz-cyan to-quiz-blue transition-all duration-300"
                style={{ width: `${((currentQuestionIndex + 1) / total) * 100}%` }} />
         </div>
@@ -942,7 +942,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
           </div>
         )}
 
-        <h2 className="!text-xl !font-black leading-snug whitespace-pre-line">{q.question_text}</h2>
+        <h2 className="!text-base sm:!text-lg !font-black leading-snug whitespace-pre-line">{q.question_text}</h2>
 
         <QImage src={q.setup_image_url} alt="Question diagram" />
         {q.option_type === 'IMAGE' && q.image_url && q.image_url !== q.setup_image_url && (
@@ -1049,7 +1049,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                       questions (body = "Force is required ..."). Same width,
                       same position, same visual rhythm. */}
                   <span className={
-                    'shrink-0 w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm border ' +
+                    'shrink-0 w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs sm:text-sm border ' +
                     (isCorrectOpt
                       ? 'bg-quiz-green text-white border-quiz-green'
                       : isWrongPick
@@ -1060,7 +1060,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                   }>
                     {letter}
                   </span>
-                  {body && <span className="font-semibold">{body}</span>}
+                  {body && <span className="font-semibold text-sm sm:text-base leading-snug">{body}</span>}
                   {isCorrectOpt && <span className="ml-auto font-black text-quiz-green">✓</span>}
                   {isWrongPick && <span className="ml-auto font-black text-quiz-red">✗</span>}
                 </motion.label>
@@ -1072,7 +1072,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
         {/* Inline correct/wrong feedback — shown once the question is submitted */}
         {isChecked && (
           <div className={
-            'rounded-2xl border-2 px-4 py-3 text-sm ' +
+            'rounded-2xl border-2 px-3 py-2 text-xs sm:text-sm ' +
             (isCorrect
               ? 'border-quiz-green/50 bg-quiz-green/15 text-quiz-green'
               : 'border-quiz-red/50 bg-quiz-red/15 text-quiz-red')
@@ -1090,7 +1090,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
           </div>
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
           <Button3d
             variant={currentQuestionIndex === 0 ? 'disabled' : 'white'}
             size="md"

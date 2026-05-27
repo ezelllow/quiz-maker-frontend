@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ease } from '../motion'
+import EditProfileModal from './EditProfileModal'
 
 // Layout — QuizQuest-style mobile-app shell.
 // Top: sticky app bar (full-width, inner content centered to phone width).
@@ -9,8 +10,10 @@ import { ease } from '../motion'
 export default function Layout({
   children, currentPage, onNavigate,
   userName, userAvatar, rank, level, gems, freezes, freezeCap, onLogout,
+  user, onUserUpdate,
 }) {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const [editProfileOpen, setEditProfileOpen] = useState(false)
   const initials = (userName || 'Student').trim().charAt(0).toUpperCase()
   const menuRef = useRef(null)
 
@@ -127,6 +130,10 @@ export default function Layout({
                     onClick={() => { onNavigate('settings'); setProfileMenuOpen(false) }}
                     className="w-full text-left px-3 py-2 rounded-xl text-sm font-bold hover:bg-white/5 transition-colors"
                   >👤 Profile</button>
+                  <button
+                    onClick={() => { setEditProfileOpen(true); setProfileMenuOpen(false) }}
+                    className="w-full text-left px-3 py-2 rounded-xl text-sm font-bold hover:bg-white/5 transition-colors"
+                  >✏️ Edit profile</button>
                   <div className="h-px bg-quiz-border my-1" />
                   <button
                     onClick={(e) => { e.preventDefault(); onLogout && onLogout() }}
@@ -177,6 +184,15 @@ export default function Layout({
           })}
         </div>
       </nav>
+
+      {/* Edit profile modal — triggered from the avatar dropdown. Self-
+          contained: owns the name + photo state and PUTs to /api/auth/profile. */}
+      <EditProfileModal
+        open={editProfileOpen}
+        onClose={() => setEditProfileOpen(false)}
+        user={user}
+        onUserUpdate={onUserUpdate}
+      />
     </div>
   )
 }

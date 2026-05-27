@@ -290,6 +290,8 @@ function App() {
             freezes={freezes}
             freezeCap={freezeCap}
             onLogout={handleLogout}
+            user={user}
+            onUserUpdate={setUser}
           >
             {/* AnimatePresence drives a fade+slide between pages whenever
                 currentPage changes. mode="wait" lets the outgoing page
