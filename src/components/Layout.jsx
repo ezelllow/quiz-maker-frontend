@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ease } from '../motion'
 import EditProfileModal from './EditProfileModal'
+import Avatar from './ui/Avatar'
 
 // Layout — QuizQuest-style mobile-app shell.
 // Top: sticky app bar (full-width, inner content centered to phone width).
@@ -90,13 +91,12 @@ export default function Layout({
                 aria-expanded={profileMenuOpen}
                 className="flex items-center gap-2 px-1 py-1 rounded-full hover:bg-white/5 transition-colors"
               >
-                <span className="w-9 h-9 rounded-full bg-gradient-to-br from-quiz-blue to-quiz-purple
-                                 flex items-center justify-center overflow-hidden
-                                 ring-2 ring-quiz-border-bright font-bold text-white text-sm">
-                  {userAvatar
-                    ? <img src={userAvatar} alt="" className="w-full h-full object-cover" />
-                    : initials}
-                </span>
+                <Avatar
+                  src={userAvatar}
+                  initials={initials}
+                  size="sm"
+                  equipped={user?.equipped}
+                />
               </button>
               {profileMenuOpen && (
                 <div className="absolute right-0 mt-2 w-56 qq-card-solid !p-1.5 z-40 shadow-2xl">

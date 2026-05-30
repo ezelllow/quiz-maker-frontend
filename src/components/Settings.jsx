@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Screen from './ui/Screen'
 import Card from './ui/Card'
+import Avatar from './ui/Avatar'
 import CountUp from './ui/CountUp'
 import SectionLabel from './ui/SectionLabel'
 import { Stagger, StaggerItem } from './ui/Motion'
@@ -77,13 +78,17 @@ export default function Settings({
                 dropdown modal in the top bar. */}
             <div className="px-4 pb-4 -mt-12 flex flex-col items-center">
               <div className="relative">
-                <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-quiz-blue to-quiz-purple
-                                ring-4 ring-[#0a0a1f] shadow-2xl
-                                flex items-center justify-center text-4xl font-black text-white">
-                  {avatarUrl
-                    ? <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
-                    : initials}
-                </div>
+                {/* Avatar primitive — same 96px circle (size='xl') with
+                    the dark-banner separator ring preserved. Now also
+                    renders every equipped wearable so the profile hero
+                    actually reflects the player's loadout. */}
+                <Avatar
+                  src={avatarUrl}
+                  initials={initials}
+                  size="xl"
+                  equipped={stored.equipped}
+                  className="ring-4 ring-[#0a0a1f] shadow-2xl"
+                />
               </div>
 
               <div className="mt-2 text-xl font-black text-center">{name || 'Student'}</div>

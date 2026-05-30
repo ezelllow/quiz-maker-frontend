@@ -22,6 +22,76 @@ const DIFF_ORDER = ['easy', 'medium', 'hard']
 // The backend builds a quiz from at most 3 picked topics.
 const MAX_QUIZ_TOPICS = 3
 
+// ── Official SEAB syllabus orderings ───────────────────────────────────
+// Two maps, one per physics level. Topic names from the backend get
+// matched against these regexes — anything that doesn't match a pattern
+// is FILTERED OUT of the picker entirely (not just sorted to the bottom),
+// so the dropdown only ever shows officially-listed syllabus topics.
+//
+//   SEAB_6091_ORDER  — Pure Physics (6091), 20 topics
+//   SEAB_COMBINED_ORDER — Combined Sci Physics (5086/87/88), 16 topics
+//
+// Regexes are forgiving on wording ("Energy" vs "Work, Energy and Power",
+// "DC Circuits" vs "D.C. Circuits") but strict on inclusion — a topic must
+// match a syllabus entry to appear in the list.
+
+// Pure Physics — SEAB 6091 (20 topics, in syllabus order)
+const SEAB_6091_ORDER = [
+  { n: 1,  test: /physical quantit/i },
+  { n: 2,  test: /kinematic/i },
+  { n: 3,  test: /^dynamic/i },
+  { n: 4,  test: /turning effect|^moments\b/i },
+  { n: 5,  test: /^pressure/i },
+  { n: 6,  test: /^energy\b|work,?\s*energy/i },
+  { n: 7,  test: /kinetic.*(particle|model)|particle.*model/i },
+  { n: 8,  test: /thermal process|transfer of thermal/i },
+  { n: 9,  test: /thermal propert/i },
+  { n: 10, test: /general propert.*wave|^waves\b|properties of waves/i },
+  { n: 11, test: /electromagnetic spectrum|em spectrum/i },
+  { n: 12, test: /^light\b/i },
+  { n: 13, test: /static electric/i },
+  { n: 14, test: /current.*electric/i },
+  { n: 15, test: /d\.?\s*c\.?\s*circuit/i },
+  { n: 16, test: /practical electric/i },
+  { n: 17, test: /^magnetism\b(?!.*electromagnetism)/i },
+  { n: 18, test: /^electromagnetism\b/i },
+  { n: 19, test: /electromagnetic induction|em induction/i },
+  { n: 20, test: /radioactiv/i },
+]
+
+// Combined Sci Physics — SEAB 5086/87/88 (16 topics, in syllabus order)
+// Force and Pressure are combined; Magnetism and Electromagnetism are combined.
+const SEAB_COMBINED_ORDER = [
+  { n: 1,  test: /physical quantit/i },
+  { n: 2,  test: /kinematic/i },
+  { n: 3,  test: /^dynamic/i },
+  { n: 4,  test: /mass.*weight.*densit|^density/i },
+  { n: 5,  test: /turning effect|^moments\b/i },
+  { n: 6,  test: /^pressure\b|force.*pressure/i },
+  { n: 7,  test: /^energy\b|work,?\s*energy/i },
+  { n: 8,  test: /kinetic.*(particle|model)|particle.*model/i },
+  { n: 9,  test: /thermal process|transfer of thermal/i },
+  { n: 10, test: /thermal propert/i },
+  { n: 11, test: /^light\b/i },
+  { n: 12, test: /general propert.*wave|^waves\b|properties of waves/i },
+  { n: 13, test: /electromagnetic spectrum|em spectrum/i },
+  { n: 14, test: /static electric|current.*electric|d\.?\s*c\.?\s*circuit|practical electric/i },
+  { n: 15, test: /^magnetism\b|^electromagnetism\b|magnetism.*electromagnet/i },
+  { n: 16, test: /radioactiv/i },
+]
+
+// Returns the syllabus map for the given physics level.
+function syllabusFor(levelCat) {
+  return levelCat === 'combined' ? SEAB_COMBINED_ORDER : SEAB_6091_ORDER
+}
+
+// Position in the syllabus (1..N), or null if not in the syllabus.
+function topicNumber(name, levelCat) {
+  const map = syllabusFor(levelCat)
+  const found = map.find((t) => t.test.test(String(name || '')))
+  return found ? found.n : null
+}
+
 function diffKey(val) {
   const k = String(val ?? '').toLowerCase()
   if (k.startsWith('eas')) return 'easy'
@@ -407,7 +477,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
 
   // ===== CREATE FORM (QuizQuest renderQuizSetup pattern) =====
   if (!quiz) {
-    const MAX_TOPICS = 5
+    const MAX_TOPICS = 3
     const topicsSelected = selectedSubtopics.filter(Boolean)
     const topicCount = topicsSelected.length
     const toggleTopic = (sub) => {
@@ -490,23 +560,50 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
         )}
 
         <form onSubmit={handleCreateQuiz} className="space-y-6">
-          {/* First filter — Pure / Combined Physics. Drives the topics list. */}
+          {/* First filter — Pure / Combined Physics. Drives the topics list.
+              Rendered as a 2-button picker (was a <select>) so it matches the
+              tap-to-pick style used by Difficulty + Question count + Topics.
+              Clearing selectedSubtopics on level change keeps the picker
+              honest — a Pure-only topic shouldn't survive a switch to Combined
+              and vice-versa, since the syllabus filter would just hide it. */}
           <div>
             <div className="text-xs font-black uppercase tracking-widest text-quiz-muted mb-2 px-1">Physics level</div>
-            <select
-              value={levelCat}
-              onChange={(e) => {
-                setLevelCat(e.target.value)
-                setSelectedSubtopics([])
-              }}
-              className={nameInputCls + ' cursor-pointer font-bold'}
-            >
-              <option value="pure">🧪 Pure Physics</option>
-              <option value="combined">⚛️ Combined Physics</option>
-            </select>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { id: 'pure',     emoji: '🧪', label: 'Pure Physics',     sub: 'SEAB 6091 · 20 topics' },
+                { id: 'combined', emoji: '⚛️', label: 'Combined Physics', sub: 'SEAB 5086/87/88 · 16 topics' },
+              ].map((lvl) => {
+                const active = levelCat === lvl.id
+                return (
+                  <button
+                    key={lvl.id}
+                    type="button"
+                    onClick={() => {
+                      if (levelCat === lvl.id) return
+                      setLevelCat(lvl.id)
+                      setSelectedSubtopics([])
+                    }}
+                    className={
+                      'p-3 rounded-2xl border-2 font-black transition-all text-center ' +
+                      (active
+                        ? 'border-quiz-blue bg-quiz-blue/15 text-white shadow-lg scale-[1.02]'
+                        : 'border-quiz-border bg-[#1a1a35] text-quiz-text hover:border-quiz-blue/60 hover:bg-white/5')
+                    }
+                  >
+                    <div className="text-2xl leading-none mb-1">{lvl.emoji}</div>
+                    <div className="text-sm leading-tight">{lvl.label}</div>
+                    <div className="text-[10px] font-bold text-quiz-muted mt-0.5 normal-case tracking-normal">
+                      {lvl.sub}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
-          {/* Topics — collapsible. Selected chips stay visible. */}
+          {/* Topics — collapsible numbered checkbox list ordered by SEAB
+              5054 syllabus position. Tap a row to tick/untick. Once
+              MAX_TOPICS (3) are picked, unchecked rows go disabled. */}
           <div className="qq-card-solid !p-3">
             <button
               type="button"
@@ -524,65 +621,83 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
               <span className={'text-xl text-quiz-muted transition-transform ' + (topicsOpen ? 'rotate-180' : '')}>▾</span>
             </button>
 
-            {topicCount === 0 ? (
-              <div className="flex flex-wrap gap-1.5 px-2 pb-2">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold
-                                 bg-quiz-blue/20 border border-quiz-blue/40 text-quiz-blue">
-                  ✨ All topics
-                </span>
-              </div>
-            ) : (
-              <div className="flex flex-wrap gap-1.5 px-2 pb-2">
-                {topicsSelected.map((sub) => (
-                  <button
-                    key={sub}
-                    type="button"
-                    onClick={() => toggleTopic(sub)}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold
-                               bg-quiz-blue/20 border border-quiz-blue/40 text-quiz-blue hover:bg-quiz-blue/30"
-                    title="Remove"
-                  >
-                    {sub} <span className="opacity-70">×</span>
-                  </button>
-                ))}
-              </div>
-            )}
-
             {topicsOpen && (
-              <div className="flex flex-wrap gap-1.5 mt-2 px-1 pb-1 max-h-56 overflow-y-auto">
+              <div className="mt-1 px-1 pb-1 max-h-72 overflow-y-auto space-y-1">
+                {/* "All topics" sentinel row — clears selection */}
                 <button
                   type="button"
                   onClick={() => setSelectedSubtopics([])}
                   className={
-                    'inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ' +
+                    'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border-2 transition-colors text-left ' +
                     (topicCount === 0
-                      ? 'bg-quiz-blue/25 border-quiz-blue text-white'
-                      : 'bg-[#1a1a35] border-quiz-border text-quiz-text hover:border-quiz-blue/60')
+                      ? 'border-quiz-blue bg-quiz-blue/15'
+                      : 'border-quiz-border bg-[#1a1a35] hover:border-quiz-blue/60')
                   }
                 >
-                  ✨ All topics{topicCount === 0 ? ' ✓' : ''}
+                  <span className={
+                    'shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center ' +
+                    (topicCount === 0
+                      ? 'bg-quiz-blue border-quiz-blue'
+                      : 'bg-transparent border-quiz-border')
+                  }>
+                    {topicCount === 0 && <span className="text-white text-[11px] font-black leading-none">✓</span>}
+                  </span>
+                  <span className="font-black text-sm flex-1 leading-tight">
+                    ✨ All topics — random mix
+                  </span>
                 </button>
-                {subtopics.map((sub) => {
-                  const isSelected = topicsSelected.includes(sub)
-                  const isMaxed = !isSelected && topicCount >= MAX_TOPICS
-                  return (
-                    <button
-                      key={sub}
-                      type="button"
-                      disabled={isMaxed}
-                      onClick={() => toggleTopic(sub)}
-                      className={
-                        'inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ' +
-                        (isSelected
-                          ? 'bg-quiz-blue/25 border-quiz-blue text-white'
-                          : 'bg-[#1a1a35] border-quiz-border text-quiz-text hover:border-quiz-blue/60') +
-                        (isMaxed ? ' opacity-40 cursor-not-allowed' : '')
-                      }
-                    >
-                      {sub}{isSelected && ' ✓'}
-                    </button>
-                  )
-                })}
+
+                {/* Numbered checkbox rows — sorted by syllabus position.
+                    Topics from the backend that DON'T appear in the chosen
+                    syllabus (Pure / Combined) are filtered out entirely so
+                    the picker only ever shows officially-listed topics. */}
+                {subtopics
+                  .map((sub) => ({ sub, n: topicNumber(sub, levelCat) }))
+                  .filter((t) => t.n != null)
+                  .sort((a, b) => a.n - b.n)
+                  .map(({ sub, n }) => {
+                    const isSelected = topicsSelected.includes(sub)
+                    const isMaxed = !isSelected && topicCount >= MAX_TOPICS
+                    return (
+                      <button
+                        key={sub}
+                        type="button"
+                        disabled={isMaxed}
+                        onClick={() => toggleTopic(sub)}
+                        className={
+                          'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border-2 transition-colors text-left ' +
+                          (isSelected
+                            ? 'border-quiz-blue bg-quiz-blue/15'
+                            : 'border-quiz-border bg-[#1a1a35] hover:border-quiz-blue/60') +
+                          (isMaxed ? ' opacity-40 cursor-not-allowed' : '')
+                        }
+                      >
+                        {/* Checkbox */}
+                        <span className={
+                          'shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ' +
+                          (isSelected
+                            ? 'bg-quiz-blue border-quiz-blue'
+                            : 'bg-transparent border-quiz-border')
+                        }>
+                          {isSelected && <span className="text-white text-[11px] font-black leading-none">✓</span>}
+                        </span>
+                        {/* SEAB number prefix — always present (topic is
+                            guaranteed to be in the syllabus at this point). */}
+                        <span className="font-black text-quiz-muted text-xs w-6 text-right tabular-nums shrink-0">
+                          {n}.
+                        </span>
+                        {/* Topic name */}
+                        <span className="font-bold text-sm flex-1 leading-tight">
+                          {sub}
+                        </span>
+                      </button>
+                    )
+                  })}
+                {topicCount >= MAX_TOPICS && (
+                  <div className="text-[11px] font-bold text-quiz-yellow px-2 pt-1">
+                    Max {MAX_TOPICS} topics — untick one to swap.
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -23,6 +23,7 @@ const HomePage        = lazy(() => import('./components/HomePage'))
 const LeaderboardPage = lazy(() => import('./components/LeaderboardPage'))
 const ShopPage        = lazy(() => import('./components/ShopPage'))
 const PracticePage    = lazy(() => import('./components/PracticePage'))
+const TeacherDashboard = lazy(() => import('./components/TeacherDashboard'))
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -224,7 +225,7 @@ function App() {
       case 'leaderboard':
         return <LeaderboardPage authToken={localStorage.getItem('auth_token')} user={user} progression={progression} />
       case 'shop':
-        return <ShopPage authToken={localStorage.getItem('auth_token')} gems={gems} onGemsChange={setGems} />
+        return <ShopPage authToken={localStorage.getItem('auth_token')} gems={gems} onGemsChange={setGems} user={user} onUserUpdate={setUser} />
       case 'daily':
         return <DailyChallenge authToken={localStorage.getItem('auth_token')} subject="Physics" onExit={() => setCurrentPage('home')} />
       case 'dashboard':
@@ -270,7 +271,17 @@ function App() {
         tone="red"
       />
       {isAuthenticated ? (
-        needsPlacement === true ? (
+        user?.is_teacher ? (
+          // Teachers skip Placement and the student bottom-nav shell — they
+          // get the dashboard directly. Read-only; no student-app routes.
+          <Suspense fallback={<PageFallback />}>
+            <TeacherDashboard
+              authToken={localStorage.getItem('auth_token')}
+              user={user}
+              onLogout={handleLogout}
+            />
+          </Suspense>
+        ) : needsPlacement === true ? (
           <Suspense fallback={<PageFallback />}>
             <Placement
               authToken={localStorage.getItem('auth_token')}

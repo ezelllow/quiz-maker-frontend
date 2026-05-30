@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import Screen from './ui/Screen'
 import Card from './ui/Card'
+import SharedAvatar from './ui/Avatar'
 import { ease, burst } from '../motion'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
@@ -63,17 +64,16 @@ export default function LeaderboardPage({ user, authToken, progression }) {
   const initialOf = (name) =>
     (name || 'U').trim().charAt(0).toUpperCase() || 'U'
 
-  const Avatar = ({ p, size = 'md' }) => {
-    const px = size === 'lg' ? 'w-10 h-10' : 'w-8 h-8'
-    if (p.avatar_url) {
-      return <img src={p.avatar_url} alt="" className={`${px} rounded-full object-cover ring-2 ring-quiz-border-bright`} />
-    }
-    return (
-      <span className={`${px} inline-flex rounded-full bg-gradient-to-br from-quiz-blue to-quiz-purple text-white font-black items-center justify-center text-sm`}>
-        {initialOf(p.name)}
-      </span>
-    )
-  }
+  // Avatar renders the user's pfp + any equipped wearables (hat / glasses /
+  // accessory / frame). Backend includes `equipped` in each entry now.
+  const AvatarRow = ({ p, size = 'sm' }) => (
+    <SharedAvatar
+      src={p.avatar_url}
+      initials={initialOf(p.name)}
+      size={size}
+      equipped={p.equipped}
+    />
+  )
 
   const fmtAgo = (d) => {
     if (!d) return ''
@@ -186,7 +186,7 @@ export default function LeaderboardPage({ user, authToken, progression }) {
               }}
             >
               <div className={'mb-1 ' + (rank === 1 ? 'animate-bounce' : '')}>
-                <Avatar p={p} size="lg" />
+                <AvatarRow p={p} size="lg" />
               </div>
               <div className="text-xs font-black truncate w-full text-center text-white">
                 {p.name}{p.is_me ? ' (You)' : ''}
@@ -218,7 +218,7 @@ export default function LeaderboardPage({ user, authToken, progression }) {
               ].join(' ')}
             >
               <div className="w-7 text-center font-black text-quiz-muted">{p.rank}</div>
-              <div className="shrink-0"><Avatar p={p} /></div>
+              <div className="shrink-0"><AvatarRow p={p} /></div>
               <div className={'flex-1 font-black truncate flex items-center gap-1.5 ' + (p.is_me ? 'text-quiz-blue' : '')}>
                 <span className="truncate">{p.name}{p.is_me ? ' (You)' : ''}</span>
                 {p.level != null && (

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Screen from './ui/Screen'
 import Card from './ui/Card'
+import Avatar from './ui/Avatar'
 import Button3d from './ui/Button3d'
 import { Stagger, StaggerItem } from './ui/Motion'
 
@@ -73,12 +74,18 @@ export default function HomePage({ authToken, user, rank, progression, onNavigat
         {/* Welcome bar */}
         <StaggerItem className="flex items-center justify-between gap-3 mb-3 sm:mb-5">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-gradient-to-br from-quiz-blue to-quiz-purple
-                            ring-2 ring-quiz-border-bright flex items-center justify-center text-base sm:text-xl font-black text-white shrink-0">
-              {avatarUrl
-                ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
-                : initials}
-            </div>
+            {/* Avatar primitive renders the photo PLUS any equipped
+                wearables (hat / glasses / accessory / frame / hands /
+                legs) so the welcome bar reflects what the user is
+                wearing. Same size as before — 'sm' on mobile, scales
+                up to 'md' on desktop via the wrapper className. */}
+            <Avatar
+              src={avatarUrl}
+              initials={initials}
+              size="md"
+              equipped={user?.equipped}
+              className="ring-2 ring-quiz-border-bright"
+            />
             <div className="min-w-0">
               <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-quiz-muted">Welcome back</div>
               <div className="text-base sm:text-lg font-black truncate">{name}</div>
