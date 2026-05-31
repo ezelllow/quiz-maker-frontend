@@ -25,10 +25,13 @@ const SLOT_ORDER = [
 // within each slot (common first, legendary last). The colors map to the
 // existing quiz-* tailwind palette so it inherits the rest of the theme.
 const RARITY = {
-  common:    { label: 'Common',    rank: 0, badge: 'bg-white/10  text-white/80   border-white/30',           ring: '' },
-  rare:      { label: 'Rare',      rank: 1, badge: 'bg-quiz-blue/20   text-quiz-blue   border-quiz-blue/50',   ring: 'shadow-[0_0_18px_rgba(96,165,250,0.25)]' },
-  epic:      { label: 'Epic',      rank: 2, badge: 'bg-quiz-purple/20 text-quiz-purple border-quiz-purple/50', ring: 'shadow-[0_0_22px_rgba(167,139,250,0.35)]' },
-  legendary: { label: 'Legendary', rank: 3, badge: 'bg-quiz-yellow/20 text-quiz-yellow border-quiz-yellow/50', ring: 'shadow-[0_0_28px_rgba(253,224,71,0.45)]' },
+  // Polychrome rarity from the HabitGo reference design — each tier has
+  // its own hue so they're scannable at a glance. Glow rings on white
+  // cards use the rarity color at low alpha for a subtle aura.
+  common:    { label: 'Common',    rank: 0, badge: 'bg-gray-100       text-gray-600     border-gray-300',          ring: '' },
+  rare:      { label: 'Rare',      rank: 1, badge: 'bg-[#3B9EFF]/15   text-[#1E70C7]    border-[#3B9EFF]/50',      ring: 'shadow-[0_0_18px_rgba(59,158,255,0.25)]' },
+  epic:      { label: 'Epic',      rank: 2, badge: 'bg-[#A855F7]/15   text-[#7C3AED]    border-[#A855F7]/50',      ring: 'shadow-[0_0_22px_rgba(168,85,247,0.30)]' },
+  legendary: { label: 'Legendary', rank: 3, badge: 'bg-[#F4B100]/20   text-[#A87900]    border-[#F4B100]',         ring: 'shadow-[0_0_28px_rgba(244,177,0,0.55)]' },
 }
 const rarityOf = (item) => RARITY[item?.rarity] || RARITY.common
 
@@ -282,10 +285,10 @@ export default function ShopPage({ authToken, gems, onGemsChange, user, onUserUp
                   // gate.
                   const canBuy = unlocked && affordable && !isOwned
                   const variant = isEquipped
-                    ? 'green'
+                    ? 'gem'                              // calm cyan — "done, you're wearing it"
                     : isOwned
-                      ? 'purple'
-                      : canBuy ? 'blue' : 'red'
+                      ? 'white'                          // subtle outlined — "you have it, tap to equip"
+                      : canBuy ? 'orange' : 'red'        // orange = primary buy CTA; red only when locked
                   const buyLabel = !unlocked
                     ? `🔒 ${item.cost}`
                     : `💎 ${item.cost}`
@@ -329,6 +332,11 @@ export default function ShopPage({ authToken, gems, onGemsChange, user, onUserUp
                           loadingLabel="…"
                           title={!unlocked && !isOwned ? `Shop unlocks in ${daysLeft} day${daysLeft === 1 ? '' : 's'}` : ''}
                           onClick={() => isOwned ? toggleEquip(item) : setPendingBuy(item)}
+                          // Data attributes let CSS target these two button
+                          // states specifically — the dark theme uses them
+                          // to restore the old lavender/kelly-green look
+                          // without changing the light-theme variants.
+                          data-shop-state={isEquipped ? 'equipped' : isOwned ? 'equip' : 'buy'}
                         >
                           {isEquipped
                             ? '✓ Equipped'
@@ -338,7 +346,7 @@ export default function ShopPage({ authToken, gems, onGemsChange, user, onUserUp
                         </Button3d>
                       </div>
                       {isOwned && !isEquipped && (
-                        <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-quiz-purple border-2 border-[#1a1a35] flex items-center justify-center text-[10px] text-white font-black">★</div>
+                        <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-quiz-orange border-2 border-white flex items-center justify-center text-[10px] text-white font-black shadow-md">★</div>
                       )}
                     </Card>
                   )
@@ -363,7 +371,7 @@ export default function ShopPage({ authToken, gems, onGemsChange, user, onUserUp
         }
         confirmLabel="Buy"
         cancelLabel="Cancel"
-        tone="purple"
+        tone="orange"
       />
     </Screen>
   )

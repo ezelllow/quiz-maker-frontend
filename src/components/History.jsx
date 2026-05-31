@@ -101,7 +101,7 @@ export default function History({ authToken }) {
                     <h3 className="!text-lg !font-black mb-3 leading-snug">{question.question_text}</h3>
 
                     {diagramUrl && (
-                      <div className="rounded-2xl overflow-hidden border border-quiz-border bg-black/30 mb-3">
+                      <div className="rounded-2xl overflow-hidden border border-quiz-border bg-white mb-3">
                         <img src={diagramUrl} alt="Question diagram" className="w-full max-h-80 object-contain"
                              onError={(e) => { e.target.style.display = 'none' }} />
                       </div>
@@ -118,7 +118,7 @@ export default function History({ authToken }) {
                           <div className="overflow-x-auto rounded-2xl border border-quiz-border">
                             <table className="w-full text-sm">
                               {flatHeaders.length > 0 && (
-                                <thead><tr className="bg-white/5">
+                                <thead><tr className="bg-gray-50">
                                   {flatHeaders.map((h, i) => <th key={i} className="px-3 py-2 text-left font-bold text-quiz-muted">{h}</th>)}
                                   <th className="px-3 py-2 w-24 font-bold text-quiz-muted">Result</th>
                                 </tr></thead>
@@ -151,7 +151,7 @@ export default function History({ authToken }) {
                       })()
                     ) : optionsImageUrl ? (
                       <>
-                        <div className="rounded-2xl overflow-hidden border border-quiz-border bg-black/30 mb-3">
+                        <div className="rounded-2xl overflow-hidden border border-quiz-border bg-white mb-3">
                           <img src={optionsImageUrl} alt="Options" className="w-full max-h-80 object-contain"
                                onError={(e) => { e.target.style.display = 'none' }} />
                         </div>
@@ -199,8 +199,8 @@ export default function History({ authToken }) {
                     )}
 
                     <div className="flex flex-wrap gap-2 mt-3 text-xs font-bold text-quiz-muted">
-                      <span className="px-2 py-1 rounded-full bg-white/5 border border-quiz-border">📌 {question.subtopic}</span>
-                      <span className="px-2 py-1 rounded-full bg-white/5 border border-quiz-border">⭐ {question.difficulty}</span>
+                      <span className="px-2 py-1 rounded-full bg-gray-50 border border-quiz-border">📌 {question.subtopic}</span>
+                      <span className="px-2 py-1 rounded-full bg-gray-50 border border-quiz-border">⭐ {question.difficulty}</span>
                     </div>
                   </Card>
                 )
@@ -247,10 +247,10 @@ export default function History({ authToken }) {
                   )}
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs font-bold text-quiz-muted">
-                  {a.subtopic   && <span className="px-2.5 py-1 rounded-full bg-white/5 border border-quiz-border">📚 {a.subtopic}</span>}
-                  {a.difficulty && <span className="px-2.5 py-1 rounded-full bg-white/5 border border-quiz-border">⭐ {a.difficulty}</span>}
-                  <span className="px-2.5 py-1 rounded-full bg-white/5 border border-quiz-border">❓ {a.total_questions}</span>
-                  <span className="px-2.5 py-1 rounded-full bg-white/5 border border-quiz-border">⏱️ {formatTime(a.time_spent_seconds)}</span>
+                  {a.subtopic   && <span className="px-2.5 py-1 rounded-full bg-gray-50 border border-quiz-border">📚 {a.subtopic}</span>}
+                  {a.difficulty && <span className="px-2.5 py-1 rounded-full bg-gray-50 border border-quiz-border">⭐ {a.difficulty}</span>}
+                  <span className="px-2.5 py-1 rounded-full bg-gray-50 border border-quiz-border">❓ {a.total_questions}</span>
+                  <span className="px-2.5 py-1 rounded-full bg-gray-50 border border-quiz-border">⏱️ {formatTime(a.time_spent_seconds)}</span>
                 </div>
                 <div className="text-xs text-quiz-muted mt-2">📅 {formatDate(a.attempted_at)}</div>
               </div>

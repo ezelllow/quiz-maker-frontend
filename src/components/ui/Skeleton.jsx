@@ -31,7 +31,7 @@ export default function Skeleton({
   const s = SHAPES[shape] || SHAPES.line
   return (
     <motion.div
-      className={cn('bg-white/10', height || s.height, rounded || s.rounded, width, className)}
+      className={cn('bg-gray-100', height || s.height, rounded || s.rounded, width, className)}
       animate={{ opacity: [0.45, 0.85, 0.45] }}
       transition={{ duration: 1.4, ease: ease.inOut, repeat: Infinity }}
       aria-hidden="true"

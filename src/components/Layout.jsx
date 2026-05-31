@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ease } from '../motion'
-import EditProfileModal from './EditProfileModal'
 import Avatar from './ui/Avatar'
 
 // Layout — QuizQuest-style mobile-app shell.
@@ -14,7 +13,6 @@ export default function Layout({
   user, onUserUpdate,
 }) {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
-  const [editProfileOpen, setEditProfileOpen] = useState(false)
   const initials = (userName || 'Student').trim().charAt(0).toUpperCase()
   const menuRef = useRef(null)
 
@@ -45,14 +43,17 @@ export default function Layout({
   return (
     <div className="min-h-screen flex flex-col">
       {/* ===== Top app bar ===== */}
-      <header className="sticky top-0 z-30 backdrop-blur-xl bg-[rgba(10,10,31,0.7)] border-b border-quiz-border">
+      <header className="sticky top-0 z-30 backdrop-blur-xl bg-[#FFF8F0] border-b border-[#F0E5D8]">
         <div className={`${frame} flex items-center justify-between gap-3 px-4 py-2`}>
           <button
             onClick={() => onNavigate('home')}
             className="flex items-center gap-2 font-black text-lg tracking-tight"
           >
             <span className="text-2xl">🎯</span>
-            <span className="bg-gradient-to-r from-quiz-blue to-quiz-purple bg-clip-text text-transparent">
+            <span
+              className="bg-clip-text text-transparent"
+              style={{ backgroundImage: 'var(--logo-grad)' }}
+            >
               HabitGo
             </span>
           </button>
@@ -89,7 +90,7 @@ export default function Layout({
                 onClick={() => setProfileMenuOpen((o) => !o)}
                 aria-label="Profile menu"
                 aria-expanded={profileMenuOpen}
-                className="flex items-center gap-2 px-1 py-1 rounded-full hover:bg-white/5 transition-colors"
+                className="flex items-center gap-2 px-1 py-1 rounded-full hover:bg-gray-50 transition-colors"
               >
                 <Avatar
                   src={userAvatar}
@@ -128,12 +129,12 @@ export default function Layout({
                   )}
                   <button
                     onClick={() => { onNavigate('settings'); setProfileMenuOpen(false) }}
-                    className="w-full text-left px-3 py-2 rounded-xl text-sm font-bold hover:bg-white/5 transition-colors"
+                    className="w-full text-left px-3 py-2 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors"
                   >👤 Profile</button>
                   <button
-                    onClick={() => { setEditProfileOpen(true); setProfileMenuOpen(false) }}
-                    className="w-full text-left px-3 py-2 rounded-xl text-sm font-bold hover:bg-white/5 transition-colors"
-                  >✏️ Edit profile</button>
+                    onClick={() => { onNavigate('preferences'); setProfileMenuOpen(false) }}
+                    className="w-full text-left px-3 py-2 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors"
+                  >⚙️ Settings</button>
                   <div className="h-px bg-quiz-border my-1" />
                   <button
                     onClick={(e) => { e.preventDefault(); onLogout && onLogout() }}
@@ -152,7 +153,7 @@ export default function Layout({
       </main>
 
       {/* ===== Bottom nav (always visible, mobile-app style) ===== */}
-      <nav className="fixed bottom-0 inset-x-0 z-30 backdrop-blur-xl bg-[rgba(10,10,31,0.85)] border-t border-quiz-border">
+      <nav className="fixed bottom-0 inset-x-0 z-30 backdrop-blur-xl bg-white border-t border-[#F0E5D8]">
         <div className={`${frame} grid grid-cols-5 gap-1 px-2 py-2`}>
           {navItems.map((item) => {
             const active = currentPage === item.id
@@ -163,7 +164,7 @@ export default function Layout({
                 title={item.label}
                 className={[
                   'relative flex flex-col items-center justify-center gap-0.5 py-1.5 rounded-xl transition-colors',
-                  active ? 'text-white scale-105' : 'text-quiz-muted hover:text-white',
+                  active ? 'text-[#E8530A] scale-105' : 'text-quiz-muted hover:text-[#2B2521]',
                 ].join(' ')}
               >
                 {/* Sliding indicator — shared-element via layoutId. The
@@ -173,7 +174,7 @@ export default function Layout({
                 {active && (
                   <motion.span
                     layoutId="navIndicator"
-                    className="absolute inset-0 rounded-xl bg-gradient-to-b from-quiz-blue/25 to-quiz-purple/25"
+                    className="absolute inset-0 rounded-xl bg-[#FFF1E6]"
                     transition={ease.spring}
                   />
                 )}
@@ -184,15 +185,6 @@ export default function Layout({
           })}
         </div>
       </nav>
-
-      {/* Edit profile modal — triggered from the avatar dropdown. Self-
-          contained: owns the name + photo state and PUTs to /api/auth/profile. */}
-      <EditProfileModal
-        open={editProfileOpen}
-        onClose={() => setEditProfileOpen(false)}
-        user={user}
-        onUserUpdate={onUserUpdate}
-      />
     </div>
   )
 }

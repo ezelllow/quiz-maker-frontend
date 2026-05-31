@@ -17,7 +17,7 @@ const SIZES = {
 }
 const TONES = {
   glass:  'qq-card-solid !p-0 hover:border-quiz-blue/40',
-  ghost:  'bg-transparent border border-transparent hover:bg-white/5',
+  ghost:  'bg-transparent border border-transparent hover:bg-gray-50',
   accent: 'bg-quiz-blue/20 border border-quiz-blue/40 text-quiz-blue hover:bg-quiz-blue/30',
 }
 

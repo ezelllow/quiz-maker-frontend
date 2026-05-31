@@ -65,7 +65,7 @@ export default function LoginPage({ onLoginSuccess }) {
   const handleGoogleError = () => setError('Google login failed. Please try again.')
 
   const inputCls =
-    'w-full rounded-2xl bg-[#1a1a35] border-2 border-[rgba(140,140,220,0.25)] ' +
+    'w-full rounded-2xl bg-white border-2 border-[#E5E7EB] ' +
     'px-4 py-3 text-base text-quiz-text placeholder:text-quiz-muted ' +
     'focus:outline-none focus:border-quiz-blue focus:ring-2 focus:ring-quiz-blue/40 ' +
     'transition-colors disabled:opacity-60'

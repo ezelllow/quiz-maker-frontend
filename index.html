@@ -11,6 +11,22 @@
       rel="stylesheet"
     />
     <title>HabitGo · Study Smarter</title>
+      <script>
+      // Pre-paint theme bootstrap — avoid FOUC for dark-theme users.
+      // Reads localStorage.theme and applies body class BEFORE the page
+      // renders, so the bg doesn't flash light-cream then flip to dark.
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          if (t === 'dark') {
+            document.documentElement.classList.add('theme-pre-dark');
+            window.addEventListener('DOMContentLoaded', function () {
+              document.body.classList.add('theme-dark');
+            });
+          }
+        } catch (_) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

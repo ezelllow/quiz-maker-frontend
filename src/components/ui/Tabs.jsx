@@ -55,7 +55,7 @@ export default function Tabs({ tabs = [], value, onChange, variant = 'pill', cla
   return (
     <div
       className={cn(
-        'relative inline-flex gap-1 p-1 rounded-pill bg-white/5 border border-quiz-border',
+        'relative inline-flex gap-1 p-1 rounded-pill bg-gray-50 border border-quiz-border',
         className,
       )}
       role="tablist"

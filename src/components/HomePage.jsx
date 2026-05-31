@@ -212,8 +212,8 @@ export default function HomePage({ authToken, user, rank, progression, onNavigat
         </StaggerItem>
 
         {/* Weekly strip — Mon→Sun of THIS calendar week, with per-day status */}
-        <StaggerItem className="rounded-3xl p-3 sm:p-4 mb-3 sm:mb-4 relative overflow-hidden border border-white/15 shadow-xl"
-             style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #db2777 50%, #06b6d4 100%)' }}>
+        <StaggerItem className="rounded-3xl p-3 sm:p-4 mb-3 sm:mb-4 relative overflow-hidden border border-[#F0E5D8] shadow-md"
+             style={{ background: 'var(--weekstrip-grad)' }}>
           <div className="relative z-10">
             <div className="flex items-center justify-between gap-3 mb-2">
               <div className="text-white">

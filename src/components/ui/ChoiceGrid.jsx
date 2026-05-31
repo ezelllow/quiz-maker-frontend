@@ -41,8 +41,8 @@ export default function ChoiceGrid({
               className={cn(
                 'inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors',
                 active
-                  ? 'bg-quiz-blue/25 border-quiz-blue text-white'
-                  : 'bg-[#1a1a35] border-quiz-border text-quiz-text hover:border-quiz-blue/60',
+                  ? 'bg-quiz-blue/25 border-quiz-blue text-quiz-orange-deep'
+                  : 'bg-white border-quiz-border text-quiz-text hover:border-quiz-blue/60',
                 inactive && 'opacity-40 cursor-not-allowed',
               )}
             >
@@ -111,10 +111,10 @@ export default function ChoiceGrid({
             className={cn(
               'p-3 rounded-2xl border-2 font-black text-center transition-colors',
               inactive
-                ? 'opacity-40 pointer-events-none border-quiz-border bg-[#1a1a35] text-quiz-muted'
+                ? 'opacity-40 pointer-events-none border-quiz-border bg-white text-quiz-muted'
                 : active
-                  ? 'border-quiz-blue bg-quiz-blue/20 text-white shadow-lg'
-                  : 'border-quiz-border bg-[#1a1a35] text-quiz-text hover:border-quiz-blue/60 hover:bg-white/5',
+                  ? 'border-quiz-blue bg-quiz-blue/20 text-quiz-orange-deep shadow-lg'
+                  : 'border-quiz-border bg-white text-quiz-text hover:border-quiz-blue/60 hover:bg-gray-50',
             )}
           >
             {opt.emoji && <div className="text-2xl">{opt.emoji}</div>}

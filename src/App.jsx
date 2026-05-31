@@ -17,6 +17,7 @@ const Dashboard       = lazy(() => import('./components/Dashboard'))
 const SavedQuizzes    = lazy(() => import('./components/SavedQuizzes'))
 const History         = lazy(() => import('./components/History'))
 const Settings        = lazy(() => import('./components/Settings'))
+const SettingsPage    = lazy(() => import('./components/SettingsPage'))
 const Placement       = lazy(() => import('./components/Placement'))
 const DailyChallenge  = lazy(() => import('./components/DailyChallenge'))
 const HomePage        = lazy(() => import('./components/HomePage'))
@@ -234,6 +235,9 @@ function App() {
         return <SavedQuizzes authToken={localStorage.getItem('auth_token')} onRetake={handleRetakeQuiz} />
       case 'history':
         return <History authToken={localStorage.getItem('auth_token')} />
+      case 'preferences':
+        return <SettingsPage user={user} onUserUpdate={setUser}
+                             onLogout={handleLogout} onNavigate={setCurrentPage} />
       case 'settings':
         return <Settings onLogout={handleLogout} user={user} onUserUpdate={setUser} rank={primaryRank}
                          level={primaryLevel} gems={gems} dailyGoal={dailyGoal}

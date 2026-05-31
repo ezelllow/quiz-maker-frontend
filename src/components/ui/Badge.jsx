@@ -19,7 +19,7 @@ const TONES = {
   cyan:   'bg-quiz-cyan/15   border-quiz-cyan/40   text-quiz-cyan',
   orange: 'bg-quiz-orange/15 border-quiz-orange/40 text-quiz-orange',
   yellow: 'bg-quiz-yellow/15 border-quiz-yellow/40 text-quiz-yellow',
-  muted:  'bg-white/5        border-quiz-border    text-quiz-muted',
+  muted:  'bg-gray-50        border-quiz-border    text-quiz-muted',
 }
 
 const SIZES = {

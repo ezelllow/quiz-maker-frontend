@@ -7,90 +7,116 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Nunito', 'system-ui', 'sans-serif'],
+        // Body — Nunito (kept). Display heads use Baloo 2 to match the
+        // reference design's rounded, friendly title treatment.
+        sans:  ['Nunito', 'system-ui', 'sans-serif'],
+        head:  ['"Baloo 2"', 'Nunito', 'system-ui', 'sans-serif'],
       },
       fontSize: {
-        // Eyebrow label — replaces the
-        //   text-[10px] font-black uppercase tracking-widest text-quiz-muted
-        // chain that appears across 8 files.
-        eyebrow: ['10px', { lineHeight: '1', letterSpacing: '0.12em', fontWeight: '900' }],
+        eyebrow: ['12px', { lineHeight: '1', letterSpacing: '0.12em', fontWeight: '700' }],
         micro:   ['11px', { lineHeight: '1.3' }],
         mini:    ['12px', { lineHeight: '1.4' }],
       },
       colors: {
-        // QuizQuest palette — referenced as bg-quiz-green, text-quiz-cyan, etc.
+        // ─────────────────────────────────────────────────────────────
+        // HabitGo reference palette — warm cream + punchy orange brand
+        // Primary brand: #FF6A1A (redder/warmer than the previous #F97316)
+        // Background:    #FBF4EC (warm cream)
+        // Card surface:  #FFFFFF (pure white — diagrams blend inside)
+        // Body ink:      #2B2521 (warm near-black)
+        // Borders:       #F0E5D8 (very soft warm tan)
+        // ─────────────────────────────────────────────────────────────
         quiz: {
-          green:        '#4ade80',
-          'green-dark': '#22c55e',
-          'green-shadow':'#16a34a',
-          blue:         '#38bdf8',
-          'blue-dark':  '#0ea5e9',
-          red:          '#fb7185',
-          'red-dark':   '#f43f5e',
-          yellow:       '#fbbf24',
-          purple:       '#c084fc',
-          orange:       '#fb923c',
-          pink:         '#f472b6',
-          cyan:         '#22d3ee',
-          magenta:      '#e879f9',
-          lime:         '#a3e635',
-          bg:           '#0a0a1f',
-          'bg-2':       '#14142b',
-          text:         '#e9e9ff',
-          muted:        '#9d9dbf',
+          // Brand orange family — punchier red-orange than previous
+          orange:        '#FF6A1A',
+          'orange-dark': '#E8530A',
+          'orange-deep': '#C7440A',
+          'orange-soft': '#FFE7D3',
+          'orange-bright':'#FF7A2E',
+          amber:         '#FFB020',
+          peach:         '#FFC59B',
+
+          // Polychrome accents (from reference) — used for rarity badges,
+          // avatar rings, gem chip, success/info distinction
+          gem:           '#34B6F0',   // cyan — avatar ring + crystals
+          'gem-deep':    '#1E93D6',
+          violet:        '#A855F7',   // epic rarity
+          rare:          '#3B9EFF',   // rare rarity
+          legend:        '#F4B100',   // legendary rarity
+          common:        '#9AA3AD',   // common rarity
+
+          // Legacy aliases (mapped to brand orange so existing class
+          // names keep working without refactoring every component)
+          green:         '#2FBF71',
+          'green-dark':  '#1FA85E',
+          'green-shadow':'#168B4A',
+          blue:          '#FF6A1A',
+          'blue-dark':   '#E8530A',
+          red:           '#DC2626',
+          'red-dark':    '#991B1B',
+          yellow:        '#FFB020',
+          purple:        '#C7440A',
+          pink:          '#FF5C8A',
+          cyan:          '#34B6F0',
+          magenta:       '#C7440A',
+          lime:          '#FFB020',
+
+          // Surfaces — cream backdrop, white cards
+          bg:            '#FBF4EC',
+          'bg-2':        '#FFF8F0',
+          card:          '#FFFFFF',
+          text:          '#2B2521',
+          muted:         '#6E645B',
+          'muted-soft':  '#A89C90',
+          line:          '#F0E5D8',
+          'line-soft':   '#F6EEE3',
         },
 
-        // ── Semantic aliases (Phase 1) ───────────────────────────────
-        // Naming notes:
-        //   - `surface` instead of `bg` to avoid `bg-bg-card` reading awkwardly
-        //   - `line`    instead of `border` to avoid `border-border-bright`
-        //   - everything maps to the literal `quiz.*` palette above so the
-        //     two systems stay in sync.
+        // ── Semantic aliases — remapped to reference neutrals ───────
         surface: {
-          DEFAULT: '#0a0a1f',
-          soft:    '#14142b',
-          card:    '#1a1a35',
-          glass:   'rgba(30,30,60,0.65)',
-          glassStrong: 'rgba(30,30,60,0.85)',
+          DEFAULT: '#FFFFFF',
+          soft:    '#FFF8F0',
+          card:    '#FFFFFF',
+          glass:   'rgba(255,255,255,0.90)',
+          glassStrong: 'rgba(255,255,255,0.96)',
         },
         line: {
-          DEFAULT: 'rgba(140,140,220,0.25)',
-          bright:  'rgba(180,180,255,0.45)',
-          soft:    'rgba(255,255,255,0.06)',
+          DEFAULT: '#F0E5D8',
+          bright:  '#E0D2C0',
+          soft:    '#F6EEE3',
         },
         ink: {
-          DEFAULT: '#e9e9ff',
-          muted:   '#9d9dbf',
-          soft:    '#7c7ca0',
-          onAccent:'#0B1020',
+          DEFAULT: '#2B2521',
+          muted:   '#6E645B',
+          soft:    '#A89C90',
+          onAccent:'#FFFFFF',
         },
         accent: {
-          DEFAULT: '#38bdf8',
-          hover:   '#7dd3fc',
-          active:  '#0ea5e9',
+          DEFAULT: '#FF6A1A',
+          hover:   '#FF7A2E',
+          active:  '#E8530A',
         },
-        ok:   { DEFAULT: '#4ade80', soft: 'rgba(74,222,128,0.18)' },
-        warn: { DEFAULT: '#fbbf24', soft: 'rgba(251,191,36,0.18)' },
-        bad:  { DEFAULT: '#fb7185', soft: 'rgba(251,113,133,0.18)' },
+        ok:   { DEFAULT: '#2FBF71', soft: 'rgba(47,191,113,0.10)' },
+        warn: { DEFAULT: '#FFB020', soft: 'rgba(255,176,32,0.16)' },
+        bad:  { DEFAULT: '#DC2626', soft: 'rgba(220,38,38,0.10)' },
       },
       borderRadius: {
         xs:   '6px',
-        sm:   '10px',
-        md:   '14px',
-        lg:   '20px',
-        xl:   '28px',
+        sm:   '12px',
+        md:   '18px',
+        lg:   '24px',
+        xl:   '30px',
         pill: '999px',
       },
       boxShadow: {
-        // Aligned with the --shadow-* CSS tokens in src/index.css.
-        xs:   '0 1px 2px rgba(0, 0, 0, 0.30)',
-        sm:   '0 4px 14px rgba(0, 0, 0, 0.30)',
-        md:   '0 12px 32px rgba(0, 0, 0, 0.36)',
-        lg:   '0 24px 60px rgba(0, 0, 0, 0.50)',
-        glow: '0 0 24px rgba(56, 189, 248, 0.45), 0 0 60px rgba(56, 189, 248, 0.15)',
+        // Warm brown shadows from the reference — rgba(120,80,40,...)
+        xs:   '0 2px 6px rgba(120,80,40,0.05)',
+        sm:   '0 4px 12px rgba(120,80,40,0.08)',
+        md:   '0 8px 22px rgba(120,80,40,0.10), 0 2px 6px rgba(120,80,40,0.05)',
+        lg:   '0 18px 44px rgba(120,80,40,0.16), 0 4px 12px rgba(120,80,40,0.07)',
+        glow: '0 12px 26px rgba(255,106,26,0.35)',
       },
       transitionTimingFunction: {
-        // Mirrors --ease-out in index.css — the signature curve used across motion.
         out: 'cubic-bezier(0.22, 1, 0.36, 1)',
       },
     },

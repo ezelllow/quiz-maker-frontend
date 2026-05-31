@@ -101,8 +101,8 @@ export default function LeaderboardPage({ user, authToken, progression }) {
         disabled={loading}
         title="Refresh"
         className="shrink-0 px-3 py-2 rounded-full text-xs font-black
-                   bg-white/5 border border-quiz-border
-                   hover:bg-white/10 disabled:opacity-50 transition-colors"
+                   bg-gray-50 border border-quiz-border
+                   hover:bg-gray-100 disabled:opacity-50 transition-colors"
       >
         {loading ? '…' : '🔄'}
       </button>
@@ -121,7 +121,7 @@ export default function LeaderboardPage({ user, authToken, progression }) {
             onClick={() => setPeriod(t.id)}
             className={[
               'relative py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-colors',
-              active ? 'text-white' : 'text-quiz-muted hover:text-white',
+              active ? 'text-white' : 'text-quiz-muted hover:text-quiz-text',
             ].join(' ')}
           >
             {active && (
@@ -188,7 +188,7 @@ export default function LeaderboardPage({ user, authToken, progression }) {
               <div className={'mb-1 ' + (rank === 1 ? 'animate-bounce' : '')}>
                 <AvatarRow p={p} size="lg" />
               </div>
-              <div className="text-xs font-black truncate w-full text-center text-white">
+              <div className="text-xs font-black truncate w-full text-center text-quiz-text">
                 {p.name}{p.is_me ? ' (You)' : ''}
               </div>
               <div className="text-[10px] font-bold text-quiz-muted">

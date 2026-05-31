@@ -11,7 +11,7 @@ import { ease, dur } from '../../motion'
  *   animated: when true, width tweens to its target on mount + on prop change
  *   shimmer:  when true, overlays a sweeping highlight (use on hero bars)
  *
- * Track: bg-white/5 keeps the empty portion subtle (matches the rest of the
+ * Track: bg-gray-50 keeps the empty portion subtle (matches the rest of the
  * app's bars). A visible outer border (border-quiz-border-bright) draws a
  * clear pill outline so the bar's start + end are obvious even when the
  * fill is small.
@@ -39,7 +39,7 @@ export default function ProgressBar({
   return (
     <div
       className={cn(
-        'w-full rounded-full bg-white/5 overflow-hidden border border-quiz-border-bright',
+        'w-full rounded-full bg-gray-50 overflow-hidden border border-quiz-border-bright',
         HEIGHTS[height] || HEIGHTS.md,
         trackClassName,
         className,

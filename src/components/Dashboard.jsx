@@ -171,7 +171,7 @@ function BigAccuracy({ accuracy, delta, correct, total }) {
         )}
       </div>
       <div className="text-xs text-quiz-muted font-bold mt-2">{correct} / {total} questions correct</div>
-      <div className="h-2.5 rounded-full bg-white/5 overflow-hidden mt-3">
+      <div className="h-2.5 rounded-full bg-gray-50 overflow-hidden mt-3">
         <div className={'h-full ' + accBar(accuracy)} style={{ width: `${accuracy}%` }} />
       </div>
     </Card>
@@ -197,7 +197,7 @@ function AccuracyBar({ name, accuracy, correct, total }) {
           <span className="text-quiz-muted font-bold ml-2">{correct}/{total}</span>
         </span>
       </div>
-      <div className="h-2.5 rounded-full bg-white/5 overflow-hidden">
+      <div className="h-2.5 rounded-full bg-gray-50 overflow-hidden">
         <div className={'h-full ' + accBar(accuracy) + ' transition-all'} style={{ width: `${accuracy}%` }} />
       </div>
     </div>
@@ -243,7 +243,7 @@ function WeakTopicCard({ rank, topic }) {
 function Metric({ label, value, tone }) {
   const c = tone === 'up' ? 'text-quiz-green' : tone === 'down' ? 'text-quiz-red' : 'text-quiz-text'
   return (
-    <div className="bg-white/5 rounded-xl border border-quiz-border px-2 py-1.5">
+    <div className="bg-gray-50 rounded-xl border border-quiz-border px-2 py-1.5">
       <div className="text-[9px] font-black uppercase tracking-widest text-quiz-muted">{label}</div>
       <div className={'text-sm font-black mt-0.5 ' + c}>{value}</div>
     </div>
@@ -256,7 +256,7 @@ function ImprovementCard({ t }) {
     <div className={'rounded-2xl border p-3 ' +
       (up ? 'bg-quiz-green/10 border-quiz-green/30'
           : down ? 'bg-quiz-red/10 border-quiz-red/30'
-                 : 'bg-white/5 border-quiz-border')}>
+                 : 'bg-gray-50 border-quiz-border')}>
       <div className="font-black truncate">{t.name}</div>
       <div className={'text-lg font-black mt-0.5 ' +
         (up ? 'text-quiz-green' : down ? 'text-quiz-red' : 'text-quiz-muted')}>

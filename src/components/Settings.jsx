@@ -35,6 +35,7 @@ export default function Settings({
 
   const [streak, setStreak] = useState(null)
   const [stats, setStats] = useState(null)
+
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/streak`, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => (r.ok ? r.json() : null)).then(setStreak).catch(() => {})
@@ -87,11 +88,11 @@ export default function Settings({
                   initials={initials}
                   size="xl"
                   equipped={stored.equipped}
-                  className="ring-4 ring-[#0a0a1f] shadow-2xl"
+                  className="ring-4 ring-white shadow-2xl"
                 />
               </div>
 
-              <div className="mt-2 text-xl font-black text-center">{name || 'Student'}</div>
+              <div className="mt-10 text-xl font-black text-center">{name || 'Student'}</div>
 
               {rank && (
                 <motion.div

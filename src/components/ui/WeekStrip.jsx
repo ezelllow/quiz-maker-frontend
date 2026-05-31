@@ -11,12 +11,18 @@ import { ease, dur } from '../../motion'
  *   loading:     when true, renders placeholder cells
  *   showLegend:  default true — shows the "🔥 done · ❄️ freeze · ○ upcoming · ✖ missed" row
  */
+// WeekStrip chips always sit INSIDE a colored gradient card (orange in
+// light theme, purple→pink→cyan in dark theme). They must keep these
+// "for-gradient" colors in BOTH themes — so we use arbitrary-value
+// Tailwind classes (bg-[#ffffff]) instead of `bg-white`. That escapes
+// the global dark-mode `.bg-white → navy` override, which otherwise
+// turns completed-day chips invisible against the rainbow.
 const STYLES = {
-  completed:   'bg-white text-purple-700 border-white shadow-md',
+  completed:   'bg-[#ffffff] text-purple-700 border-[#ffffff] shadow-md',
   freeze_used: 'bg-cyan-200 text-cyan-900 border-cyan-300',
-  today:       'bg-white/30 text-white border-white border-dashed scale-105',
+  today:       'bg-[rgba(255,255,255,0.30)] text-white border-[#ffffff] border-dashed scale-105',
   missed:      'bg-red-500/40 text-white border-red-400/60',
-  upcoming:    'bg-white/10 text-white/70 border-white/15',
+  upcoming:    'bg-[rgba(255,255,255,0.10)] text-white/70 border-[rgba(255,255,255,0.15)]',
 }
 const ICONS = {
   completed:   '🔥',
@@ -32,7 +38,7 @@ export default function WeekStrip({ days, loading = false, showLegend = true, cl
       <div className="grid grid-cols-7 gap-1.5">
         {loading || !days
           ? [0, 1, 2, 3, 4, 5, 6].map((d) => (
-              <div key={d} className="aspect-square rounded-xl bg-white/10" />
+              <div key={d} className="aspect-square rounded-xl bg-gray-100" />
             ))
           : days.map((day, i) => (
               <WeekCell key={day.date || i} day={day} delay={i * 0.04} />

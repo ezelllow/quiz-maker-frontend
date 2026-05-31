@@ -74,7 +74,7 @@ const SIZE = {
 }
 
 const FRAME_STYLE = {
-  default: () => ({ boxShadow: '0 0 0 2px rgba(180,180,255,0.45)' }),
+  default: () => ({ boxShadow: 'var(--avatar-ring)' }),
   gold:    () => ({ boxShadow: '0 0 0 3px #fbbf24, 0 0 18px rgba(251,191,36,0.6), 0 0 32px rgba(251,191,36,0.3)' }),
   rainbow: () => ({
     background: 'conic-gradient(from 0deg, #fb7185, #fbbf24, #4ade80, #22d3ee, #38bdf8, #c084fc, #fb7185)',

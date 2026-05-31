@@ -5,7 +5,7 @@ import { ease, dur } from '../../motion'
 
 /**
  * Button3d — the QuizQuest signature "3D" button.
- *   Variants:     green | blue | red | yellow | purple | white | orange | disabled
+ *   Variants:     green | blue | red | yellow | purple | white | orange | gem | disabled
  *   Sizes:        sm | md | lg
  *   Loading:      swap children for a spinner; disable interaction
  *   loadingLabel: custom text shown while loading (defaults to "Loading…")
@@ -22,6 +22,7 @@ const VARIANT_CLASS = {
   purple:   'btn-3d btn-purple',
   white:    'btn-3d btn-white',
   orange:   'btn-3d btn-orange',
+  gem:      'btn-3d btn-gem',
   disabled: 'btn-3d btn-disabled',
 }
 

@@ -65,10 +65,10 @@ export default function SavedQuizzes({ authToken, onRetake }) {
             <div className="flex-1 min-w-0">
               <div className="font-black text-lg mb-1.5 truncate">{q.name || `Quiz #${q.id}`}</div>
               <div className="flex flex-wrap gap-2 text-xs font-bold text-quiz-muted">
-                {q.subtopic    && <span className="px-2.5 py-1 rounded-full bg-white/5 border border-quiz-border">📚 {q.subtopic}</span>}
-                {q.difficulty  && <span className="px-2.5 py-1 rounded-full bg-white/5 border border-quiz-border">⭐ {q.difficulty}</span>}
-                <span className="px-2.5 py-1 rounded-full bg-white/5 border border-quiz-border">❓ {q.total_questions} questions</span>
-                <span className="px-2.5 py-1 rounded-full bg-white/5 border border-quiz-border">
+                {q.subtopic    && <span className="px-2.5 py-1 rounded-full bg-gray-50 border border-quiz-border">📚 {q.subtopic}</span>}
+                {q.difficulty  && <span className="px-2.5 py-1 rounded-full bg-gray-50 border border-quiz-border">⭐ {q.difficulty}</span>}
+                <span className="px-2.5 py-1 rounded-full bg-gray-50 border border-quiz-border">❓ {q.total_questions} questions</span>
+                <span className="px-2.5 py-1 rounded-full bg-gray-50 border border-quiz-border">
                   🎯 {q.attempt_count || 1} attempt{(q.attempt_count || 1) === 1 ? '' : 's'}
                 </span>
               </div>

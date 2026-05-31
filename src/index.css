@@ -1,5 +1,6 @@
 /* Nunito font (QuizQuest design language) — @import must come first */
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap');
 
 /* Tailwind base/utilities/components — our custom CSS layers on top */
 @tailwind base;
@@ -12,94 +13,102 @@
    screen has moved to the new tokens).
    ============================================================ */
 :root {
-  /* -------- NEW: QuizQuest palette -------- */
-  --green:         #4ade80;
-  --green-dark:    #22c55e;
-  --green-shadow:  #16a34a;
-  --blue:          #38bdf8;
-  --blue-dark:     #0ea5e9;
-  --red:           #fb7185;
-  --red-dark:      #f43f5e;
-  --yellow:        #fbbf24;
-  --purple:        #c084fc;
-  --orange:        #fb923c;
-  --pink:          #f472b6;
-  --cyan:          #22d3ee;
-  --magenta:       #e879f9;
-  --lime:          #a3e635;
-  --quiz-bg:       #0a0a1f;
-  --quiz-bg-2:     #14142b;
-  --quiz-card:     rgba(30, 30, 60, 0.65);
-  --quiz-card-solid: #1a1a35;
-  --quiz-border:   rgba(140, 140, 220, 0.25);
-  --quiz-border-bright: rgba(180, 180, 255, 0.45);
-  --quiz-text:     #e9e9ff;
-  --quiz-muted:    #9d9dbf;
+  /* -------- HabitGo reference palette (cream + orange) -------- */
+  --green:         #2FBF71;
+  --green-dark:    #1FA85E;
+  --green-shadow:  #168B4A;
+  --blue:          #FF6A1A;
+  --blue-dark:     #E8530A;
+  --red:           #DC2626;
+  --red-dark:      #991B1B;
+  --yellow:        #FFB020;
+  --purple:        #C7440A;
+  --orange:        #FF6A1A;
+  --orange-bright: #FF7A2E;
+  --orange-deep:   #E8530A;
+  --orange-tint:   #FFE7D3;
+  --orange-tint-2: #FFF1E6;
+  --pink:          #FF5C8A;
+  --cyan:          #34B6F0;
+  --gem:           #34B6F0;
+  --magenta:       #C7440A;
+  --lime:          #FFB020;
+  --quiz-bg:       #FBF4EC;
+  --quiz-bg-2:     #FFF8F0;
+  --quiz-card:     rgba(255, 255, 255, 0.90);
+  --quiz-card-solid: #FFFFFF;
+  --quiz-border:   #F0E5D8;
+  --quiz-border-bright: #E0D2C0;
+  --quiz-text:     #2B2521;
+  --quiz-muted:    #6E645B;
 
-  /* -------- LEGACY: dark-glass tokens (still used by un-migrated screens) -------- */
-  --bg:           #0a0a1f;          /* aligned to new bg so screens blend */
-  --bg-soft:      #14142b;
-  --bg-card:      #1a1a35;
-  --bg-elevated:  #1E2A40;
+  /* -------- Legacy dark-glass tokens — REMAPPED to reference -------- */
+  --bg:           #FBF4EC;
+  --bg-soft:      #FFF8F0;
+  --bg-card:      #FFFFFF;
+  --bg-elevated:  #FFFFFF;
 
-  --glass-bg:     rgba(30, 30, 60, 0.65);
-  --glass-bg-strong: rgba(30, 30, 60, 0.85);
-  --glass-border: rgba(140, 140, 220, 0.25);
-  --glass-border-strong: rgba(180, 180, 255, 0.45);
+  --glass-bg:     rgba(255, 255, 255, 0.90);
+  --glass-bg-strong: rgba(255, 255, 255, 0.96);
+  --glass-border: #F0E5D8;
+  --glass-border-strong: #E0D2C0;
 
-  --border:       rgba(140, 140, 220, 0.25);
-  --border-strong:rgba(180, 180, 255, 0.45);
-  --divider:      rgba(255, 255, 255, 0.06);
+  --border:       #F0E5D8;
+  --border-strong:#E0D2C0;
+  --divider:      #F6EEE3;
 
-  --text:         #e9e9ff;
-  --text-muted:   #9d9dbf;
-  --text-soft:    #7c7ca0;
-  --text-on-accent:#0B1020;
+  --text:         #2B2521;
+  --text-muted:   #6E645B;
+  --text-soft:    #A89C90;
+  --text-on-accent:#FFFFFF;
 
-  --accent:       #38bdf8;
-  --accent-hover: #7dd3fc;
-  --accent-active:#0ea5e9;
-  --accent-soft:  rgba(56, 189, 248, 0.14);
-  --accent-soft-strong: rgba(56, 189, 248, 0.28);
-  --accent-ring:  rgba(56, 189, 248, 0.40);
-  --accent-glow:  0 0 24px rgba(56, 189, 248, 0.45),
-                  0 0 60px rgba(56, 189, 248, 0.15);
+  --accent:       #FF6A1A;
+  --accent-hover: #FF7A2E;
+  --accent-active:#E8530A;
+  --accent-soft:  rgba(255, 106, 26, 0.10);
+  --accent-soft-strong: rgba(255, 106, 26, 0.22);
+  --accent-ring:  rgba(255, 106, 26, 0.40);
+  --accent-glow:  0 12px 26px rgba(255, 106, 26, 0.35);
 
-  --success:      #4ade80;
-  --success-soft: rgba(74, 222, 128, 0.18);
-  --warning:      #fbbf24;
-  --warning-soft: rgba(251, 191, 36, 0.18);
-  --danger:       #fb7185;
-  --danger-soft:  rgba(251, 113, 133, 0.18);
+  --success:      #2FBF71;
+  --success-soft: rgba(47, 191, 113, 0.10);
+  --warning:      #FFB020;
+  --warning-soft: rgba(255, 176, 32, 0.16);
+  --danger:       #DC2626;
+  --danger-soft:  rgba(220, 38, 38, 0.10);
 
-  --grad-accent: linear-gradient(135deg, #38bdf8 0%, #22d3ee 100%);
-  --grad-accent-deep: linear-gradient(135deg, #38bdf8 0%, #c084fc 100%);
-  --grad-progress: linear-gradient(90deg, #38bdf8 0%, #22d3ee 50%, #c084fc 100%);
+  --grad-accent: linear-gradient(180deg, #FF7A2E 0%, #FF6A1A 100%);
+  --grad-accent-deep: linear-gradient(135deg, #FF7A2E 0%, #C7440A 100%);
+  --grad-progress: linear-gradient(90deg, #FFB020 0%, #FF6A1A 100%);
 
-  --radius-xs:  6px;
-  --radius-sm:  10px;
-  --radius-md:  14px;
-  --radius-lg:  20px;
-  --radius-xl:  28px;
-  --radius-pill: 999px;
+  --radius-xs:  6px;  --radius-sm: 12px;  --radius-md: 18px;
+  --radius-lg:  24px; --radius-xl: 30px;  --radius-pill: 999px;
 
-  --shadow-xs:  0 1px 2px rgba(0, 0, 0, 0.30);
-  --shadow-sm:  0 4px 14px rgba(0, 0, 0, 0.30);
-  --shadow-md:  0 12px 32px rgba(0, 0, 0, 0.36);
-  --shadow-lg:  0 24px 60px rgba(0, 0, 0, 0.50);
-  --shadow-glow: 0 0 0 1px rgba(140, 140, 220, 0.25), 0 18px 48px rgba(0, 0, 0, 0.45);
+  /* Warm brown shadow palette from reference */
+  --shadow-xs:   0 2px 6px rgba(120, 80, 40, 0.05);
+  --shadow-sm:   0 4px 12px rgba(120, 80, 40, 0.08);
+  --shadow-md:   0 8px 22px rgba(120, 80, 40, 0.10), 0 2px 6px rgba(120, 80, 40, 0.05);
+  --shadow-lg:   0 18px 44px rgba(120, 80, 40, 0.16), 0 4px 12px rgba(120, 80, 40, 0.07);
+  --shadow-glow: 0 12px 26px rgba(255, 106, 26, 0.35);
 
   --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
   --space-5: 20px; --space-6: 24px; --space-7: 32px; --space-8: 40px;
   --space-9: 48px; --space-10: 64px;
 
   --font-sans: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-head: '"Baloo 2"', 'Nunito', system-ui, sans-serif;
 
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --transition-fast: 120ms var(--ease);
   --transition: 200ms var(--ease);
   --transition-slow: 320ms var(--ease-out);
+
+  /* Themed accent gradients (consumed by WeekStrip + Logo + Avatar ring).
+     Light values here; dark overrides in body.theme-dark below. */
+  --weekstrip-grad: linear-gradient(135deg, #FF7A2E 0%, #FF6A1A 50%, #E8530A 100%);
+  --logo-grad:      linear-gradient(to right, #FF7A2E, #C7440A);
+  --avatar-ring:    0 0 0 2.5px #34B6F0, 0 2px 6px rgba(120,80,40,0.10);
 }
 
 /* ============================================================
@@ -115,13 +124,12 @@ body {
   font-size: 15px;
   line-height: 1.55;
   color: var(--quiz-text);
-  background: #050514;
-  background:
-    radial-gradient(ellipse at 20% 10%, rgba(139, 92, 246, 0.25) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 80%, rgba(34, 211, 238, 0.18) 0%, transparent 55%),
-    radial-gradient(ellipse at 50% 50%, rgba(232, 121, 249, 0.12) 0%, transparent 60%),
-    linear-gradient(180deg, #0a0a1f 0%, #14142b 50%, #1a0a2e 100%);
-  background-attachment: fixed;
+  /* Solid fallback color only — the actual gradient is painted via the
+     body::before pseudo-element below, which uses position:fixed to
+     genuinely glue itself to the viewport during scroll (background-
+     attachment:fixed on body is unreliable when html/body have height:
+     100% plus a scrollable child). */
+  background: #FBF4EC;
   min-height: 100vh;
   overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
@@ -129,39 +137,20 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Starfield (purely decorative, pointer-events: none) */
-body::before, body::after {
-  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
-}
+/* Fixed full-viewport gradient layer — sits behind all content via
+   z-index:-1 and never scrolls. Works the same in both themes; the
+   actual gradient values are themed via the .theme-dark override
+   further down. */
 body::before {
-  background-image:
-    radial-gradient(1.5px 1.5px at 12% 24%, #fff, transparent),
-    radial-gradient(1px 1px at 33% 78%, #fff, transparent),
-    radial-gradient(2px 2px at 64% 45%, #fff, transparent),
-    radial-gradient(1px 1px at 81% 12%, rgba(255,255,255,0.7), transparent),
-    radial-gradient(1.5px 1.5px at 92% 67%, #fff, transparent),
-    radial-gradient(1px 1px at 47% 88%, rgba(255,255,255,0.8), transparent),
-    radial-gradient(1px 1px at 18% 58%, #fff, transparent),
-    radial-gradient(1.5px 1.5px at 71% 91%, rgba(255,255,255,0.85), transparent);
-  background-size: 600px 600px;
-  opacity: 0.6;
-  animation: stars-drift 240s linear infinite;
-}
-body::after {
-  background-image:
-    radial-gradient(1px 1px at 8% 84%, rgba(255,255,255,0.6), transparent),
-    radial-gradient(1.5px 1.5px at 55% 19%, #fff, transparent),
-    radial-gradient(1px 1px at 27% 36%, rgba(255,255,255,0.7), transparent),
-    radial-gradient(2px 2px at 84% 53%, #fff, transparent),
-    radial-gradient(1px 1px at 96% 30%, rgba(255,255,255,0.7), transparent);
-  background-size: 800px 800px;
-  opacity: 0.45;
-  animation: stars-drift 360s linear infinite reverse;
-}
-
-@keyframes stars-drift {
-  from { background-position: 0 0; }
-  to   { background-position: 600px 600px; }
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 60% at 50% -10%, #FFF1E6, transparent 60%),
+    radial-gradient(80% 50% at 100% 0%, #FFEFE2, transparent 55%),
+    #FBF4EC;
 }
 
 #root {
@@ -174,10 +163,11 @@ body::after {
 
 h1, h2, h3, h4, h5, h6 {
   margin: 0;
-  font-weight: 800;            /* Nunito reads best heavy */
+  font-family: var(--font-head);    /* Baloo 2 — rounded display face */
+  font-weight: 800;
   color: var(--quiz-text);
-  letter-spacing: -0.012em;
-  line-height: 1.2;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
 }
 h1 { font-size: clamp(1.85rem, 1.4rem + 1.4vw, 2.4rem); letter-spacing: -0.025em; }
 h2 { font-size: clamp(1.4rem, 1.15rem + 0.6vw, 1.65rem); }
@@ -203,12 +193,12 @@ input, select, textarea {
   font-family: inherit;
   font-size: inherit;
   color: var(--quiz-text);
-  color-scheme: dark;
+  color-scheme: light;
 }
 input::placeholder, textarea::placeholder { color: var(--quiz-muted); }
 
 ::selection {
-  background: rgba(56, 189, 248, 0.35);
+  background: rgba(255, 106, 26, 0.22);
   color: var(--quiz-text);
 }
 
@@ -216,12 +206,12 @@ input::placeholder, textarea::placeholder { color: var(--quiz-muted); }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(140, 140, 220, 0.25);
+  background: #FFE7D3;
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(180, 180, 255, 0.40); background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: #FF6A1A; background-clip: padding-box; }
 
 /* ============================================================
    Component layer — QuizQuest button + card primitives.
@@ -244,20 +234,30 @@ input::placeholder, textarea::placeholder { color: var(--quiz-muted); }
     transition: transform 80ms var(--ease), filter 120ms var(--ease);
     user-select: none;
   }
-  .btn-3d:active  { transform: translateY(2px); filter: brightness(0.96); }
-  .btn-3d:focus-visible { outline: 3px solid rgba(255,255,255,0.55); outline-offset: 2px; }
+  .btn-3d:active  { transform: translateY(4px); filter: brightness(0.98); }
+  .btn-3d:focus-visible { outline: 3px solid rgba(255,106,26,0.45); outline-offset: 2px; }
 
-  .btn-green   { background: var(--green);   box-shadow: 0 4px 0 0 var(--green-shadow),  0 8px 18px rgba(34, 197, 94, 0.35); }
-  .btn-blue    { background: var(--blue);    box-shadow: 0 4px 0 0 var(--blue-dark),    0 8px 18px rgba(14, 165, 233, 0.35); }
-  .btn-red     { background: var(--red);     box-shadow: 0 4px 0 0 var(--red-dark),     0 8px 18px rgba(244, 63, 94, 0.35); }
-  .btn-yellow  { background: var(--yellow);  color: #4a2a00; text-shadow: none;
-                                              box-shadow: 0 4px 0 0 #d97706,            0 8px 18px rgba(245, 158, 11, 0.35); }
-  .btn-purple  { background: var(--purple);  box-shadow: 0 4px 0 0 #9333ea,            0 8px 18px rgba(168, 85, 247, 0.35); }
-  .btn-orange  { background: var(--orange);  box-shadow: 0 4px 0 0 #ea580c,            0 8px 18px rgba(249, 115, 22, 0.35); }
-  .btn-white   { background: #fff;           color: #1a1a35; text-shadow: none;
-                                              box-shadow: 0 4px 0 0 #cbd5e1,           0 8px 18px rgba(0, 0, 0, 0.25); }
-  .btn-disabled{ background: #3a3a5a;        color: #8888aa; text-shadow: none; cursor: not-allowed;
-                                              box-shadow: 0 4px 0 0 #2a2a45; }
+  .btn-green   { background: linear-gradient(180deg, #46D285, #2FBF71);
+                                              box-shadow: 0 5px 0 #1FA85E, 0 12px 26px rgba(47,191,113,0.30); }
+  .btn-blue    { background: linear-gradient(180deg, #FF7A2E, #FF6A1A);
+                                              box-shadow: 0 5px 0 #C7440A, 0 12px 26px rgba(255,106,26,0.35); }
+  .btn-red     { background: linear-gradient(180deg, #FF5C5C, #DC2626);
+                                              box-shadow: 0 5px 0 #991B1B, 0 12px 26px rgba(220,38,38,0.28); }
+  .btn-yellow  { background: linear-gradient(180deg, #FFC53D, #FFB020); color: #4a2a00; text-shadow: none;
+                                              box-shadow: 0 5px 0 #C7820A, 0 12px 26px rgba(255,176,32,0.32); }
+  .btn-purple  { background: linear-gradient(180deg, #FF7A2E, #C7440A);
+                                              box-shadow: 0 5px 0 #8A2D05, 0 12px 26px rgba(199,68,10,0.32); }
+  .btn-orange  { background: linear-gradient(180deg, #FF7A2E, #FF6A1A);
+                                              box-shadow: 0 5px 0 #C7440A, 0 12px 26px rgba(255,106,26,0.35); }
+  /* btn-gem — calm cyan "state indicator" button. Use for things like
+     "✓ Equipped" — distinct from primary orange CTAs (which should
+     pop) but still positive and on-brand (matches the avatar ring). */
+  .btn-gem     { background: linear-gradient(180deg, #4FC4F3, #34B6F0);
+                                              box-shadow: 0 5px 0 #1E93D6, 0 12px 26px rgba(52,182,240,0.30); }
+  .btn-white   { background: #FFFFFF;       color: #2B2521; text-shadow: none; border: 1.5px solid #F0E5D8;
+                                              box-shadow: 0 4px 12px rgba(120,80,40,0.08); }
+  .btn-disabled{ background: #E7DDD0;       color: #B0A498; text-shadow: none; cursor: not-allowed;
+                                              box-shadow: 0 4px 0 #D6CABA; }
   .btn-disabled:active { transform: none; filter: none; }
 
   .qq-card {
@@ -271,10 +271,11 @@ input::placeholder, textarea::placeholder { color: var(--quiz-muted); }
   }
   .qq-card-solid {
     background: var(--quiz-card-solid);
-    border: 1px solid var(--quiz-border-bright);
+    border: 1px solid var(--quiz-border);
     border-radius: 1.5rem;
     padding: 1.5rem;
     color: var(--quiz-text);
+    box-shadow: 0 8px 22px rgba(120, 80, 40, 0.10), 0 2px 6px rgba(120, 80, 40, 0.05);
   }
 }
 
@@ -284,7 +285,7 @@ input::placeholder, textarea::placeholder { color: var(--quiz-muted); }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes pop { 0% { transform: scale(0.96); } 60% { transform: scale(1.02); } 100% { transform: scale(1); } }
-@keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.35); } 50% { box-shadow: 0 0 32px 8px rgba(56, 189, 248, 0.25); } }
+@keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.30); } 50% { box-shadow: 0 0 32px 8px rgba(249, 115, 22, 0.20); } }
 
 /* Streak celebration keyframes */
 @keyframes streakBurst {
@@ -294,8 +295,8 @@ input::placeholder, textarea::placeholder { color: var(--quiz-muted); }
   100% { transform: scale(1) rotate(0); opacity: 1; }
 }
 @keyframes streakGlowPulse {
-  0%, 100% { text-shadow: 0 0 24px rgba(251, 146, 60, 0.55), 0 0 60px rgba(244, 63, 94, 0.25); }
-  50%      { text-shadow: 0 0 48px rgba(251, 146, 60, 0.95), 0 0 100px rgba(244, 63, 94, 0.55); }
+  0%, 100% { text-shadow: 0 0 24px rgba(251, 146, 60, 0.55), 0 0 60px rgba(220, 38, 38, 0.20); }
+  50%      { text-shadow: 0 0 48px rgba(251, 146, 60, 0.95), 0 0 100px rgba(220, 38, 38, 0.40); }
 }
 @keyframes floatUpFade {
   0%   { opacity: 0; transform: translateY(20px) scale(0.6); }
@@ -320,3 +321,334 @@ input::placeholder, textarea::placeholder { color: var(--quiz-muted); }
     transition-duration: 1ms !important;
   }
 }
+
+/* ============================================================
+   DARK THEME — the old navy + cosmic gradient look, opt-in via
+   body.theme-dark (driven by Settings → Appearance toggle).
+   Implementation: override the CSS variables (so any component
+   that goes through var(--...) flips automatically) AND override
+   the most common Tailwind utility classes whose colors are
+   baked into the compiled CSS at build time.
+   ============================================================ */
+html.theme-pre-dark { background: #1a1145; }
+
+body.theme-dark {
+  /* ---- Core color tokens (CSS vars) ---- */
+  --quiz-bg:       #0a0a1f;
+  --quiz-bg-2:     #14142b;
+  --quiz-card:     rgba(30, 30, 60, 0.65);
+  --quiz-card-solid: #1a1a35;
+  --quiz-border:   rgba(140, 140, 220, 0.25);
+  --quiz-border-bright: rgba(180, 180, 255, 0.45);
+  --quiz-text:     #e9e9ff;
+  --quiz-muted:    #9d9dbf;
+
+  --bg:           #0a0a1f;
+  --bg-soft:      #14142b;
+  --bg-card:      #1a1a35;
+  --bg-elevated:  #1E2A40;
+
+  --glass-bg:     rgba(30, 30, 60, 0.65);
+  --glass-bg-strong: rgba(30, 30, 60, 0.85);
+  --glass-border: rgba(140, 140, 220, 0.25);
+  --glass-border-strong: rgba(180, 180, 255, 0.45);
+
+  --border:       rgba(140, 140, 220, 0.25);
+  --border-strong:rgba(180, 180, 255, 0.45);
+  --divider:      rgba(255, 255, 255, 0.06);
+
+  --text:         #e9e9ff;
+  --text-muted:   #9d9dbf;
+  --text-soft:    #7c7ca0;
+
+  /* Cooler/darker shadows for the dark theme — warm browns would
+     glow weirdly against navy. */
+  --shadow-xs:   0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-sm:   0 4px 14px rgba(0, 0, 0, 0.30);
+  --shadow-md:   0 12px 32px rgba(0, 0, 0, 0.36);
+  --shadow-lg:   0 24px 60px rgba(0, 0, 0, 0.50);
+
+  /* Body — just a solid navy fallback. The cosmic gradient is
+     painted on body.theme-dark::before below (fixed, full viewport).
+     Override the light-mode ::before there too so the cream layer
+     doesn't bleed through. */
+  background: #1a1145;
+  color: var(--quiz-text);
+  color-scheme: dark;
+}
+
+/* Dark-theme cosmic backdrop — overrides the light ::before. Stays
+   anchored to viewport during scroll because of position:fixed, so
+   the gradient pattern is consistent from top to bottom of any page. */
+body.theme-dark::before {
+  /* Vibrant cosmic backdrop — brighter purple-violet base so the
+     canvas reads as a lit deep-space scene (not flat black) plus
+     three larger, higher-alpha radial accents for clearly visible
+     glow at top-left, bottom-right, and center. Anchored via the
+     parent pseudo-element's position:fixed so the pattern stays
+     consistent at every scroll position. */
+  background:
+    radial-gradient(ellipse 70% 60% at 18% 8%, rgba(139, 92, 246, 0.42) 0%, transparent 65%),
+    radial-gradient(ellipse 65% 55% at 85% 90%, rgba(34, 211, 238, 0.28) 0%, transparent 65%),
+    radial-gradient(ellipse 80% 70% at 50% 50%, rgba(232, 121, 249, 0.18) 0%, transparent 70%),
+    linear-gradient(180deg, #1a1145 0%, #1f1850 50%, #251960 100%);
+}
+
+/* Starfield — two layered pinpoint-dot patterns drifting in opposite
+   directions for a subtle parallax effect. Tiled (background-size)
+   so the dot pattern repeats across the viewport. Only renders in
+   dark mode; light mode has no ::after. Sits ABOVE the cosmic
+   gradient (z-index -1 on ::before, z-index 0 here) but BELOW all
+   actual content (which lives inside #root with z-index 1). */
+body.theme-dark::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 24%, #fff, transparent),
+    radial-gradient(1px 1px at 33% 78%, #fff, transparent),
+    radial-gradient(2px 2px at 64% 45%, #fff, transparent),
+    radial-gradient(1px 1px at 81% 12%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1.5px 1.5px at 92% 67%, #fff, transparent),
+    radial-gradient(1px 1px at 47% 88%, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 18% 58%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 71% 91%, rgba(255,255,255,0.85), transparent);
+  background-size: 600px 600px;
+  background-repeat: repeat;
+  opacity: 0.75;
+  animation: stars-drift 240s linear infinite;
+}
+
+@keyframes stars-drift {
+  from { background-position: 0 0; }
+  to   { background-position: 600px 600px; }
+}
+
+/* ---- Tailwind utility-class overrides for dark mode ----
+   Tailwind compiles classes like `bg-white` and `text-quiz-text`
+   to literal color values at build time, so they don't respond
+   to CSS variable changes. We override the most common ones
+   used across the app so a theme flip actually looks right. */
+
+/* Surfaces */
+body.theme-dark .bg-white                  { background-color: #1a1a35 !important; }
+body.theme-dark .bg-gray-50                { background-color: rgba(255, 255, 255, 0.04) !important; }
+body.theme-dark .bg-gray-100               { background-color: rgba(255, 255, 255, 0.08) !important; }
+body.theme-dark .bg-gray-200               { background-color: rgba(255, 255, 255, 0.10) !important; }
+
+/* Hover-variant overrides — Tailwind compiles `hover:bg-gray-50` to a
+   separate selector (`.hover\:bg-gray-50:hover`) which the plain
+   `.bg-gray-50` override above doesn't catch. Without these the
+   dropdown items and other hover surfaces flash bright near-white on
+   mouse-over in dark mode. */
+body.theme-dark .hover\:bg-gray-50:hover  { background-color: rgba(255, 255, 255, 0.06) !important; }
+body.theme-dark .hover\:bg-gray-100:hover { background-color: rgba(255, 255, 255, 0.10) !important; }
+body.theme-dark .hover\:bg-white:hover    { background-color: rgba(255, 255, 255, 0.08) !important; }
+body.theme-dark .bg-quiz-bg                { background-color: #0a0a1f !important; }
+body.theme-dark .bg-quiz-bg-2              { background-color: #14142b !important; }
+body.theme-dark .bg-quiz-card              { background-color: rgba(30, 30, 60, 0.65) !important; }
+body.theme-dark .bg-quiz-orange-soft       { background-color: rgba(255, 106, 26, 0.15) !important; }
+body.theme-dark .qq-card-solid             {
+  background: #1a1a35 !important;
+  border-color: rgba(180, 180, 255, 0.30) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.30), 0 12px 32px rgba(0, 0, 0, 0.20) !important;
+  color: #e9e9ff !important;
+}
+
+/* Text */
+body.theme-dark .text-quiz-text            { color: #e9e9ff !important; }
+body.theme-dark .text-quiz-muted           { color: #9d9dbf !important; }
+body.theme-dark .text-gray-600             { color: #c4c4e0 !important; }
+body.theme-dark .text-gray-700             { color: #d0d0e8 !important; }
+
+/* Borders */
+body.theme-dark .border-quiz-border        { border-color: rgba(140, 140, 220, 0.25) !important; }
+body.theme-dark .border-quiz-border-bright { border-color: rgba(180, 180, 255, 0.45) !important; }
+body.theme-dark .border-gray-200           { border-color: rgba(255, 255, 255, 0.10) !important; }
+body.theme-dark .border-gray-300           { border-color: rgba(255, 255, 255, 0.15) !important; }
+body.theme-dark .border-\[\#F0E5D8\]    { border-color: rgba(140, 140, 220, 0.25) !important; }
+
+/* Top bar + bottom nav (use literal hexes baked in Layout.jsx) */
+body.theme-dark .bg-\[\#FFF8F0\]        { background-color: rgba(20, 20, 43, 0.85) !important; }
+body.theme-dark .bg-\[\#FFF1E6\]        { background-color: rgba(56, 189, 248, 0.18) !important; }
+
+/* Input controls — keep them readable */
+body.theme-dark input,
+body.theme-dark select,
+body.theme-dark textarea                   { color: #e9e9ff; color-scheme: dark; }
+body.theme-dark input::placeholder,
+body.theme-dark textarea::placeholder      { color: #9d9dbf; }
+
+/* ============================================================
+   DARK THEME — PRE-REBRAND ACCENT RESTORATION
+   Tailwind compiles utility classes like .bg-quiz-orange to a
+   literal hex at build time, so CSS variable changes don't
+   affect them. This block overrides every common class to its
+   pre-rebrand "QuizQuest" hex, so the dark theme is visually
+   identical to the old theme — sky blue brand, lavender purple,
+   rose red, kelly green, cosmic gradients.
+   ============================================================ */
+
+/* ---- Themed accent vars (driven by inline-style usages) ---- */
+body.theme-dark {
+  --weekstrip-grad: linear-gradient(135deg, #7c3aed 0%, #db2777 50%, #06b6d4 100%);
+  --logo-grad:      linear-gradient(to right, #38bdf8, #c084fc);
+  --avatar-ring:    0 0 0 2px rgba(180, 180, 255, 0.45);
+}
+
+/* ---- BLUE family → sky blue (#38bdf8) ---- */
+body.theme-dark .bg-quiz-blue            { background-color: #38bdf8 !important; }
+body.theme-dark .text-quiz-blue          { color: #38bdf8 !important; }
+body.theme-dark .border-quiz-blue        { border-color: #38bdf8 !important; }
+body.theme-dark .bg-quiz-blue\/10       { background-color: rgba(56, 189, 248, 0.10) !important; }
+body.theme-dark .bg-quiz-blue\/15       { background-color: rgba(56, 189, 248, 0.15) !important; }
+body.theme-dark .bg-quiz-blue\/20       { background-color: rgba(56, 189, 248, 0.20) !important; }
+body.theme-dark .bg-quiz-blue\/25       { background-color: rgba(56, 189, 248, 0.25) !important; }
+body.theme-dark .bg-quiz-blue\/30       { background-color: rgba(56, 189, 248, 0.30) !important; }
+body.theme-dark .border-quiz-blue\/40   { border-color: rgba(56, 189, 248, 0.40) !important; }
+body.theme-dark .border-quiz-blue\/50   { border-color: rgba(56, 189, 248, 0.50) !important; }
+body.theme-dark .border-quiz-blue\/60   { border-color: rgba(56, 189, 248, 0.60) !important; }
+body.theme-dark .hover\:border-quiz-blue\/60:hover { border-color: rgba(56, 189, 248, 0.60) !important; }
+body.theme-dark .from-quiz-blue          { --tw-gradient-from: #38bdf8 var(--tw-gradient-from-position) !important; --tw-gradient-to: rgb(56 189 248 / 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+body.theme-dark .to-quiz-blue            { --tw-gradient-to: #38bdf8 var(--tw-gradient-to-position) !important; }
+body.theme-dark .via-quiz-blue           { --tw-gradient-to: rgb(56 189 248 / 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), #38bdf8 var(--tw-gradient-via-position), var(--tw-gradient-to); }
+
+/* ---- ORANGE family → old peach orange (#fb923c) ---- */
+body.theme-dark .bg-quiz-orange          { background-color: #fb923c !important; }
+body.theme-dark .text-quiz-orange        { color: #fb923c !important; }
+body.theme-dark .border-quiz-orange      { border-color: #fb923c !important; }
+body.theme-dark .bg-quiz-orange-soft     { background-color: rgba(251, 146, 60, 0.18) !important; }
+body.theme-dark .text-quiz-orange-deep   { color: #fdba74 !important; }
+body.theme-dark .border-quiz-orange-deep { border-color: #ea580c !important; }
+body.theme-dark .bg-quiz-orange\/10     { background-color: rgba(251, 146, 60, 0.10) !important; }
+body.theme-dark .bg-quiz-orange\/15     { background-color: rgba(251, 146, 60, 0.15) !important; }
+body.theme-dark .bg-quiz-orange\/20     { background-color: rgba(251, 146, 60, 0.20) !important; }
+body.theme-dark .border-quiz-orange\/40 { border-color: rgba(251, 146, 60, 0.40) !important; }
+body.theme-dark .border-quiz-orange\/50 { border-color: rgba(251, 146, 60, 0.50) !important; }
+body.theme-dark .hover\:border-quiz-orange:hover { border-color: #fb923c !important; }
+body.theme-dark .hover\:bg-quiz-orange-soft\/40:hover { background-color: rgba(251, 146, 60, 0.10) !important; }
+
+/* ---- PURPLE family → lavender (#c084fc) ---- */
+body.theme-dark .bg-quiz-purple          { background-color: #c084fc !important; }
+body.theme-dark .text-quiz-purple        { color: #c084fc !important; }
+body.theme-dark .border-quiz-purple      { border-color: #c084fc !important; }
+body.theme-dark .bg-quiz-purple\/8      { background-color: rgba(192, 132, 252, 0.08) !important; }
+body.theme-dark .bg-quiz-purple\/10     { background-color: rgba(192, 132, 252, 0.10) !important; }
+body.theme-dark .bg-quiz-purple\/15     { background-color: rgba(192, 132, 252, 0.15) !important; }
+body.theme-dark .bg-quiz-purple\/20     { background-color: rgba(192, 132, 252, 0.20) !important; }
+body.theme-dark .bg-quiz-purple\/25     { background-color: rgba(192, 132, 252, 0.25) !important; }
+body.theme-dark .border-quiz-purple\/40 { border-color: rgba(192, 132, 252, 0.40) !important; }
+body.theme-dark .border-quiz-purple\/50 { border-color: rgba(192, 132, 252, 0.50) !important; }
+body.theme-dark .from-quiz-purple        { --tw-gradient-from: #c084fc var(--tw-gradient-from-position) !important; }
+body.theme-dark .to-quiz-purple          { --tw-gradient-to: #c084fc var(--tw-gradient-to-position) !important; }
+body.theme-dark .via-quiz-purple         { --tw-gradient-stops: var(--tw-gradient-from), #c084fc var(--tw-gradient-via-position), var(--tw-gradient-to) !important; }
+
+/* ---- GREEN family → kelly green (#4ade80) ---- */
+body.theme-dark .bg-quiz-green           { background-color: #4ade80 !important; }
+body.theme-dark .text-quiz-green         { color: #4ade80 !important; }
+body.theme-dark .border-quiz-green       { border-color: #4ade80 !important; }
+body.theme-dark .bg-quiz-green\/10      { background-color: rgba(74, 222, 128, 0.10) !important; }
+body.theme-dark .bg-quiz-green\/15      { background-color: rgba(74, 222, 128, 0.15) !important; }
+body.theme-dark .bg-quiz-green\/20      { background-color: rgba(74, 222, 128, 0.20) !important; }
+body.theme-dark .border-quiz-green\/40  { border-color: rgba(74, 222, 128, 0.40) !important; }
+body.theme-dark .border-quiz-green\/50  { border-color: rgba(74, 222, 128, 0.50) !important; }
+
+/* ---- RED family → rose red (#fb7185) ---- */
+body.theme-dark .bg-quiz-red             { background-color: #fb7185 !important; }
+body.theme-dark .text-quiz-red           { color: #fb7185 !important; }
+body.theme-dark .border-quiz-red         { border-color: #fb7185 !important; }
+body.theme-dark .bg-quiz-red\/10        { background-color: rgba(251, 113, 133, 0.10) !important; }
+body.theme-dark .bg-quiz-red\/15        { background-color: rgba(251, 113, 133, 0.15) !important; }
+body.theme-dark .bg-quiz-red\/20        { background-color: rgba(251, 113, 133, 0.20) !important; }
+body.theme-dark .border-quiz-red\/40    { border-color: rgba(251, 113, 133, 0.40) !important; }
+body.theme-dark .border-quiz-red\/50    { border-color: rgba(251, 113, 133, 0.50) !important; }
+
+/* ---- CYAN family → bright cyan (#22d3ee) — old value ---- */
+body.theme-dark .bg-quiz-cyan            { background-color: #22d3ee !important; }
+body.theme-dark .text-quiz-cyan          { color: #22d3ee !important; }
+body.theme-dark .border-quiz-cyan        { border-color: #22d3ee !important; }
+body.theme-dark .bg-quiz-cyan\/15       { background-color: rgba(34, 211, 238, 0.15) !important; }
+body.theme-dark .bg-quiz-cyan\/20       { background-color: rgba(34, 211, 238, 0.20) !important; }
+body.theme-dark .border-quiz-cyan\/40   { border-color: rgba(34, 211, 238, 0.40) !important; }
+body.theme-dark .via-quiz-cyan           { --tw-gradient-stops: var(--tw-gradient-from), #22d3ee var(--tw-gradient-via-position), var(--tw-gradient-to) !important; }
+
+/* ---- PINK family → bright pink (#f472b6) ---- */
+body.theme-dark .bg-quiz-pink            { background-color: #f472b6 !important; }
+body.theme-dark .text-quiz-pink          { color: #f472b6 !important; }
+body.theme-dark .to-quiz-pink            { --tw-gradient-to: #f472b6 var(--tw-gradient-to-position) !important; }
+
+/* ---- MAGENTA family → magenta (#e879f9) ---- */
+body.theme-dark .bg-quiz-magenta         { background-color: #e879f9 !important; }
+body.theme-dark .text-quiz-magenta       { color: #e879f9 !important; }
+body.theme-dark .to-quiz-magenta\/5     { --tw-gradient-to: rgba(232, 121, 249, 0.05) var(--tw-gradient-to-position) !important; }
+
+/* ---- YELLOW family — keep amber (#fbbf24) ---- */
+body.theme-dark .bg-quiz-yellow          { background-color: #fbbf24 !important; }
+body.theme-dark .text-quiz-yellow        { color: #fbbf24 !important; }
+
+/* ---- BUTTON SYSTEM — restore old QuizQuest 3D buttons ----
+   Each variant gets its old solid background + dark push shadow +
+   colored glow halo, just like the pre-rebrand stylesheet. */
+body.theme-dark .btn-blue {
+  background: #38bdf8 !important;
+  box-shadow: 0 4px 0 0 #0ea5e9, 0 8px 18px rgba(14, 165, 233, 0.35) !important;
+}
+body.theme-dark .btn-orange {
+  /* Primary CTAs (now using variant=orange) go back to sky blue,
+     since the old theme's primary CTA was always sky blue. */
+  background: #38bdf8 !important;
+  box-shadow: 0 4px 0 0 #0ea5e9, 0 8px 18px rgba(14, 165, 233, 0.35) !important;
+}
+body.theme-dark .btn-purple {
+  background: #c084fc !important;
+  box-shadow: 0 4px 0 0 #9333ea, 0 8px 18px rgba(168, 85, 247, 0.35) !important;
+}
+body.theme-dark .btn-green {
+  background: #4ade80 !important;
+  box-shadow: 0 4px 0 0 #16a34a, 0 8px 18px rgba(34, 197, 94, 0.35) !important;
+}
+body.theme-dark .btn-red {
+  background: #fb7185 !important;
+  box-shadow: 0 4px 0 0 #f43f5e, 0 8px 18px rgba(244, 63, 94, 0.35) !important;
+}
+body.theme-dark .btn-yellow {
+  background: #fbbf24 !important; color: #4a2a00 !important; text-shadow: none !important;
+  box-shadow: 0 4px 0 0 #d97706, 0 8px 18px rgba(245, 158, 11, 0.35) !important;
+}
+body.theme-dark .btn-gem {
+  background: #22d3ee !important;
+  box-shadow: 0 4px 0 0 #0891b2, 0 8px 18px rgba(34, 211, 238, 0.35) !important;
+}
+
+/* Shop buttons — restore pre-rebrand colors in dark mode only.
+   Light mode keeps the calmer cyan/white pair I designed during
+   polish; dark mode flips back to the old lavender/kelly-green
+   pair that pops against the cosmic backdrop. Targeted via the
+   `data-shop-state` attribute on the Button3d so other uses of
+   btn-gem / btn-white across the app are unaffected. */
+body.theme-dark button[data-shop-state="equipped"] {
+  background: #4ade80 !important;
+  color: #fff !important;
+  box-shadow: 0 4px 0 0 #16a34a, 0 8px 18px rgba(34, 197, 94, 0.35) !important;
+}
+body.theme-dark button[data-shop-state="equip"] {
+  background: #c084fc !important;
+  color: #fff !important;
+  box-shadow: 0 4px 0 0 #9333ea, 0 8px 18px rgba(168, 85, 247, 0.35) !important;
+  border: none !important;
+}
+body.theme-dark .btn-white {
+  background: #ffffff !important; color: #1a1a35 !important; border: none !important;
+  box-shadow: 0 4px 0 0 #cbd5e1, 0 8px 18px rgba(0, 0, 0, 0.25) !important;
+}
+body.theme-dark .btn-disabled {
+  background: #3a3a5a !important; color: #8888aa !important;
+  box-shadow: 0 4px 0 0 #2a2a45 !important;
+}
+body.theme-dark .btn-3d:focus-visible { outline-color: rgba(255,255,255,0.55) !important; }
+
+/* ---- Active nav-tab pill — was orange/15, restore to sky-blue/25 ---- */
+body.theme-dark .bg-\[\#FFF1E6\]      { background-color: rgba(56, 189, 248, 0.25) !important; }
+body.theme-dark .text-\[\#E8530A\]    { color: #38bdf8 !important; }

@@ -227,8 +227,7 @@ function SubjectHub({ authToken, subject, onBack, onCreateNew, onRetake }) {
             inviting the tap (Duolingo-style hero CTA). */}
         <StaggerItem>
           <motion.div {...idlePulse} className="mb-5">
-            <Button3d variant="green" size="lg" full onClick={onCreateNew}>
-              🚀 Create new quiz
+            <Button3d variant="orange" size="lg" full onClick={onCreateNew}>🚀 Create new quiz
             </Button3d>
           </motion.div>
         </StaggerItem>

@@ -151,10 +151,10 @@ export default function DailyChallenge({ authToken, subject = 'Physics', onExit 
             Retry with a fresh set as many times as you need.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-2 mb-6 text-xs font-bold text-quiz-muted">
-            <span className="px-3 py-1.5 rounded-full bg-white/5 border border-quiz-border">📚 {subject}</span>
-            <span className="px-3 py-1.5 rounded-full bg-white/5 border border-quiz-border">❓ {questions.length} questions</span>
-            <span className="px-3 py-1.5 rounded-full bg-white/5 border border-quiz-border">🎯 {streakFloor}% to pass</span>
-            {streak && <span className="px-3 py-1.5 rounded-full bg-white/5 border border-quiz-border">🧊 {streak.freezes_available ?? 0} freeze</span>}
+            <span className="px-3 py-1.5 rounded-full bg-gray-50 border border-quiz-border">📚 {subject}</span>
+            <span className="px-3 py-1.5 rounded-full bg-gray-50 border border-quiz-border">❓ {questions.length} questions</span>
+            <span className="px-3 py-1.5 rounded-full bg-gray-50 border border-quiz-border">🎯 {streakFloor}% to pass</span>
+            {streak && <span className="px-3 py-1.5 rounded-full bg-gray-50 border border-quiz-border">🧊 {streak.freezes_available ?? 0} freeze</span>}
           </div>
           <Button3d variant="green" size="lg" full onClick={() => setStep('quiz')}>
             Start today's challenge
@@ -230,8 +230,8 @@ export default function DailyChallenge({ authToken, subject = 'Physics', onExit 
   const optionCls = (selected) => [
     'flex items-center gap-3 w-full text-left px-4 py-3 rounded-2xl border-2 cursor-pointer transition-all',
     selected
-      ? 'bg-quiz-blue/20 border-quiz-blue text-white shadow-lg scale-[1.01]'
-      : 'bg-[#1a1a35] border-quiz-border hover:border-quiz-blue/60 hover:bg-white/5',
+      ? 'bg-quiz-blue/15 border-quiz-blue text-quiz-orange-deep shadow-lg scale-[1.01]'
+      : 'bg-white border-quiz-border hover:border-quiz-blue/60 hover:bg-gray-50',
   ].join(' ')
 
   return (
@@ -243,7 +243,7 @@ export default function DailyChallenge({ authToken, subject = 'Physics', onExit 
           </span>
           <span className="text-sm font-bold text-quiz-muted">Question {idx + 1} of {total}</span>
         </div>
-        <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+        <div className="h-2 rounded-full bg-gray-50 overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-quiz-orange via-quiz-yellow to-quiz-green transition-all duration-300"
             style={{ width: `${((idx + 1) / total) * 100}%` }}
@@ -253,13 +253,13 @@ export default function DailyChallenge({ authToken, subject = 'Physics', onExit 
         <h2 className="!text-xl !font-black leading-snug">{q.question_text}</h2>
 
         {q.setup_image_url && (
-          <div className="rounded-2xl overflow-hidden border border-quiz-border bg-black/30">
+          <div className="rounded-2xl overflow-hidden border border-quiz-border bg-white">
             <img src={q.setup_image_url} alt="Question diagram" className="w-full max-h-80 object-contain"
                  onError={(e) => { e.target.style.display = 'none' }} />
           </div>
         )}
         {q.option_type === 'IMAGE' && q.image_url && q.image_url !== q.setup_image_url && (
-          <div className="rounded-2xl overflow-hidden border border-quiz-border bg-black/30">
+          <div className="rounded-2xl overflow-hidden border border-quiz-border bg-white">
             <img src={q.image_url} alt="Answer options" className="w-full max-h-80 object-contain"
                  onError={(e) => { e.target.style.display = 'none' }} />
           </div>
@@ -270,7 +270,7 @@ export default function DailyChallenge({ authToken, subject = 'Physics', onExit 
             <table className="w-full text-sm">
               {flatHeaders.length > 0 && (
                 <thead>
-                  <tr className="bg-white/5">
+                  <tr className="bg-gray-50">
                     {flatHeaders.map((h, i) => (
                       <th key={i} className="px-3 py-2 text-left font-bold text-quiz-muted">{h}</th>
                     ))}
@@ -285,7 +285,7 @@ export default function DailyChallenge({ authToken, subject = 'Physics', onExit 
                   const selected = answers[idx] === letter
                   return (
                     <tr key={rIdx} onClick={() => setAnswer(letter)}
-                        className={'cursor-pointer transition-colors ' + (selected ? 'bg-quiz-blue/20' : 'hover:bg-white/5')}>
+                        className={'cursor-pointer transition-colors ' + (selected ? 'bg-quiz-blue/20' : 'hover:bg-gray-50')}>
                       {flatHeaders.map((h, cIdx) => (
                         <td key={cIdx} className="px-3 py-2 border-t border-quiz-border">
                           {row && typeof row === 'object' ? (row[h] ?? '') : ''}
@@ -360,7 +360,7 @@ function StreakRing({ value, variant }) {
   const cls = variant === 'win'
     ? 'bg-gradient-to-br from-quiz-orange to-quiz-red text-white border-quiz-yellow/60'
     : variant === 'fail'
-    ? 'bg-white/5 text-quiz-red border-quiz-red/40'
+    ? 'bg-gray-50 text-quiz-red border-quiz-red/40'
     : 'bg-gradient-to-br from-quiz-orange/30 to-quiz-red/30 text-white border-quiz-orange/40'
   return <div className={`${baseCls} ${cls}`}>{value}</div>
 }

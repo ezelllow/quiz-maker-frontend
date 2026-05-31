@@ -139,42 +139,110 @@ function nearestValidDifficulty(currentDk, topics, availability, count) {
 }
 
 
-// QImage — diagnostic wrapper for question/diagram images. When the underlying
-// <img> fails to load (bad URL, 403, CORS, etc.), we surface a visible "failed"
-// placeholder with the attempted URL instead of silently hiding the element.
-// Also console.warns so failures are easy to spot in DevTools.
+// QImage — diagnostic wrapper for question/diagram images. When the
+// underlying <img> fails to load, we surface a visible placeholder
+// that also re-fetches the URL to grab the backend's actual error
+// detail (status code + JSON `detail` field), so the user can see
+// "File not found" vs "Insufficient permissions" without opening
+// DevTools.
 function QImage({ src, alt, className = '' }) {
   const [failed, setFailed] = React.useState(false)
+  const [errInfo, setErrInfo] = React.useState(null) // { status, statusText, detail }
+
+  const onImgError = React.useCallback(async () => {
+    console.warn('[QuizMaker] Image failed to load:', src)
+    setFailed(true)
+    // Re-fetch with fetch() so we can read the response body. <img> tags
+    // don't expose status code or body — only an opaque "error" event.
+    try {
+      const r = await fetch(src)
+      let detail = null
+      try {
+        const j = await r.json()
+        detail = j?.detail || JSON.stringify(j)
+      } catch (_) {
+        try { detail = (await r.text()).slice(0, 240) } catch (_) {}
+      }
+      setErrInfo({ status: r.status, statusText: r.statusText, detail })
+    } catch (e) {
+      setErrInfo({ status: 'network', statusText: 'fetch failed', detail: String(e) })
+    }
+  }, [src])
+
   if (!src) return null
   if (failed) {
+    // Extract just the file ID / filename slug from the URL for at-a-glance scanning
+    const idMatch = src.match(/\/api\/image\/([^?]+)/)
+    const idOrName = idMatch ? idMatch[1] : src
+
+    // Heuristic — most common 404 cause based on status + detail
+    let cause = null
+    if (errInfo?.status === 404) {
+      if (/permission|access/i.test(errInfo.detail || '')) {
+        cause = 'Drive service account lacks permission on this file.'
+      } else if (/not found|404/i.test(errInfo.detail || '')) {
+        cause = 'Drive can\'t find this ID — either it\'s stale (file was deleted / re-uploaded so the ID changed) or the service account can\'t see it (file is outside the QUESTION_FOLDER_ID folder).'
+      } else {
+        cause = 'Backend returned 404 — likely stale Drive ID or permissions issue.'
+      }
+    } else if (errInfo?.status === 401) {
+      cause = 'Auth token expired — log out and back in.'
+    } else if (errInfo?.status === 'network') {
+      cause = 'Could not reach the backend — is the server running?'
+    } else if (errInfo?.status >= 500) {
+      cause = 'Backend error — check the server console for the full traceback.'
+    }
+
     return (
       <div className="rounded-2xl border-2 border-dashed border-quiz-yellow/50 bg-quiz-yellow/5 p-4 text-quiz-yellow">
         <div className="font-black text-sm flex items-center gap-2">
           <span>⚠️</span> Image failed to load
+          {errInfo && (
+            <span className="ml-auto text-[11px] font-bold px-2 py-0.5 rounded-md bg-quiz-yellow/15">
+              HTTP {errInfo.status}
+            </span>
+          )}
         </div>
-        <div className="text-[11px] text-quiz-muted font-bold mt-1.5 break-all leading-snug">
-          <span className="text-quiz-yellow/80">URL:</span> {src}
+
+        <div className="text-[11px] font-bold text-quiz-muted mt-2 break-all leading-snug">
+          <span className="text-quiz-yellow/80">File ID/name:</span> {idOrName}
         </div>
-        <div className="text-[11px] text-quiz-muted font-bold mt-1 leading-snug">
-          The frontend asked the browser to load this URL but it returned an
-          error. Common causes: backend didn't resolve the IMAGE: reference,
-          Google Drive URL is the viewer page (not <code>uc?export=view&amp;id=</code>),
-          or the file isn't shared "Anyone with the link". Check the Network
-          tab in DevTools for the actual HTTP error.
+
+        {errInfo?.detail && (
+          <div className="text-[11px] font-bold text-quiz-red mt-1.5 break-all leading-snug">
+            <span className="text-quiz-yellow/80">Backend says:</span> {errInfo.detail}
+          </div>
+        )}
+
+        {cause && (
+          <div className="text-[11px] font-bold text-quiz-text mt-2 leading-relaxed bg-quiz-yellow/10 rounded-lg px-2 py-1.5">
+            <span className="font-black">Likely cause: </span>{cause}
+          </div>
+        )}
+
+        <details className="mt-2">
+          <summary className="text-[10px] font-bold text-quiz-muted cursor-pointer hover:text-quiz-yellow">
+            How to fix
+          </summary>
+          <div className="text-[11px] text-quiz-muted font-bold mt-1.5 leading-relaxed">
+            <strong>If HTTP 404:</strong> the file is in Drive but the backend can't reach it. Either (1) the file ID stored in the database is stale — re-upload to Drive generates a NEW id; check that the DB has the current ID, or (2) the service account in <code>credentials.json</code> doesn't have read access — share the file (or the parent folder) with the service account's email. The folder being scanned is <code>QUESTION_FOLDER_ID</code> in the backend env.<br/>
+            <strong>Quick test:</strong> open the full URL above in a new tab while logged in. If you see the same backend error there, the 404 is server-side. If you see a different error there, it's a frontend/auth issue.
+          </div>
+        </details>
+
+        <div className="text-[10px] font-bold text-quiz-muted mt-2 break-all leading-snug opacity-60">
+          {src}
         </div>
       </div>
     )
   }
   return (
-    <div className="rounded-2xl overflow-hidden border border-quiz-border bg-black/30">
+    <div className="rounded-2xl overflow-hidden border border-quiz-border bg-white">
       <img
         src={src}
         alt={alt}
         className={'w-full max-h-48 sm:max-h-72 object-contain ' + className}
-        onError={() => {
-          console.warn('[QuizMaker] Image failed to load:', src)
-          setFailed(true)
-        }}
+        onError={onImgError}
       />
     </div>
   )
@@ -450,7 +518,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
   }
 
   const inputCls =
-    'w-full rounded-2xl bg-[#1a1a35] border-2 border-quiz-border px-4 py-3 text-base ' +
+    'w-full rounded-2xl bg-white border-2 border-quiz-border px-4 py-3 text-base ' +
     'text-quiz-text placeholder:text-quiz-muted focus:outline-none focus:border-quiz-blue ' +
     'focus:ring-2 focus:ring-quiz-blue/40 transition-colors disabled:opacity-60'
 
@@ -515,11 +583,11 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
     const selBtn = (active) =>
       'p-3 rounded-2xl border-2 font-black transition-all text-left ' +
       (active
-        ? 'border-quiz-blue bg-quiz-blue/15 text-white shadow-lg scale-[1.02]'
-        : 'border-quiz-border bg-[#1a1a35] text-quiz-text hover:border-quiz-blue/60 hover:bg-white/5')
+        ? 'border-quiz-blue bg-quiz-blue/15 text-quiz-orange-deep shadow-lg scale-[1.02]'
+        : 'border-quiz-border bg-white text-quiz-text hover:border-quiz-blue/60 hover:bg-gray-50')
 
     const nameInputCls =
-      'w-full rounded-2xl bg-[#1a1a35] border-2 border-quiz-border px-4 py-3 text-base ' +
+      'w-full rounded-2xl bg-white border-2 border-quiz-border px-4 py-3 text-base ' +
       'text-quiz-text placeholder:text-quiz-muted focus:outline-none focus:border-quiz-blue ' +
       'focus:ring-2 focus:ring-quiz-blue/40 transition-colors'
 
@@ -586,8 +654,8 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                     className={
                       'p-3 rounded-2xl border-2 font-black transition-all text-center ' +
                       (active
-                        ? 'border-quiz-blue bg-quiz-blue/15 text-white shadow-lg scale-[1.02]'
-                        : 'border-quiz-border bg-[#1a1a35] text-quiz-text hover:border-quiz-blue/60 hover:bg-white/5')
+                        ? 'border-quiz-blue bg-quiz-blue/15 text-quiz-orange-deep shadow-lg scale-[1.02]'
+                        : 'border-quiz-border bg-white text-quiz-text hover:border-quiz-blue/60 hover:bg-gray-50')
                     }
                   >
                     <div className="text-2xl leading-none mb-1">{lvl.emoji}</div>
@@ -631,7 +699,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                     'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border-2 transition-colors text-left ' +
                     (topicCount === 0
                       ? 'border-quiz-blue bg-quiz-blue/15'
-                      : 'border-quiz-border bg-[#1a1a35] hover:border-quiz-blue/60')
+                      : 'border-quiz-border bg-white hover:border-quiz-blue/60')
                   }
                 >
                   <span className={
@@ -668,7 +736,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                           'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border-2 transition-colors text-left ' +
                           (isSelected
                             ? 'border-quiz-blue bg-quiz-blue/15'
-                            : 'border-quiz-border bg-[#1a1a35] hover:border-quiz-blue/60') +
+                            : 'border-quiz-border bg-white hover:border-quiz-blue/60') +
                           (isMaxed ? ' opacity-40 cursor-not-allowed' : '')
                         }
                       >
@@ -726,10 +794,10 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                     className={
                       'p-3 rounded-2xl border-2 font-black transition-all text-center ' +
                       (!enabled
-                        ? 'opacity-[0.35] pointer-events-none border-quiz-border bg-[#1a1a35] text-quiz-muted'
+                        ? 'opacity-[0.35] pointer-events-none border-quiz-border bg-white text-quiz-muted'
                         : active
-                          ? d.ring + ' text-white shadow-lg scale-[1.03]'
-                          : 'border-quiz-border bg-[#1a1a35] text-quiz-text hover:border-quiz-blue/60 hover:bg-white/5')
+                          ? d.ring + ' text-quiz-orange-deep shadow-lg scale-[1.03]'
+                          : 'border-quiz-border bg-white text-quiz-text hover:border-quiz-blue/60 hover:bg-gray-50')
                     }
                   >
                     <div className="text-2xl">{d.emoji}</div>
@@ -759,7 +827,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                   <button
                     type="button"
                     onClick={() => setQuestionCount((n) => Math.max(1, (parseInt(n, 10) || 1) - 1))}
-                    className="w-11 h-11 rounded-2xl bg-[#1a1a35] border-2 border-quiz-border font-black text-xl shrink-0"
+                    className="w-11 h-11 rounded-2xl bg-white border-2 border-quiz-border font-black text-xl shrink-0"
                   >−</button>
                   <input
                     type="number"
@@ -770,13 +838,13 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                       const v = parseInt(e.target.value, 10)
                       setQuestionCount(Number.isFinite(v) ? Math.max(1, Math.min(100, v)) : '')
                     }}
-                    className="flex-1 min-w-0 text-center rounded-2xl bg-[#1a1a35] border-2 border-quiz-border py-3 font-black text-xl
+                    className="flex-1 min-w-0 text-center rounded-2xl bg-white border-2 border-quiz-border py-3 font-black text-xl
                                text-quiz-text focus:outline-none focus:border-quiz-blue focus:ring-2 focus:ring-quiz-blue/40"
                   />
                   <button
                     type="button"
                     onClick={() => setQuestionCount((n) => Math.min(100, (parseInt(n, 10) || 0) + 1))}
-                    className="w-11 h-11 rounded-2xl bg-[#1a1a35] border-2 border-quiz-border font-black text-xl shrink-0"
+                    className="w-11 h-11 rounded-2xl bg-white border-2 border-quiz-border font-black text-xl shrink-0"
                   >+</button>
                 </div>
                 <div className="flex gap-2 mt-2">
@@ -788,8 +856,8 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                       className={
                         'flex-1 py-1.5 rounded-xl text-xs font-black border transition-colors ' +
                         (Number(questionCount) === c
-                          ? 'bg-quiz-blue/25 border-quiz-blue text-white'
-                          : 'bg-white/5 border-quiz-border text-quiz-muted hover:text-white')
+                          ? 'bg-quiz-blue/25 border-quiz-blue text-quiz-orange-deep'
+                          : 'bg-gray-50 border-quiz-border text-quiz-muted hover:text-white')
                       }
                     >{c}</button>
                   ))}
@@ -954,7 +1022,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                     {passedToday ? '✅ ' : ''}{todayCorrect} / {target} correct
                   </div>
                 </div>
-                <div className="h-2 rounded-full bg-white/5 overflow-hidden mb-3">
+                <div className="h-2 rounded-full bg-gray-50 overflow-hidden mb-3">
                   <div
                     className={'h-full transition-all duration-500 ' +
                       (passedToday
@@ -1020,34 +1088,39 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
   const rawHeaders = q.table_headers || []
   const flatHeaders = Array.isArray(rawHeaders[0]) ? rawHeaders[rawHeaders.length - 1] : rawHeaders
 
-  // Option styling — before checking: blue = selected. After checking:
-  // green = the correct option, red = the option the user wrongly picked.
+  // Option styling — reference quiz.jsx blueprint:
+  //   default        → white surface, warm tan border
+  //   picked         → orange-tint surface, brand orange border
+  //   correct        → green-tint surface, brand green border
+  //   wrong-pick     → coral red-tint surface, coral border
+  //   other-on-check → faded white surface
+  // Text stays charcoal so it reads on light surfaces.
   const optionCls = (selected, optKey) => {
-    const base = 'flex items-center gap-2.5 w-full text-left px-3 py-2.5 rounded-xl border-2 transition-all '
+    const base = 'flex items-center gap-2.5 w-full text-left px-3 py-2.5 rounded-xl border-2 transition-all text-quiz-text '
     if (isChecked) {
       if (optKey && optKey === correctKey)
-        return base + 'bg-quiz-green/20 border-quiz-green text-white'
+        return base + 'bg-[rgba(47,191,113,0.12)] border-[#2FBF71]'
       if (selected)
-        return base + 'bg-quiz-red/20 border-quiz-red text-white'
-      return base + 'bg-[#1a1a35] border-quiz-border opacity-60'
+        return base + 'bg-[rgba(255,92,92,0.10)] border-[#FF5C5C]'
+      return base + 'bg-white border-quiz-border opacity-60'
     }
     return base + 'cursor-pointer ' + (selected
-      ? 'bg-quiz-blue/20 border-quiz-blue text-white shadow-lg scale-[1.01]'
-      : 'bg-[#1a1a35] border-quiz-border hover:border-quiz-blue/60 hover:bg-white/5')
+      ? 'bg-quiz-orange-soft border-quiz-orange shadow-md scale-[1.01]'
+      : 'bg-white border-quiz-border hover:border-quiz-orange hover:bg-quiz-orange-soft/40')
   }
 
   return (
     <Screen width="default" className="py-3 sm:py-6">
       <Card variant="solid" className="!p-3 sm:!p-6 space-y-3 sm:space-y-4">
         <div className="flex items-center justify-between gap-3">
-          <span className="px-3 py-1 rounded-full bg-quiz-green/20 border border-quiz-green/40 text-quiz-green text-xs font-bold">
+          <span className="px-3 py-1 rounded-full bg-quiz-orange-soft border border-quiz-orange/50 text-quiz-orange-deep text-xs font-bold">
             Practice · {selectedSubject}
           </span>
           <span className="text-xs sm:text-sm font-bold text-quiz-muted">Q{currentQuestionIndex + 1}/{total}</span>
         </div>
 
-        <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-quiz-green via-quiz-cyan to-quiz-blue transition-all duration-300"
+        <div className="h-1.5 rounded-full bg-gray-50 overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-quiz-amber to-quiz-orange transition-all duration-300"
                style={{ width: `${((currentQuestionIndex + 1) / total) * 100}%` }} />
         </div>
 
@@ -1071,7 +1144,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
           <div className="overflow-x-auto rounded-2xl border border-quiz-border">
             <table className="w-full text-sm">
               {flatHeaders.length > 0 && (
-                <thead><tr className="bg-white/5">
+                <thead><tr className="bg-gray-50">
                   <th className="px-3 py-2 w-12 text-center font-bold text-quiz-muted">#</th>
                   {flatHeaders.map((h, i) => <th key={i} className="px-3 py-2 text-left font-bold text-quiz-muted">{h}</th>)}
                   <th className="px-3 py-2 w-16 text-center font-bold text-quiz-muted">Pick</th>
@@ -1093,7 +1166,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                     else if (selected)           rowCls += 'bg-quiz-red/20'
                     else                         rowCls += 'opacity-60'
                   } else {
-                    rowCls += 'cursor-pointer ' + (selected ? 'bg-quiz-blue/20' : 'hover:bg-white/5')
+                    rowCls += 'cursor-pointer ' + (selected ? 'bg-quiz-blue/20' : 'hover:bg-gray-50')
                   }
                   return (
                     <tr key={rIdx} onClick={() => setAnswer(letter)} className={rowCls}>
@@ -1166,31 +1239,33 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                   <span className={
                     'shrink-0 w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs sm:text-sm border ' +
                     (isCorrectOpt
-                      ? 'bg-quiz-green text-white border-quiz-green'
+                      ? 'bg-[#2FBF71] text-white border-[#2FBF71]'
                       : isWrongPick
-                      ? 'bg-quiz-red text-white border-quiz-red'
+                      ? 'bg-[#FF5C5C] text-white border-[#FF5C5C]'
                       : selected && !isChecked
-                      ? 'bg-quiz-blue text-white border-quiz-blue'
-                      : 'bg-white/5 text-quiz-muted border-quiz-border')
+                      ? 'bg-quiz-orange text-white border-quiz-orange'
+                      : 'bg-quiz-orange-soft/40 text-quiz-muted border-quiz-border')
                   }>
                     {letter}
                   </span>
                   {body && <span className="font-semibold text-sm sm:text-base leading-snug">{body}</span>}
-                  {isCorrectOpt && <span className="ml-auto font-black text-quiz-green">✓</span>}
-                  {isWrongPick && <span className="ml-auto font-black text-quiz-red">✗</span>}
+                  {isCorrectOpt && <span className="ml-auto font-black text-[#2FBF71]">✓</span>}
+                  {isWrongPick && <span className="ml-auto font-black text-[#FF5C5C]">✗</span>}
                 </motion.label>
               )
             })}
           </div>
         )}
 
-        {/* Inline correct/wrong feedback — shown once the question is submitted */}
+        {/* Inline correct/wrong feedback — reference quiz uses green
+            for "Correct! Nice one." and warm orange for "Not quite"
+            (encouraging rather than punishing). */}
         {isChecked && (
           <div className={
             'rounded-2xl border-2 px-3 py-2 text-xs sm:text-sm ' +
             (isCorrect
-              ? 'border-quiz-green/50 bg-quiz-green/15 text-quiz-green'
-              : 'border-quiz-red/50 bg-quiz-red/15 text-quiz-red')
+              ? 'border-[#2FBF71]/50 bg-[rgba(47,191,113,0.10)] text-[#1FA85E]'
+              : 'border-quiz-orange/40 bg-quiz-orange-soft text-quiz-orange-deep')
           }>
             <div className="font-black">
               {isCorrect
@@ -1218,7 +1293,6 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
             {checkedCount}/{total} done
           </span>
           {!isChecked ? (
-            // Must submit the current question before moving on.
             <Button3d
               variant={currentAnswered ? 'blue' : 'disabled'}
               size="md"
@@ -1231,7 +1305,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
             </Button3d>
           ) : isLast ? (
             <Button3d
-              variant="green"
+              variant="orange"
               size="md"
               onClick={handleSubmitQuiz}
               disabled={loading}

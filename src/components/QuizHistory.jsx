@@ -193,8 +193,8 @@ export default function QuizHistory({ authToken, onGoBack, onRetakeQuiz }) {
                   <Line
                     type="monotone"
                     dataKey="score"
-                    stroke="#7c3aed"
-                    dot={{ fill: '#7c3aed' }}
+                    stroke="#FF6A1A"
+                    dot={{ fill: '#FF6A1A' }}
                     name="Score %"
                     strokeWidth={2}
                   />

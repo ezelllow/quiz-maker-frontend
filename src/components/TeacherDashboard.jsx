@@ -53,7 +53,7 @@ export default function TeacherDashboard({ authToken, user, onLogout }) {
   return (
     <div className="min-h-screen flex flex-col">
       {/* ===== Top bar (no student-style nav — teachers don't navigate) ===== */}
-      <header className="sticky top-0 z-30 backdrop-blur-xl bg-[rgba(10,10,31,0.7)] border-b border-quiz-border">
+      <header className="sticky top-0 z-30 backdrop-blur-xl bg-[rgba(255,255,255,0.85)] border-b border-quiz-border">
         <div className="max-w-5xl mx-auto w-full flex items-center justify-between gap-3 px-4 py-2">
           <div className="flex items-center gap-2 font-black text-lg tracking-tight">
             <span className="text-2xl">🎯</span>
@@ -71,7 +71,7 @@ export default function TeacherDashboard({ authToken, user, onLogout }) {
               onClick={() => setRefreshKey((k) => k + 1)}
               title="Refresh"
               className="px-3 py-1.5 rounded-full text-xs font-black border border-quiz-border
-                         hover:bg-white/5 transition-colors"
+                         hover:bg-gray-50 transition-colors"
             >
               ↻
             </button>
@@ -152,7 +152,7 @@ export default function TeacherDashboard({ authToken, user, onLogout }) {
               <div className="text-[10px] font-black uppercase tracking-widest text-quiz-muted">
                 Narrow sections below:
               </div>
-              <div className="flex items-center gap-1 p-1 rounded-full bg-white/5 border border-quiz-border">
+              <div className="flex items-center gap-1 p-1 rounded-full bg-gray-50 border border-quiz-border">
                 {[
                   { k: 'all',      label: 'All' },
                   { k: 'daily',    label: 'Daily' },
@@ -165,7 +165,7 @@ export default function TeacherDashboard({ authToken, user, onLogout }) {
                       'px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-widest transition-colors ' +
                       (quizFilter === k
                         ? 'bg-gradient-to-r from-quiz-blue to-quiz-purple text-white shadow-sm'
-                        : 'text-quiz-muted hover:text-white')
+                        : 'text-quiz-muted hover:text-quiz-text')
                     }
                   >
                     {label}
@@ -312,10 +312,10 @@ function WeakTopicRow({ topic, open, onToggle }) {
       ? Math.round((topic.struggling_count / topic.students_attempted) * 100)
       : 0
   return (
-    <div className="rounded-xl border border-quiz-border bg-white/5">
+    <div className="rounded-xl border border-quiz-border bg-gray-50">
       <button
         onClick={onToggle}
-        className="w-full text-left px-3 py-2 flex items-center gap-3 hover:bg-white/5 transition-colors"
+        className="w-full text-left px-3 py-2 flex items-center gap-3 hover:bg-gray-50 transition-colors"
       >
         <div className="min-w-0 flex-1">
           <div className="font-black text-sm truncate">{topic.topic}</div>
@@ -332,7 +332,7 @@ function WeakTopicRow({ topic, open, onToggle }) {
         <span className="text-quiz-muted text-sm">{open ? '▾' : '▸'}</span>
       </button>
       {open && (
-        <div className="px-3 pb-3 pt-2 border-t border-quiz-border bg-black/15">
+        <div className="px-3 pb-3 pt-2 border-t border-quiz-border bg-gray-50">
           {topic.struggling_students.length === 0 ? (
             <div className="text-[11px] text-quiz-muted font-bold py-1">
               No specific students below 60% — average just dragged the topic down.
@@ -364,7 +364,7 @@ function ConsistencyRow({ s }) {
   const dots = Array.from({ length: 7 }, (_, i) => i < s.days_active_7d)
   const longHint = s.longest_streak > 0 ? `longest · ${s.longest_streak}d` : 'no streak yet'
   return (
-    <div className="rounded-xl border border-quiz-border bg-white/5 px-3 py-2 flex items-center gap-3">
+    <div className="rounded-xl border border-quiz-border bg-gray-50 px-3 py-2 flex items-center gap-3">
       <div className="min-w-0 flex-1">
         <div className="font-black text-sm truncate">{s.name}</div>
         <div className="flex items-center gap-1 mt-1">
@@ -380,7 +380,7 @@ function ConsistencyRow({ s }) {
         </div>
       </div>
       <span className="shrink-0 px-2 py-1 rounded-full text-[11px] font-bold
-                       bg-white/5 border border-quiz-border text-quiz-text">
+                       bg-gray-50 border border-quiz-border text-quiz-text">
         {s.quizzes_7d} {s.quizzes_7d === 1 ? 'quiz' : 'quizzes'}
       </span>
       <span
@@ -409,7 +409,7 @@ function InactiveRow({ s }) {
       ? 'text-quiz-red border-quiz-red/40 bg-quiz-red/10'
       : 'text-quiz-orange border-quiz-orange/40 bg-quiz-orange/10'
   return (
-    <div className="rounded-xl border border-quiz-border bg-white/5 px-3 py-2 flex items-center gap-3">
+    <div className="rounded-xl border border-quiz-border bg-gray-50 px-3 py-2 flex items-center gap-3">
       <div className="min-w-0 flex-1">
         <div className="font-black text-sm truncate">{s.name}</div>
         <div className="text-[11px] text-quiz-muted font-bold mt-0.5 truncate">
