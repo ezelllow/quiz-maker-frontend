@@ -25,6 +25,7 @@ const LeaderboardPage = lazy(() => import('./components/LeaderboardPage'))
 const ShopPage        = lazy(() => import('./components/ShopPage'))
 const PracticePage    = lazy(() => import('./components/PracticePage'))
 const TeacherDashboard = lazy(() => import('./components/TeacherDashboard'))
+const TeacherAttemptReview = lazy(() => import('./components/TeacherAttemptReview'))
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -46,6 +47,14 @@ function App() {
   const [retakeAttempt, setRetakeAttempt] = useState(null)
   // null = not checked yet, true = must take placement, false = already placed
   const [needsPlacement, setNeedsPlacement] = useState(null)
+  // When a teacher clicks 'View as student' in the teacher dashboard, we
+  // render the student tree instead. A small banner inside Layout offers a
+  // way back. State is in-memory only — refresh resets to teacher view.
+  const [viewAsStudent, setViewAsStudent] = useState(false)
+  // When a teacher clicks an attempt in the student drill-in modal, App.jsx
+  // routes to a full-page TeacherAttemptReview instead of expanding inline.
+  // null = dashboard view; integer = render the review for that attempt id.
+  const [reviewingAttemptId, setReviewingAttemptId] = useState(null)
   const [ranks, setRanks] = useState([])
   const [progression, setProgression] = useState(null)  // {xp, level, rank} — StarQuest
   const [gems, setGems] = useState(0)                   // Crystals balance
@@ -237,7 +246,9 @@ function App() {
         return <History authToken={localStorage.getItem('auth_token')} />
       case 'preferences':
         return <SettingsPage user={user} onUserUpdate={setUser}
-                             onLogout={handleLogout} onNavigate={setCurrentPage} />
+                             onLogout={handleLogout} onNavigate={setCurrentPage}
+                             isTeacher={!!user?.is_teacher} viewAsStudent={viewAsStudent}
+                             onBackToTeacher={() => { setViewAsStudent(false); setCurrentPage('home') }} />
       case 'settings':
         return <Settings onLogout={handleLogout} user={user} onUserUpdate={setUser} rank={primaryRank}
                          level={primaryLevel} gems={gems} dailyGoal={dailyGoal}
@@ -275,16 +286,28 @@ function App() {
         tone="red"
       />
       {isAuthenticated ? (
-        user?.is_teacher ? (
+        user?.is_teacher && !viewAsStudent ? (
           // Teachers skip Placement and the student bottom-nav shell — they
           // get the dashboard directly. Read-only; no student-app routes.
-          <Suspense fallback={<PageFallback />}>
-            <TeacherDashboard
-              authToken={localStorage.getItem('auth_token')}
-              user={user}
-              onLogout={handleLogout}
-            />
-          </Suspense>
+          reviewingAttemptId != null ? (
+            <Suspense fallback={<PageFallback />}>
+              <TeacherAttemptReview
+                attemptId={reviewingAttemptId}
+                authToken={localStorage.getItem('auth_token')}
+                onBack={() => setReviewingAttemptId(null)}
+              />
+            </Suspense>
+          ) : (
+            <Suspense fallback={<PageFallback />}>
+              <TeacherDashboard
+                authToken={localStorage.getItem('auth_token')}
+                user={user}
+                onLogout={handleLogout}
+                onViewAsStudent={() => setViewAsStudent(true)}
+                onOpenAttempt={(id) => setReviewingAttemptId(id)}
+              />
+            </Suspense>
+          )
         ) : needsPlacement === true ? (
           <Suspense fallback={<PageFallback />}>
             <Placement

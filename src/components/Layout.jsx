@@ -43,7 +43,13 @@ export default function Layout({
   return (
     <div className="min-h-screen flex flex-col">
       {/* ===== Top app bar ===== */}
-      <header className="sticky top-0 z-30 backdrop-blur-xl bg-[#FFF8F0] border-b border-[#F0E5D8]">
+      <header
+        className="sticky top-0 z-30 backdrop-blur-xl border-b"
+        style={{
+          backgroundColor: 'color-mix(in srgb, var(--quiz-bg-2) 85%, transparent)',
+          borderBottomColor: 'var(--quiz-border)',
+        }}
+      >
         <div className={`${frame} flex items-center justify-between gap-3 px-4 py-2`}>
           <button
             onClick={() => onNavigate('home')}
@@ -153,7 +159,13 @@ export default function Layout({
       </main>
 
       {/* ===== Bottom nav (always visible, mobile-app style) ===== */}
-      <nav className="fixed bottom-0 inset-x-0 z-30 backdrop-blur-xl bg-white border-t border-[#F0E5D8]">
+      <nav
+        className="fixed bottom-0 inset-x-0 z-30 backdrop-blur-xl border-t"
+        style={{
+          backgroundColor: 'color-mix(in srgb, var(--quiz-bg-2) 90%, transparent)',
+          borderTopColor: 'var(--quiz-border)',
+        }}
+      >
         <div className={`${frame} grid grid-cols-5 gap-1 px-2 py-2`}>
           {navItems.map((item) => {
             const active = currentPage === item.id

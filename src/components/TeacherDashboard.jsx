@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Card from './ui/Card'
 import { Stagger, StaggerItem } from './ui/Motion'
+import TeacherStudentDrillIn from './TeacherStudentDrillIn'
 
 // TeacherDashboard — read-only overview rendered when the JWT carries
 // is_teacher = true. Four sections, in order of decision-value:
@@ -16,7 +17,7 @@ import { Stagger, StaggerItem } from './ui/Motion'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
-export default function TeacherDashboard({ authToken, user, onLogout }) {
+export default function TeacherDashboard({ authToken, user, onLogout, onViewAsStudent, onOpenAttempt }) {
   const token = authToken || localStorage.getItem('auth_token')
   const [data, setData]         = useState(null)
   const [err, setErr]           = useState(null)
@@ -26,6 +27,9 @@ export default function TeacherDashboard({ authToken, user, onLogout }) {
   // 'all' | 'daily' | 'practice' — narrows every stat below to one slice of
   // the quiz_attempts table. Re-fetches on change (one round-trip per toggle).
   const [quizFilter, setQuizFilter] = useState('all')
+  // When set, the StudentDrillIn modal opens for that student. Cleared by
+  // the modal's close (Esc, backdrop, or the X button).
+  const [viewingStudentId, setViewingStudentId] = useState(null)
 
   useEffect(() => {
     if (!token) return
@@ -53,7 +57,13 @@ export default function TeacherDashboard({ authToken, user, onLogout }) {
   return (
     <div className="min-h-screen flex flex-col">
       {/* ===== Top bar (no student-style nav — teachers don't navigate) ===== */}
-      <header className="sticky top-0 z-30 backdrop-blur-xl bg-[rgba(255,255,255,0.85)] border-b border-quiz-border">
+      <header
+        className="sticky top-0 z-30 backdrop-blur-xl border-b"
+        style={{
+          backgroundColor: 'color-mix(in srgb, var(--quiz-bg-2) 85%, transparent)',
+          borderBottomColor: 'var(--quiz-border)',
+        }}
+      >
         <div className="max-w-5xl mx-auto w-full flex items-center justify-between gap-3 px-4 py-2">
           <div className="flex items-center gap-2 font-black text-lg tracking-tight">
             <span className="text-2xl">🎯</span>
@@ -71,10 +81,20 @@ export default function TeacherDashboard({ authToken, user, onLogout }) {
               onClick={() => setRefreshKey((k) => k + 1)}
               title="Refresh"
               className="px-3 py-1.5 rounded-full text-xs font-black border border-quiz-border
-                         hover:bg-gray-50 transition-colors"
+                         hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
             >
               ↻
             </button>
+            {onViewAsStudent && (
+              <button
+                onClick={onViewAsStudent}
+                title="See HabitGo through a student's eyes — your teacher view is one tap away"
+                className="px-3 py-1.5 rounded-full text-xs font-black text-quiz-purple
+                           border border-quiz-purple/40 hover:bg-quiz-purple/10 transition-colors"
+              >
+                👁️ View as student
+              </button>
+            )}
             <button
               onClick={onLogout}
               className="px-3 py-1.5 rounded-full text-xs font-black text-quiz-red
@@ -152,7 +172,7 @@ export default function TeacherDashboard({ authToken, user, onLogout }) {
               <div className="text-[10px] font-black uppercase tracking-widest text-quiz-muted">
                 Narrow sections below:
               </div>
-              <div className="flex items-center gap-1 p-1 rounded-full bg-gray-50 border border-quiz-border">
+              <div className="flex items-center gap-1 p-1 rounded-full bg-black/5 border border-quiz-border">
                 {[
                   { k: 'all',      label: 'All' },
                   { k: 'daily',    label: 'Daily' },
@@ -214,7 +234,7 @@ export default function TeacherDashboard({ authToken, user, onLogout }) {
                 ) : (
                   <div className="space-y-1.5 mt-2">
                     {data.inactive_students.map((s) => (
-                      <InactiveRow key={s.id} s={s} />
+                      <InactiveRow key={s.id} s={s} onPick={() => setViewingStudentId(s.id)} />
                     ))}
                   </div>
                 )}
@@ -241,7 +261,7 @@ export default function TeacherDashboard({ authToken, user, onLogout }) {
                 ) : (
                   <div className="space-y-1.5 mt-2">
                     {data.consistency.map((s) => (
-                      <ConsistencyRow key={s.id} s={s} />
+                      <ConsistencyRow key={s.id} s={s} onPick={() => setViewingStudentId(s.id)} />
                     ))}
                   </div>
                 )}
@@ -254,6 +274,21 @@ export default function TeacherDashboard({ authToken, user, onLogout }) {
           </Stagger>
         )}
       </main>
+
+      {/* Drill-in modal — opens when a student row is clicked anywhere above. */}
+      {viewingStudentId != null && (
+        <TeacherStudentDrillIn
+          studentId={viewingStudentId}
+          authToken={token}
+          onClose={() => setViewingStudentId(null)}
+          onOpenAttempt={(id) => {
+            // Close the modal first so the dashboard isn't covered when we
+            // route back from the review page.
+            setViewingStudentId(null)
+            onOpenAttempt && onOpenAttempt(id)
+          }}
+        />
+      )}
     </div>
   )
 }
@@ -306,16 +341,16 @@ function StatTile({ label, value, hint, tone }) {
   )
 }
 
-function WeakTopicRow({ topic, open, onToggle }) {
+function WeakTopicRow({ topic, open, onToggle, onPickStudent }) {
   const sharePct =
     topic.students_attempted > 0
       ? Math.round((topic.struggling_count / topic.students_attempted) * 100)
       : 0
   return (
-    <div className="rounded-xl border border-quiz-border bg-gray-50">
+    <div className="rounded-xl border border-quiz-border bg-black/5">
       <button
         onClick={onToggle}
-        className="w-full text-left px-3 py-2 flex items-center gap-3 hover:bg-gray-50 transition-colors"
+        className="w-full text-left px-3 py-2 flex items-center gap-3 hover:bg-black/10 transition-colors"
       >
         <div className="min-w-0 flex-1">
           <div className="font-black text-sm truncate">{topic.topic}</div>
@@ -332,7 +367,7 @@ function WeakTopicRow({ topic, open, onToggle }) {
         <span className="text-quiz-muted text-sm">{open ? '▾' : '▸'}</span>
       </button>
       {open && (
-        <div className="px-3 pb-3 pt-2 border-t border-quiz-border bg-gray-50">
+        <div className="px-3 pb-3 pt-2 border-t border-quiz-border bg-black/10">
           {topic.struggling_students.length === 0 ? (
             <div className="text-[11px] text-quiz-muted font-bold py-1">
               No specific students below 60% — average just dragged the topic down.
@@ -340,13 +375,16 @@ function WeakTopicRow({ topic, open, onToggle }) {
           ) : (
             <div className="flex flex-wrap gap-1.5">
               {topic.struggling_students.map((s) => (
-                <span
+                <button
                   key={s.id}
+                  onClick={() => onPickStudent && onPickStudent(s.id)}
+                  title={`See ${s.name}'s recent quizzes`}
                   className="px-2 py-1 rounded-full text-[11px] font-bold
-                             bg-quiz-red/15 border border-quiz-red/40 text-quiz-red"
+                             bg-quiz-red/15 border border-quiz-red/40 text-quiz-red
+                             hover:bg-quiz-red/25 transition-colors cursor-pointer"
                 >
                   {s.name}
-                </span>
+                </button>
               ))}
             </div>
           )}
@@ -356,7 +394,7 @@ function WeakTopicRow({ topic, open, onToggle }) {
   )
 }
 
-function ConsistencyRow({ s }) {
+function ConsistencyRow({ s, onPick }) {
   // Render the 7-day attendance as a row of dots — filled = day active.
   // Most-consistent students float to the top of this list (server-sorted),
   // so a long row of green dots near the top is the "doing fine" signal,
@@ -364,7 +402,13 @@ function ConsistencyRow({ s }) {
   const dots = Array.from({ length: 7 }, (_, i) => i < s.days_active_7d)
   const longHint = s.longest_streak > 0 ? `longest · ${s.longest_streak}d` : 'no streak yet'
   return (
-    <div className="rounded-xl border border-quiz-border bg-gray-50 px-3 py-2 flex items-center gap-3">
+    <div
+      onClick={onPick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPick && onPick() } }}
+      className="rounded-xl border border-quiz-border bg-black/5 px-3 py-2 flex items-center gap-3 cursor-pointer hover:bg-black/10 transition-colors"
+    >
       <div className="min-w-0 flex-1">
         <div className="font-black text-sm truncate">{s.name}</div>
         <div className="flex items-center gap-1 mt-1">
@@ -380,7 +424,7 @@ function ConsistencyRow({ s }) {
         </div>
       </div>
       <span className="shrink-0 px-2 py-1 rounded-full text-[11px] font-bold
-                       bg-gray-50 border border-quiz-border text-quiz-text">
+                       bg-black/5 border border-quiz-border text-quiz-text">
         {s.quizzes_7d} {s.quizzes_7d === 1 ? 'quiz' : 'quizzes'}
       </span>
       <span
@@ -394,7 +438,7 @@ function ConsistencyRow({ s }) {
   )
 }
 
-function InactiveRow({ s }) {
+function InactiveRow({ s, onPick }) {
   const never = s.last_active === null
   const dayLabel = never
     ? 'Never active'
@@ -409,7 +453,13 @@ function InactiveRow({ s }) {
       ? 'text-quiz-red border-quiz-red/40 bg-quiz-red/10'
       : 'text-quiz-orange border-quiz-orange/40 bg-quiz-orange/10'
   return (
-    <div className="rounded-xl border border-quiz-border bg-gray-50 px-3 py-2 flex items-center gap-3">
+    <div
+      onClick={onPick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPick && onPick() } }}
+      className="rounded-xl border border-quiz-border bg-black/5 px-3 py-2 flex items-center gap-3 cursor-pointer hover:bg-black/10 transition-colors"
+    >
       <div className="min-w-0 flex-1">
         <div className="font-black text-sm truncate">{s.name}</div>
         <div className="text-[11px] text-quiz-muted font-bold mt-0.5 truncate">
@@ -424,6 +474,7 @@ function InactiveRow({ s }) {
       >
         {dayLabel}
       </span>
+      <span aria-hidden="true" className="shrink-0 text-quiz-muted text-base leading-none">›</span>
     </div>
   )
 }

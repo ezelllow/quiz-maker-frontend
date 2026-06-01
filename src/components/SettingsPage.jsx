@@ -21,7 +21,7 @@ import EditProfileModal from './EditProfileModal'
  * and the choice is persisted to localStorage (read on next mount by
  * the pre-paint bootstrap in index.html).
  */
-export default function SettingsPage({ user, onUserUpdate, onLogout, onNavigate }) {
+export default function SettingsPage({ user, onUserUpdate, onLogout, onNavigate, isTeacher = false, viewAsStudent = false, onBackToTeacher }) {
   const [theme, setTheme] = useState(() =>
     typeof window !== 'undefined' && localStorage.getItem('theme') === 'dark'
       ? 'dark'
@@ -73,6 +73,27 @@ export default function SettingsPage({ user, onUserUpdate, onLogout, onNavigate 
             </p>
           </div>
         </StaggerItem>
+
+        {/* ===== TEACHER — back to dashboard (only when previewing as student) ===== */}
+        {isTeacher && viewAsStudent && onBackToTeacher && (
+          <StaggerItem>
+            <SectionLabel className="mb-2 px-1">Teacher</SectionLabel>
+            <Card variant="solid" className="!p-4 mb-4">
+              <div className="text-xs font-bold text-quiz-muted leading-relaxed mb-3">
+                You're previewing HabitGo as a student. Switch back to the
+                teacher dashboard whenever you're done looking around.
+              </div>
+              <Button3d
+                variant="blue"
+                size="md"
+                full
+                onClick={onBackToTeacher}
+              >
+                ← Back to teacher dashboard
+              </Button3d>
+            </Card>
+          </StaggerItem>
+        )}
 
         {/* ===== APPEARANCE — theme picker ===== */}
         <StaggerItem>
