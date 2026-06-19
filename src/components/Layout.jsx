@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ease } from '../motion'
 import Avatar from './ui/Avatar'
+import RankOverview from './RankOverview'
 
 // Layout — QuizQuest-style mobile-app shell.
 // Top: sticky app bar (full-width, inner content centered to phone width).
@@ -67,10 +68,11 @@ function NavIcon({ id, className = 'w-6 h-6' }) {
 
 export default function Layout({
   children, currentPage, onNavigate,
-  userName, userAvatar, rank, level, gems, freezes, freezeCap, onLogout,
+  userName, userAvatar, rank, level, xp, gems, freezes, freezeCap, onLogout,
   user, onUserUpdate,
 }) {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const [rankOpen, setRankOpen] = useState(false)
   const initials = (userName || 'Student').trim().charAt(0).toUpperCase()
   const menuRef = useRef(null)
 
@@ -130,7 +132,7 @@ export default function Layout({
             )}
             {rank && (
               <button
-                onClick={() => onNavigate('home')}
+                onClick={() => setRankOpen(true)}
                 title={rank.tier_name || rank.name}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full
                            bg-gradient-to-r from-quiz-blue/20 to-quiz-purple/20
@@ -250,6 +252,13 @@ export default function Layout({
           })}
         </div>
       </nav>
+
+      <RankOverview
+        open={rankOpen}
+        onClose={() => setRankOpen(false)}
+        currentKey={rank?.key || rank?.rank_band}
+        xp={xp}
+      />
     </div>
   )
 }

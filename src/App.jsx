@@ -337,6 +337,7 @@ function App() {
             userAvatar={user?.avatar_url || ''}
             rank={primaryRank}
             level={primaryLevel}
+            xp={progression?.xp}
             gems={gems}
             freezes={freezes}
             freezeCap={freezeCap}
