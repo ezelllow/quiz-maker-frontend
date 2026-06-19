@@ -23,6 +23,7 @@ const DailyChallenge  = lazy(() => import('./components/DailyChallenge'))
 const HomePage        = lazy(() => import('./components/HomePage'))
 const LeaderboardPage = lazy(() => import('./components/LeaderboardPage'))
 const ShopPage        = lazy(() => import('./components/ShopPage'))
+const CustomizePage   = lazy(() => import('./components/CustomizePage'))
 const PracticePage    = lazy(() => import('./components/PracticePage'))
 const TeacherDashboard = lazy(() => import('./components/TeacherDashboard'))
 const TeacherAttemptReview = lazy(() => import('./components/TeacherAttemptReview'))
@@ -86,6 +87,10 @@ function App() {
       setDailyGoal(data.daily_goal || 10)
       setFreezes(typeof data.freezes_available === 'number' ? data.freezes_available : 0)
       setFreezeCap(typeof data.freeze_cap === 'number' ? data.freeze_cap : 2)
+      // Hydrate the equipped loadout so every avatar (top-nav chip, profile
+      // hero, leaderboard) reflects the player's cosmetics on first paint —
+      // not just after they open the wardrobe.
+      if (data.equipped) setUser((u) => (u ? { ...u, equipped: data.equipped } : u))
       // Placement quiz removed (2026-05-19) — everyone starts as Cadet, Lv 1, 0 XP.
       setNeedsPlacement(false)
     } catch (err) {
@@ -154,6 +159,12 @@ function App() {
       .catch(() => {})
     return () => { cancelled = true }
   }, [isAuthenticated, needsPlacement])
+
+  // Keep the cached user in sync (esp. the equipped loadout) so a reload
+  // shows the customised avatar instantly — independent of any network call.
+  useEffect(() => {
+    if (user) localStorage.setItem('user', JSON.stringify(user))
+  }, [user])
 
   const handleLoginSuccess = (token, userData) => {
     setIsAuthenticated(true)
@@ -236,6 +247,8 @@ function App() {
         return <LeaderboardPage authToken={localStorage.getItem('auth_token')} user={user} progression={progression} />
       case 'shop':
         return <ShopPage authToken={localStorage.getItem('auth_token')} gems={gems} onGemsChange={setGems} user={user} onUserUpdate={setUser} />
+      case 'customize':
+        return <CustomizePage user={user} onUserUpdate={setUser} onBack={() => setCurrentPage('settings')} />
       case 'daily':
         return <DailyChallenge authToken={localStorage.getItem('auth_token')} subject="Physics" onExit={() => setCurrentPage('home')} />
       case 'dashboard':
@@ -254,7 +267,7 @@ function App() {
                          level={primaryLevel} gems={gems} dailyGoal={dailyGoal}
                          freezes={freezes} freezeCap={freezeCap} onFreezesChange={setFreezes}
                          onGemsChange={setGems} onDailyGoalChange={setDailyGoal}
-                         onProgressionChange={setProgression} />
+                         onProgressionChange={setProgression} onNavigate={setCurrentPage} />
       default:
         return <HomePage authToken={localStorage.getItem('auth_token')} user={user} rank={primaryRank} progression={progression} onNavigate={setCurrentPage} onFreezesChange={setFreezes} />
     }

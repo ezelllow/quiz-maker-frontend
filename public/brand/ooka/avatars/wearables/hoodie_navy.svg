@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1536" width="1024" height="1536">
+ <defs><linearGradient id="nv" x1="0" y1="0" x2="0.12" y2="1"><stop offset="0" stop-color="#32538f"/><stop offset="1" stop-color="#1b2c58"/></linearGradient></defs>
+ <g stroke="#15233e" stroke-width="9" stroke-linejoin="round" stroke-linecap="round">
+ <!-- one-piece body hugging silhouette; natural scooped neckline -->
+ <path d="M370 668
+          C 320 698, 298 760, 284 802
+          C 268 850, 256 896, 249 928
+          C 247 954, 300 962, 360 951
+          C 372 972, 380 988, 430 1000
+          C 472 1010, 552 1010, 594 1000
+          C 644 988, 652 972, 664 951
+          C 724 962, 777 954, 775 928
+          C 768 896, 756 850, 740 802
+          C 726 760, 706 698, 654 668
+          C 600 688, 566 696, 512 696
+          C 458 696, 424 688, 370 668 Z" fill="url(#nv)"/>
+ <!-- ribbed crew collar (gentle downward scoop, sits naturally) -->
+ <path d="M398 676 C 446 700, 478 710, 512 710 C 546 710, 578 700, 626 676"
+       fill="none" stroke="#22386a" stroke-width="17"/>
+ <path d="M398 676 C 446 700, 478 710, 512 710 C 546 710, 578 700, 626 676"
+       fill="none" stroke="#15233e" stroke-width="5" opacity="0.7"/>
+ <!-- drawstrings -->
+ <path d="M494 710 C 490 766, 488 814, 488 848" fill="none" stroke="#efe6cf" stroke-width="13"/>
+ <path d="M536 710 C 540 766, 542 814, 542 848" fill="none" stroke="#efe6cf" stroke-width="13"/>
+ <circle cx="488" cy="858" r="12" fill="#d8c9a6"/><circle cx="542" cy="858" r="12" fill="#d8c9a6"/>
+ <!-- cuffs -->
+ <path d="M249 926 C 247 952, 300 960, 360 949 L 354 914 C 304 922, 258 916, 256 914 Z" fill="#1a2b50"/>
+ <path d="M775 926 C 777 952, 724 960, 664 949 L 670 914 C 720 922, 766 916, 768 914 Z" fill="#1a2b50"/>
+ <!-- pocket -->
+ <path d="M404 910 C 404 1004, 620 1004, 620 910 L 596 910 C 596 980, 428 980, 428 910 Z" fill="#1a2c56"/>
+ </g></svg>

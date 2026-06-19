@@ -80,7 +80,7 @@ export default function SettingsPage({ user, onUserUpdate, onLogout, onNavigate,
             <SectionLabel className="mb-2 px-1">Teacher</SectionLabel>
             <Card variant="solid" className="!p-4 mb-4">
               <div className="text-xs font-bold text-quiz-muted leading-relaxed mb-3">
-                You're previewing HabitGo as a student. Switch back to the
+                You're previewing Ooka as a student. Switch back to the
                 teacher dashboard whenever you're done looking around.
               </div>
               <Button3d
@@ -157,11 +157,15 @@ export default function SettingsPage({ user, onUserUpdate, onLogout, onNavigate,
 
         {/* ===== ABOUT — placeholder for future ===== */}
         <StaggerItem>
-          <Card variant="solid" className="!p-4 text-center">
-            <div className="text-[10px] font-black uppercase tracking-widest text-quiz-muted">
-              HabitGo
-            </div>
-            <div className="text-xs font-bold text-quiz-muted mt-1">
+          <Card variant="solid" className="!p-5 text-center">
+            <img
+              src="/brand/ooka/mascot/ooka_mascot_4.png"
+              alt="Ooka mascot"
+              className="w-24 h-24 mx-auto mb-1 object-contain"
+            />
+            <div className="text-lg font-black tracking-tight">Ooka</div>
+            <div className="text-[11px] font-bold text-quiz-muted italic">Small quests. Big brains.</div>
+            <div className="text-xs font-bold text-quiz-muted mt-2">
               by CuriousLab · daily physics practice
             </div>
           </Card>

@@ -66,9 +66,9 @@ export default function TeacherDashboard({ authToken, user, onLogout, onViewAsSt
       >
         <div className="max-w-5xl mx-auto w-full flex items-center justify-between gap-3 px-4 py-2">
           <div className="flex items-center gap-2 font-black text-lg tracking-tight">
-            <span className="text-2xl">🎯</span>
+            <img src="/brand/ooka/logos/ooka_logo_2.png" alt="Ooka" className="w-7 h-7 rounded-lg" />
             <span className="bg-gradient-to-r from-quiz-blue to-quiz-purple bg-clip-text text-transparent">
-              HabitGo
+              Ooka
             </span>
             <span className="ml-2 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest
                              bg-quiz-purple/20 border border-quiz-purple/40 text-quiz-purple">
@@ -88,7 +88,7 @@ export default function TeacherDashboard({ authToken, user, onLogout, onViewAsSt
             {onViewAsStudent && (
               <button
                 onClick={onViewAsStudent}
-                title="See HabitGo through a student's eyes — your teacher view is one tap away"
+                title="See Ooka through a student's eyes — your teacher view is one tap away"
                 className="px-3 py-1.5 rounded-full text-xs font-black text-quiz-purple
                            border border-quiz-purple/40 hover:bg-quiz-purple/10 transition-colors"
               >

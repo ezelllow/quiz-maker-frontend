@@ -8,6 +8,7 @@ import SectionLabel from './ui/SectionLabel'
 import Badge from './ui/Badge'
 import Skeleton from './ui/Skeleton'
 import { Stagger, StaggerItem } from './ui/Motion'
+import TopicCard from './ui/TopicCard'
 import { ease, burst, idlePulse } from '../motion'
 import QuizMaker from './QuizMaker'
 
@@ -71,6 +72,7 @@ function SubjectPicker({ onPick }) {
       level: 'O-Level',
       color: '#38bdf8',
       tint: 'from-quiz-blue/15 to-quiz-cyan/5',
+      tone: 'blue',
       active: true,
       tagline: 'Forces, energy, electricity & more',
     },
@@ -81,6 +83,7 @@ function SubjectPicker({ onPick }) {
       level: 'O-Level',
       color: '#c084fc',
       tint: 'from-quiz-purple/15 to-quiz-magenta/5',
+      tone: 'purple',
       active: false,
       tagline: 'Coming soon',
     },
@@ -98,45 +101,23 @@ function SubjectPicker({ onPick }) {
           </header>
         </StaggerItem>
 
-        {/* Subject cards — same 2 in same order. Each gains a tinted gradient,
-            a hover lift with subject-coloured glow, and a springy tap. */}
-        <div className="space-y-3">
+        {/* Subject cards — branded TopicCards in a 2-column grid. Locked
+            subjects render dimmed and inert via a wrapper div. */}
+        <div className="grid grid-cols-2 gap-3">
           {subjects.map((s) => (
             <StaggerItem key={s.id}>
-              <motion.button
-                disabled={!s.active}
-                onClick={() => s.active && onPick(s.id)}
-                whileTap={s.active ? { scale: 0.98 } : undefined}
-                whileHover={s.active ? { y: -3 } : undefined}
-                transition={ease.spring}
-                className={
-                  'qq-card-solid !p-4 w-full text-left flex items-center gap-4 relative overflow-hidden ' +
-                  `bg-gradient-to-br ${s.tint} ` +
-                  (s.active ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed')
-                }
-                style={{
-                  borderLeft: `6px solid ${s.color}`,
-                  boxShadow: s.active ? `0 4px 18px ${s.color}33` : undefined,
-                }}
-              >
-                {/* Big subject emoji — bounces a touch on hover to feel alive. */}
-                <motion.div
-                  className="text-5xl shrink-0"
-                  whileHover={s.active ? { scale: 1.12, rotate: -6 } : undefined}
-                  transition={ease.bouncy}
-                >
-                  {s.emoji}
-                </motion.div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-black text-lg">{s.label}</div>
-                  <div className="text-xs font-bold text-quiz-muted">
-                    {s.level} · {s.tagline}
-                  </div>
-                </div>
-                <div className="text-quiz-muted text-2xl shrink-0">
-                  {s.active ? '›' : '🔒'}
-                </div>
-              </motion.button>
+              <div className={s.active ? '' : 'opacity-50 pointer-events-none'}>
+                <TopicCard
+                  icon={s.emoji}
+                  label={s.label}
+                  hint={`${s.level} · ${s.tagline}`}
+                  tone={s.tone}
+                  onClick={s.active ? () => onPick(s.id) : undefined}
+                />
+                {!s.active && (
+                  <div className="text-center text-xs font-bold text-quiz-muted mt-1">🔒 Locked</div>
+                )}
+              </div>
             </StaggerItem>
           ))}
         </div>

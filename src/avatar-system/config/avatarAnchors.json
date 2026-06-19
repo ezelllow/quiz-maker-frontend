@@ -1,0 +1,291 @@
+{
+  "version": "3.0",
+  "space": "fraction-of-body-canvas",
+  "base": "AI monkey (1024x1536)",
+  "bodyCanvas": {
+    "width": 1024,
+    "height": 1536
+  },
+  "templateCanvas": {
+    "width": 1024,
+    "height": 1536
+  },
+  "anchors": {
+    "crown": {
+      "frac": [
+        0.5,
+        0.092
+      ],
+      "attach": "bottom-center",
+      "note": "top of head",
+      "template": {
+        "x": 512,
+        "y": 141
+      }
+    },
+    "hat": {
+      "frac": [
+        0.5,
+        0.112
+      ],
+      "attach": "bottom-center",
+      "note": "sits on head",
+      "template": {
+        "x": 512,
+        "y": 172
+      }
+    },
+    "helmet": {
+      "frac": [
+        0.5,
+        0.1
+      ],
+      "attach": "bottom-center",
+      "note": "wraps crown",
+      "template": {
+        "x": 512,
+        "y": 154
+      }
+    },
+    "glasses": {
+      "frac": [
+        0.5,
+        0.294
+      ],
+      "attach": "center",
+      "note": "eye line",
+      "template": {
+        "x": 512,
+        "y": 452
+      }
+    },
+    "visor": {
+      "frac": [
+        0.5,
+        0.294
+      ],
+      "attach": "center",
+      "note": "eye line",
+      "template": {
+        "x": 512,
+        "y": 452
+      }
+    },
+    "eyeLeft": {
+      "frac": [
+        0.428,
+        0.294
+      ],
+      "attach": "center",
+      "note": "left eye",
+      "template": {
+        "x": 438,
+        "y": 452
+      }
+    },
+    "eyeRight": {
+      "frac": [
+        0.571,
+        0.294
+      ],
+      "attach": "center",
+      "note": "right eye",
+      "template": {
+        "x": 585,
+        "y": 452
+      }
+    },
+    "necklace": {
+      "frac": [
+        0.5,
+        0.417
+      ],
+      "attach": "top-center",
+      "note": "neck/collar",
+      "template": {
+        "x": 512,
+        "y": 641
+      }
+    },
+    "scarf": {
+      "frac": [
+        0.5,
+        0.4
+      ],
+      "attach": "top-center",
+      "note": "wraps neck",
+      "template": {
+        "x": 512,
+        "y": 614
+      }
+    },
+    "bowtie": {
+      "frac": [
+        0.5,
+        0.425
+      ],
+      "attach": "center",
+      "note": "at collar",
+      "template": {
+        "x": 512,
+        "y": 653
+      }
+    },
+    "torso": {
+      "frac": [
+        0.5,
+        0.447
+      ],
+      "attach": "top-center",
+      "note": "outfit top at shoulders",
+      "template": {
+        "x": 512,
+        "y": 687
+      }
+    },
+    "torsoCenter": {
+      "frac": [
+        0.5,
+        0.544
+      ],
+      "attach": "center",
+      "note": "chest/belly centre",
+      "template": {
+        "x": 512,
+        "y": 836
+      }
+    },
+    "backpack": {
+      "frac": [
+        0.5,
+        0.48
+      ],
+      "attach": "center",
+      "note": "back item, behind body",
+      "template": {
+        "x": 512,
+        "y": 737
+      }
+    },
+    "cape": {
+      "frac": [
+        0.5,
+        0.385
+      ],
+      "attach": "top-center",
+      "note": "clasps at shoulders, behind",
+      "template": {
+        "x": 512,
+        "y": 591
+      }
+    },
+    "jetpack": {
+      "frac": [
+        0.5,
+        0.5
+      ],
+      "attach": "center",
+      "note": "back item, behind body",
+      "template": {
+        "x": 512,
+        "y": 768
+      }
+    },
+    "handLeft": {
+      "frac": [
+        0.301,
+        0.638
+      ],
+      "attach": "center",
+      "note": "screen-left paw",
+      "template": {
+        "x": 308,
+        "y": 980
+      }
+    },
+    "handRight": {
+      "frac": [
+        0.698,
+        0.638
+      ],
+      "attach": "center",
+      "note": "screen-right paw",
+      "template": {
+        "x": 715,
+        "y": 980
+      }
+    },
+    "footLeft": {
+      "frac": [
+        0.408,
+        0.8
+      ],
+      "attach": "center",
+      "note": "screen-left foot",
+      "template": {
+        "x": 418,
+        "y": 1229
+      }
+    },
+    "footRight": {
+      "frac": [
+        0.59,
+        0.8
+      ],
+      "attach": "center",
+      "note": "screen-right foot",
+      "template": {
+        "x": 604,
+        "y": 1229
+      }
+    },
+    "bodyOverlay": {
+      "frac": [
+        0.5,
+        0.0
+      ],
+      "attach": "top-center",
+      "note": "full-body 1:1 overlay",
+      "template": {
+        "x": 512,
+        "y": 0
+      }
+    },
+    "capAnchor": {
+      "frac": [
+        0.5,
+        0.255
+      ],
+      "attach": "bottom-center",
+      "note": "cap sits on head crown"
+    },
+    "crownAnchor": {
+      "frac": [
+        0.5,
+        0.17
+      ],
+      "attach": "bottom-center",
+      "note": "crown sits atop head"
+    },
+    "scarfNeck": {
+      "frac": [
+        0.5,
+        0.31
+      ],
+      "attach": "top-center",
+      "note": "scarf wraps the neck"
+    },
+    "beanieAnchor": {
+      "frac": [
+        0.5,
+        0.285
+      ],
+      "attach": "bottom-center",
+      "template": {
+        "x": 512,
+        "y": 438
+      },
+      "note": "knit beanie \u2014 sits lower on the head than a cap"
+    }
+  }
+}

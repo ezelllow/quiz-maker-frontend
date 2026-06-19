@@ -1,0 +1,100 @@
+{
+  "renderOrder": [
+    "effect_behind",
+    "backItem",
+    "body",
+    "face",
+    "outfit",
+    "neckAccessory",
+    "eyewear",
+    "headwear",
+    "handItem",
+    "effect"
+  ],
+  "layers": {
+    "effect_behind": {
+      "z": -20,
+      "behindBody": true,
+      "note": "glows/auras behind avatar"
+    },
+    "backItem": {
+      "z": -10,
+      "behindBody": true,
+      "categories": [
+        "backpack",
+        "cape",
+        "jetpack",
+        "wings"
+      ]
+    },
+    "body": {
+      "z": 0,
+      "behindBody": false,
+      "categories": [
+        "body",
+        "skin"
+      ]
+    },
+    "face": {
+      "z": 10,
+      "behindBody": false,
+      "note": "baked into body art today; reserved"
+    },
+    "outfit": {
+      "z": 20,
+      "behindBody": false,
+      "categories": [
+        "outfit"
+      ]
+    },
+    "neckAccessory": {
+      "z": 30,
+      "behindBody": false,
+      "categories": [
+        "necklace",
+        "scarf",
+        "bowtie"
+      ]
+    },
+    "eyewear": {
+      "z": 40,
+      "behindBody": false,
+      "categories": [
+        "glasses",
+        "visor"
+      ]
+    },
+    "headwear": {
+      "z": 50,
+      "behindBody": false,
+      "categories": [
+        "hat",
+        "crown",
+        "helmet"
+      ]
+    },
+    "handItem": {
+      "z": 60,
+      "behindBody": false,
+      "categories": [
+        "handItem"
+      ]
+    },
+    "effect": {
+      "z": 70,
+      "behindBody": false,
+      "note": "sparkles/particles in front"
+    }
+  },
+  "_flat_spec_reference": [
+    "body",
+    "face",
+    "outfit",
+    "headwear",
+    "eyewear",
+    "neckAccessory",
+    "handItem",
+    "backItem",
+    "effect"
+  ]
+}

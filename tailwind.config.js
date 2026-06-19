@@ -28,48 +28,48 @@ export default {
         // ─────────────────────────────────────────────────────────────
         quiz: {
           // Brand orange family — punchier red-orange than previous
-          orange:        '#FF6A1A',
-          'orange-dark': '#E8530A',
-          'orange-deep': '#C7440A',
-          'orange-soft': '#FFE7D3',
-          'orange-bright':'#FF7A2E',
-          amber:         '#FFB020',
-          peach:         '#FFC59B',
+          orange:        '#C9A24B',
+          'orange-dark': '#A38535',
+          'orange-deep': '#7D6627',
+          'orange-soft': '#F4ECD8',
+          'orange-bright':'#D9B45B',
+          amber:         '#C9A24B',
+          peach:         '#E5C896',
 
           // Polychrome accents (from reference) — used for rarity badges,
           // avatar rings, gem chip, success/info distinction
-          gem:           '#34B6F0',   // cyan — avatar ring + crystals
-          'gem-deep':    '#1E93D6',
-          violet:        '#A855F7',   // epic rarity
-          rare:          '#3B9EFF',   // rare rarity
-          legend:        '#F4B100',   // legendary rarity
-          common:        '#9AA3AD',   // common rarity
+          gem:           '#5BB98C',   // cyan — avatar ring + crystals
+          'gem-deep':    '#3F9F73',
+          violet:        '#1F2A44',   // epic rarity
+          rare:          '#1F2A44',   // rare rarity
+          legend:        '#C9A24B',   // legendary rarity
+          common:        '#5A5547',   // common rarity
 
           // Legacy aliases (mapped to brand orange so existing class
           // names keep working without refactoring every component)
-          green:         '#2FBF71',
-          'green-dark':  '#1FA85E',
-          'green-shadow':'#168B4A',
-          blue:          '#FF6A1A',
-          'blue-dark':   '#E8530A',
-          red:           '#DC2626',
-          'red-dark':    '#991B1B',
-          yellow:        '#FFB020',
-          purple:        '#C7440A',
-          pink:          '#FF5C8A',
-          cyan:          '#34B6F0',
-          magenta:       '#C7440A',
-          lime:          '#FFB020',
+          green:         '#5BB98C',
+          'green-dark':  '#3F9F73',
+          'green-shadow':'#2A7E5C',
+          blue:          '#C9A24B',
+          'blue-dark':   '#A38535',
+          red:           '#D9534F',
+          'red-dark':    '#B33732',
+          yellow:        '#C9A24B',
+          purple:        '#C9A24B',
+          pink:          '#D9534F',
+          cyan:          '#5BB98C',
+          magenta:       '#C9A24B',
+          lime:          '#C9A24B',
 
           // Surfaces — cream backdrop, white cards
-          bg:            '#FBF4EC',
-          'bg-2':        '#FFF8F0',
+          bg:            '#F4ECD8',
+          'bg-2':        '#FCF7E8',
           card:          '#FFFFFF',
-          text:          '#2B2521',
-          muted:         '#6E645B',
+          text:          '#1F2A44',
+          muted:         '#5A5547',
           'muted-soft':  '#A89C90',
-          line:          '#F0E5D8',
-          'line-soft':   '#F6EEE3',
+          line:          '#E8DEC4',
+          'line-soft':   '#F4ECD8',
         },
 
         // ── Semantic aliases — remapped to reference neutrals ───────

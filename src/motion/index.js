@@ -1,5 +1,5 @@
 /**
- * HabitGo motion vocabulary.
+ * Ooka motion vocabulary.
  *
  * Single source of truth for ease curves, durations, and Framer Motion
  * variants. Every component imports from here — no bespoke cubic-bezier

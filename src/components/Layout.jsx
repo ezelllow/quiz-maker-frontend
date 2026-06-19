@@ -7,6 +7,64 @@ import Avatar from './ui/Avatar'
 // Top: sticky app bar (full-width, inner content centered to phone width).
 // Main: scrolling content area, centered to a phone-width column on every screen size.
 // Bottom: fixed nav with the 5 tabs — always visible (mobile + desktop), QuizQuest-style.
+
+// Line-art nav SVGs (24×24, stroke-based). Inherit currentColor from the
+// nav button — gold when active, muted when inactive. Cheap to ship inline
+// vs. PNG tiles which would mean five HTTP requests at 1-2 MB each.
+function NavIcon({ id, className = 'w-6 h-6' }) {
+  const stroke = {
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+  }
+  switch (id) {
+    case 'home':
+      return (
+        <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+          <path {...stroke} d="M3 12 L12 4 L21 12" />
+          <path {...stroke} d="M5 11 L5 20 L19 20 L19 11" />
+          <path {...stroke} d="M10 20 L10 14 L14 14 L14 20" />
+        </svg>
+      )
+    case 'practice':
+      return (
+        <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+          <path {...stroke} d="M4 5 L11 5 L12 7 L12 19 L11 17 L4 17 Z" />
+          <path {...stroke} d="M20 5 L13 5 L12 7 L12 19 L13 17 L20 17 Z" />
+        </svg>
+      )
+    case 'shop':
+      return (
+        <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+          <rect {...stroke} x="3" y="9" width="18" height="12" rx="1" />
+          <rect {...stroke} x="2" y="5" width="20" height="4" rx="1" />
+          <path {...stroke} d="M12 5 L12 21" />
+          <path {...stroke} d="M12 5 C 9 1, 6 2, 8 5" />
+          <path {...stroke} d="M12 5 C 15 1, 18 2, 16 5" />
+        </svg>
+      )
+    case 'leaderboard':
+      return (
+        <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+          <rect {...stroke} x="4"  y="13" width="4" height="8" rx="0.5" />
+          <rect {...stroke} x="10" y="8"  width="4" height="13" rx="0.5" />
+          <rect {...stroke} x="16" y="4"  width="4" height="17" rx="0.5" />
+        </svg>
+      )
+    case 'settings':
+      return (
+        <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+          <circle {...stroke} cx="12" cy="8" r="4" />
+          <path {...stroke} d="M4 21 C 4 16, 8 14, 12 14 C 16 14, 20 16, 20 21" />
+        </svg>
+      )
+    default:
+      return null
+  }
+}
+
 export default function Layout({
   children, currentPage, onNavigate,
   userName, userAvatar, rank, level, gems, freezes, freezeCap, onLogout,
@@ -30,11 +88,11 @@ export default function Layout({
   // or Home page CTAs, just not in the bottom bar.
   // Daily dropped from nav (2026-05-19) — accessed via Home page CTA instead.
   const navItems = [
-    { id: 'home',        icon: '🏠', label: 'Home'        },
-    { id: 'practice',    icon: '✏️', label: 'Practice'    },
-    { id: 'shop',        icon: '💎', label: 'Shop'        },
-    { id: 'leaderboard', icon: '🏆', label: 'Leaderboard' },
-    { id: 'settings',    icon: '👤', label: 'Profile'     },
+    { id: 'home',        label: 'Home'        },
+    { id: 'practice',    label: 'Practice'    },
+    { id: 'shop',        label: 'Shop'        },
+    { id: 'leaderboard', label: 'Leaderboard' },
+    { id: 'settings',    label: 'Profile'     },
   ]
 
   // Phone-frame width used everywhere. QuizQuest source uses 420px; we go a touch wider.
@@ -55,13 +113,8 @@ export default function Layout({
             onClick={() => onNavigate('home')}
             className="flex items-center gap-2 font-black text-lg tracking-tight"
           >
-            <span className="text-2xl">🎯</span>
-            <span
-              className="bg-clip-text text-transparent"
-              style={{ backgroundImage: 'var(--logo-grad)' }}
-            >
-              HabitGo
-            </span>
+            <img src="/brand/ooka/mascot/ooka_mascot_4.png" alt="" className="w-10 h-10 object-contain" />
+            <span className="font-black text-lg tracking-tight" style={{ color: 'var(--quiz-text)' }}>Ooka</span>
           </button>
 
           <div className="flex items-center gap-2">
@@ -190,7 +243,7 @@ export default function Layout({
                     transition={ease.spring}
                   />
                 )}
-                <span className="relative text-lg leading-none">{item.icon}</span>
+                <NavIcon id={item.id} className="relative w-6 h-6" />
                 <span className="relative text-[10px] font-bold leading-none">{item.label}</span>
               </button>
             )

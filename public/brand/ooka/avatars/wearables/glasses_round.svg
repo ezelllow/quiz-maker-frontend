@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 104">
+ <g fill="none" stroke="#2a2118" stroke-width="9">
+  <circle cx="64" cy="56" r="42" fill="#bfe6f5" fill-opacity="0.5"/>
+  <circle cx="186" cy="56" r="42" fill="#bfe6f5" fill-opacity="0.5"/>
+  <path d="M106 50 q19 -10 38 0"/>
+  <path d="M22 46 L4 36"/><path d="M228 46 L246 36"/>
+ </g>
+ <g stroke="#d9a73a" stroke-width="6" fill="none">
+  <circle cx="64" cy="56" r="42"/><circle cx="186" cy="56" r="42"/>
+ </g></svg>

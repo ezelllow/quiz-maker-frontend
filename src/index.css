@@ -13,7 +13,7 @@
    screen has moved to the new tokens).
    ============================================================ */
 :root {
-  /* -------- HabitGo reference palette (cream + orange) -------- */
+  /* -------- Ooka reference palette (cream + orange) -------- */
   --green:         #2FBF71;
   --green-dark:    #1FA85E;
   --green-shadow:  #168B4A;
@@ -33,24 +33,24 @@
   --gem:           #34B6F0;
   --magenta:       #C7440A;
   --lime:          #FFB020;
-  --quiz-bg:       #FBF4EC;
-  --quiz-bg-2:     #FFF8F0;
+  --quiz-bg:       #F4ECD8;
+  --quiz-bg-2:     #FCF7E8;
   --quiz-card:     rgba(255, 255, 255, 0.90);
   --quiz-card-solid: #FFFFFF;
-  --quiz-border:   #F0E5D8;
-  --quiz-border-bright: #E0D2C0;
-  --quiz-text:     #2B2521;
-  --quiz-muted:    #6E645B;
+  --quiz-border:   #E8DEC4;
+  --quiz-border-bright: #D4C798;
+  --quiz-text:     #1F2A44;
+  --quiz-muted:    #5A5547;
 
   /* -------- Legacy dark-glass tokens — REMAPPED to reference -------- */
-  --bg:           #FBF4EC;
-  --bg-soft:      #FFF8F0;
+  --bg:           #F4ECD8;
+  --bg-soft:      #FCF7E8;
   --bg-card:      #FFFFFF;
   --bg-elevated:  #FFFFFF;
 
   --glass-bg:     rgba(255, 255, 255, 0.90);
   --glass-bg-strong: rgba(255, 255, 255, 0.96);
-  --glass-border: #F0E5D8;
+  --glass-border: #E8DEC4;
   --glass-border-strong: #E0D2C0;
 
   --border:       #F0E5D8;
@@ -95,8 +95,8 @@
   --space-5: 20px; --space-6: 24px; --space-7: 32px; --space-8: 40px;
   --space-9: 48px; --space-10: 64px;
 
-  --font-sans: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-head: '"Baloo 2"', 'Nunito', system-ui, sans-serif;
+  --font-sans: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-head: 'Fredoka', 'Poppins', system-ui, sans-serif;
 
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -147,10 +147,9 @@ body::before {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background:
-    radial-gradient(120% 60% at 50% -10%, #FFF1E6, transparent 60%),
-    radial-gradient(80% 50% at 100% 0%, #FFEFE2, transparent 55%),
-    #FBF4EC;
+  /* Solid, flat colour — no gradients, so the backdrop is identical at every
+     scroll position (no bands or seams). Themed to navy in dark mode below. */
+  background: #FBF4EC;
 }
 
 #root {
@@ -330,36 +329,36 @@ input::placeholder, textarea::placeholder { color: var(--quiz-muted); }
    the most common Tailwind utility classes whose colors are
    baked into the compiled CSS at build time.
    ============================================================ */
-html.theme-pre-dark { background: #1a1145; }
+html.theme-pre-dark { background: #212D49; }
 
 body.theme-dark {
   /* ---- Core color tokens (CSS vars) ---- */
-  --quiz-bg:       #0a0a1f;
-  --quiz-bg-2:     #14142b;
-  --quiz-card:     rgba(30, 30, 60, 0.65);
-  --quiz-card-solid: #1a1a35;
-  --quiz-border:   rgba(140, 140, 220, 0.25);
-  --quiz-border-bright: rgba(180, 180, 255, 0.45);
-  --quiz-text:     #e9e9ff;
-  --quiz-muted:    #9d9dbf;
+  --quiz-bg:       #1F2A44;
+  --quiz-bg-2:     #2E3D5C;
+  --quiz-card:     rgba(46, 61, 92, 0.85);
+  --quiz-card-solid: #2E3D5C;
+  --quiz-border:   rgba(244, 236, 216, 0.20);
+  --quiz-border-bright: rgba(244, 236, 216, 0.40);
+  --quiz-text:     #F4ECD8;
+  --quiz-muted:    rgba(244, 236, 216, 0.65);
 
-  --bg:           #0a0a1f;
-  --bg-soft:      #14142b;
-  --bg-card:      #1a1a35;
-  --bg-elevated:  #1E2A40;
+  --bg:           #1F2A44;
+  --bg-soft:      #2E3D5C;
+  --bg-card:      #2E3D5C;
+  --bg-elevated:  #354766;
 
-  --glass-bg:     rgba(30, 30, 60, 0.65);
-  --glass-bg-strong: rgba(30, 30, 60, 0.85);
-  --glass-border: rgba(140, 140, 220, 0.25);
-  --glass-border-strong: rgba(180, 180, 255, 0.45);
+  --glass-bg:     rgba(46, 61, 92, 0.85);
+  --glass-bg-strong: rgba(46, 61, 92, 0.95);
+  --glass-border: rgba(244, 236, 216, 0.20);
+  --glass-border-strong: rgba(244, 236, 216, 0.40);
 
-  --border:       rgba(140, 140, 220, 0.25);
-  --border-strong:rgba(180, 180, 255, 0.45);
+  --border:       rgba(244, 236, 216, 0.20);
+  --border-strong:rgba(244, 236, 216, 0.40);
   --divider:      rgba(255, 255, 255, 0.06);
 
-  --text:         #e9e9ff;
-  --text-muted:   #9d9dbf;
-  --text-soft:    #7c7ca0;
+  --text:         #F4ECD8;
+  --text-muted:   rgba(244, 236, 216, 0.65);
+  --text-soft:    rgba(244, 236, 216, 0.50);
 
   /* Cooler/darker shadows for the dark theme — warm browns would
      glow weirdly against navy. */
@@ -368,11 +367,11 @@ body.theme-dark {
   --shadow-md:   0 12px 32px rgba(0, 0, 0, 0.36);
   --shadow-lg:   0 24px 60px rgba(0, 0, 0, 0.50);
 
-  /* Body — just a solid navy fallback. The cosmic gradient is
-     painted on body.theme-dark::before below (fixed, full viewport).
-     Override the light-mode ::before there too so the cream layer
-     doesn't bleed through. */
-  background: #1a1145;
+  /* Body — solid Ooka navy fallback. The night gradient is painted
+     on body.theme-dark::before below (fixed, full viewport). Override
+     the light-mode ::before there too so the cream layer doesn't bleed
+     through. */
+  background: #212D49;
   color: var(--quiz-text);
   color-scheme: dark;
 }
@@ -381,50 +380,15 @@ body.theme-dark {
    anchored to viewport during scroll because of position:fixed, so
    the gradient pattern is consistent from top to bottom of any page. */
 body.theme-dark::before {
-  /* Vibrant cosmic backdrop — brighter purple-violet base so the
-     canvas reads as a lit deep-space scene (not flat black) plus
-     three larger, higher-alpha radial accents for clearly visible
-     glow at top-left, bottom-right, and center. Anchored via the
-     parent pseudo-element's position:fixed so the pattern stays
-     consistent at every scroll position. */
-  background:
-    radial-gradient(ellipse 70% 60% at 18% 8%, rgba(139, 92, 246, 0.42) 0%, transparent 65%),
-    radial-gradient(ellipse 65% 55% at 85% 90%, rgba(34, 211, 238, 0.28) 0%, transparent 65%),
-    radial-gradient(ellipse 80% 70% at 50% 50%, rgba(232, 121, 249, 0.18) 0%, transparent 70%),
-    linear-gradient(180deg, #1a1145 0%, #1f1850 50%, #251960 100%);
+  /* Solid, flat navy — no gradients of any kind, so the backdrop is exactly
+     the same colour at every scroll position. This is what kills the seam:
+     a single colour cannot band. */
+  background: #212D49;
 }
 
-/* Starfield — two layered pinpoint-dot patterns drifting in opposite
-   directions for a subtle parallax effect. Tiled (background-size)
-   so the dot pattern repeats across the viewport. Only renders in
-   dark mode; light mode has no ::after. Sits ABOVE the cosmic
-   gradient (z-index -1 on ::before, z-index 0 here) but BELOW all
-   actual content (which lives inside #root with z-index 1). */
-body.theme-dark::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image:
-    radial-gradient(1.5px 1.5px at 12% 24%, #fff, transparent),
-    radial-gradient(1px 1px at 33% 78%, #fff, transparent),
-    radial-gradient(2px 2px at 64% 45%, #fff, transparent),
-    radial-gradient(1px 1px at 81% 12%, rgba(255,255,255,0.7), transparent),
-    radial-gradient(1.5px 1.5px at 92% 67%, #fff, transparent),
-    radial-gradient(1px 1px at 47% 88%, rgba(255,255,255,0.8), transparent),
-    radial-gradient(1px 1px at 18% 58%, #fff, transparent),
-    radial-gradient(1.5px 1.5px at 71% 91%, rgba(255,255,255,0.85), transparent);
-  background-size: 600px 600px;
-  background-repeat: repeat;
-  opacity: 0.75;
-  animation: stars-drift 240s linear infinite;
-}
-
-@keyframes stars-drift {
-  from { background-position: 0 0; }
-  to   { background-position: 600px 600px; }
-}
+/* Starfield removed — dark mode now uses the same flat solid background as
+   light mode (set on body.theme-dark::before), so the backdrop is identical
+   at every scroll position with no compositing seam. */
 
 /* ---- Tailwind utility-class overrides for dark mode ----
    Tailwind compiles classes like `bg-white` and `text-quiz-text`
@@ -493,7 +457,7 @@ body.theme-dark textarea::placeholder      { color: #9d9dbf; }
 
 /* ---- Themed accent vars (driven by inline-style usages) ---- */
 body.theme-dark {
-  --weekstrip-grad: linear-gradient(135deg, #7c3aed 0%, #db2777 50%, #06b6d4 100%);
+  --weekstrip-grad: linear-gradient(135deg, #C9A24B 0%, #5BB98C 50%, #1F2A44 100%);
   --logo-grad:      linear-gradient(to right, #38bdf8, #c084fc);
   --avatar-ring:    0 0 0 2px rgba(180, 180, 255, 0.45);
 }

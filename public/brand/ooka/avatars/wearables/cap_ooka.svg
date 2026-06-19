@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 150">
+  <!-- brim -->
+  <path d="M30 104 Q110 78 196 108 Q198 128 168 128 Q110 112 56 120 Q34 122 30 104 Z" fill="#16203a"/>
+  <!-- dome -->
+  <path d="M40 110 Q36 34 110 30 Q184 34 180 110 Q110 92 40 110 Z" fill="#26345c" stroke="#16203a" stroke-width="7" stroke-linejoin="round"/>
+  <!-- seam -->
+  <path d="M110 30 V104" stroke="#16203a" stroke-width="4" opacity="0.45"/>
+  <!-- button -->
+  <circle cx="110" cy="36" r="8" fill="#C9A24B" stroke="#16203a" stroke-width="3"/>
+  <!-- O badge -->
+  <circle cx="110" cy="74" r="18" fill="none" stroke="#FFC107" stroke-width="8"/>
+</svg>

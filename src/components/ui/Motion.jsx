@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { stagger as staggerVariants, item as itemVariants, fadeInUp } from '../../motion'
 
 /**
- * Shared motion helpers for HabitGo.
+ * Shared motion helpers for Ooka.
  *
  * Thin React wrappers over the variants in src/motion/index.js so the
  * call sites stay declarative:

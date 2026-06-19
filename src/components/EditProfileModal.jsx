@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import Modal from './ui/Modal'
 import Button3d from './ui/Button3d'
+import Avatar from './ui/Avatar'
 import { ease } from '../motion'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
@@ -63,7 +64,7 @@ export default function EditProfileModal({ open, onClose, user, onUserUpdate }) 
   }, [open, stored.name, stored.avatar_url])
 
   const initials = (name || stored.email || '?').trim().charAt(0).toUpperCase()
-  const dirty = name.trim() !== (stored.name || '') || avatarUrl !== (stored.avatar_url || '')
+  const dirty = name.trim() !== (stored.name || '')
 
   const handleFileChange = async (e) => {
     const file = e.target.files && e.target.files[0]
@@ -84,7 +85,7 @@ export default function EditProfileModal({ open, onClose, user, onUserUpdate }) 
       const res = await fetch(`${API_BASE_URL}/api/auth/profile`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ name: name.trim(), avatar_url: avatarUrl || '' }),
+        body: JSON.stringify({ name: name.trim() }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.detail || 'Failed to save profile')
@@ -106,39 +107,15 @@ export default function EditProfileModal({ open, onClose, user, onUserUpdate }) 
   return (
     <Modal open={open} onClose={onClose} title="Edit profile" hideButtons>
       <div className="space-y-4">
-        {/* Avatar preview + change */}
+        {/* Avatar preview — your equipped Ooka. Customised in the Shop, not
+            uploaded as a photo. */}
         <div className="flex items-center gap-4">
-          <motion.button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            whileTap={{ scale: 0.95 }}
-            whileHover={{ scale: 1.03 }}
-            transition={ease.spring}
-            className="relative shrink-0"
-            title="Change photo"
-          >
-            <div className="w-20 h-20 rounded-full overflow-hidden bg-gradient-to-br from-quiz-blue to-quiz-purple
-                            ring-4 ring-quiz-border-bright shadow-xl
-                            flex items-center justify-center text-3xl font-black text-white">
-              {avatarUrl
-                ? <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
-                : initials}
-            </div>
-            <div className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-quiz-blue border-4 border-[#1a1a35]
-                            flex items-center justify-center text-xs shadow-lg">
-              📷
-            </div>
-          </motion.button>
-          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-          <div className="flex flex-col gap-2">
-            <Button3d size="sm" variant="blue" onClick={() => fileInputRef.current?.click()}>
-              {avatarUrl ? '🖼️ Change' : '📷 Upload'}
-            </Button3d>
-            {avatarUrl && (
-              <Button3d size="sm" variant="red" onClick={() => setAvatarUrl('')}>
-                Remove
-              </Button3d>
-            )}
+          <Avatar size="xl" variant="head" equipped={stored.equipped} className="ring-4 ring-quiz-border-bright shadow-xl" />
+          <div className="min-w-0">
+            <div className="text-sm font-black">Your Ooka avatar</div>
+            <p className="text-[11px] font-bold text-quiz-muted mt-0.5 leading-snug">
+              Unlock new monkey skins and wearables in the <span className="text-quiz-blue">Shop</span> using 💎.
+            </p>
           </div>
         </div>
 
@@ -190,13 +167,7 @@ export default function EditProfileModal({ open, onClose, user, onUserUpdate }) 
         onClose={() => setConfirmOpen(false)}
         onConfirm={handleSave}
         title="Save profile changes?"
-        body={
-          (name.trim() !== (stored.name || '') ? `Display name will change to "${name.trim()}".
-` : '') +
-          (avatarUrl !== (stored.avatar_url || '')
-            ? (avatarUrl ? 'Profile photo will be updated.' : 'Profile photo will be removed.')
-            : '')
-        }
+        body={`Display name will change to "${name.trim()}".`}
         confirmLabel="Save"
         cancelLabel="Cancel"
         tone="green"

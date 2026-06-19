@@ -81,9 +81,16 @@ export default function SignupPage({ onSignupSuccess }) {
     <div className="min-h-screen flex items-center justify-center">
       <Screen width="narrow">
         <div className="text-center mb-6">
-          <div className="text-5xl mb-2">🚀</div>
-          <h1 className="!text-4xl !font-black mb-1 tracking-tight">Join HabitGo</h1>
-          <p className="text-quiz-muted font-semibold">Create your account and start climbing the ranks</p>
+          <img
+            src="/brand/ooka/mascot/ooka_mascot_4.png"
+            alt="Ooka mascot"
+            className="w-32 h-32 sm:w-40 sm:h-40 mx-auto object-contain"
+          />
+          <h1 className="!text-2xl !font-black mb-1 tracking-tight mt-3">Join Ooka</h1>
+          <p className="text-quiz-muted font-semibold text-sm">Create your account and start climbing the ranks</p>
+          <p className="text-[11px] text-quiz-muted font-bold mt-2 leading-snug">
+            Same app, fresher look. Ooka is the new face of HabitGo.
+          </p>
         </div>
 
         <Card variant="solid" className="!p-6 sm:!p-8 space-y-5">

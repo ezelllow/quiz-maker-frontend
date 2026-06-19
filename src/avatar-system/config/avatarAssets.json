@@ -1,0 +1,369 @@
+{
+  "version": "1.0",
+  "base": {
+    "skin_default": {
+      "assetId": "skin_default",
+      "category": "body",
+      "slot": "skin",
+      "format": "png",
+      "src": {
+        "full": "/brand/ooka/avatars/ai_base/skin_default_full.png",
+        "head": "/brand/ooka/avatars/ai_base/skin_default_head.png"
+      },
+      "nativeCanvas": {
+        "full": {
+          "width": 1024,
+          "height": 1536
+        },
+        "head": {
+          "width": 720,
+          "height": 720
+        }
+      },
+      "bodyBounds": {
+        "x": 184,
+        "y": 139,
+        "width": 664,
+        "height": 1146
+      },
+      "anchorCompatibility": [
+        "torso",
+        "bodyOverlay"
+      ]
+    },
+    "skin_tan": {
+      "assetId": "skin_tan",
+      "category": "body",
+      "slot": "skin",
+      "format": "png",
+      "src": {
+        "full": "/brand/ooka/avatars/ai_base/skin_tan_full.png",
+        "head": "/brand/ooka/avatars/ai_base/skin_tan_head.png"
+      },
+      "nativeCanvas": {
+        "full": {
+          "width": 1024,
+          "height": 1536
+        },
+        "head": {
+          "width": 720,
+          "height": 720
+        }
+      },
+      "bodyBounds": {
+        "x": 184,
+        "y": 139,
+        "width": 664,
+        "height": 1146
+      },
+      "anchorCompatibility": [
+        "torso",
+        "bodyOverlay"
+      ]
+    },
+    "skin_espresso": {
+      "assetId": "skin_espresso",
+      "category": "body",
+      "slot": "skin",
+      "format": "png",
+      "src": {
+        "full": "/brand/ooka/avatars/ai_base/skin_espresso_full.png",
+        "head": "/brand/ooka/avatars/ai_base/skin_espresso_head.png"
+      },
+      "nativeCanvas": {
+        "full": {
+          "width": 1024,
+          "height": 1536
+        },
+        "head": {
+          "width": 720,
+          "height": 720
+        }
+      },
+      "bodyBounds": {
+        "x": 184,
+        "y": 139,
+        "width": 664,
+        "height": 1146
+      },
+      "anchorCompatibility": [
+        "torso",
+        "bodyOverlay"
+      ]
+    },
+    "skin_grey": {
+      "assetId": "skin_grey",
+      "category": "body",
+      "slot": "skin",
+      "format": "png",
+      "src": {
+        "full": "/brand/ooka/avatars/ai_base/skin_grey_full.png",
+        "head": "/brand/ooka/avatars/ai_base/skin_grey_head.png"
+      },
+      "nativeCanvas": {
+        "full": {
+          "width": 1024,
+          "height": 1536
+        },
+        "head": {
+          "width": 720,
+          "height": 720
+        }
+      },
+      "bodyBounds": {
+        "x": 184,
+        "y": 139,
+        "width": 664,
+        "height": 1146
+      },
+      "anchorCompatibility": [
+        "torso",
+        "bodyOverlay"
+      ]
+    },
+    "skin_golden": {
+      "assetId": "skin_golden",
+      "category": "body",
+      "slot": "skin",
+      "format": "png",
+      "src": {
+        "full": "/brand/ooka/avatars/ai_base/skin_golden_full.png",
+        "head": "/brand/ooka/avatars/ai_base/skin_golden_head.png"
+      },
+      "nativeCanvas": {
+        "full": {
+          "width": 1024,
+          "height": 1536
+        },
+        "head": {
+          "width": 720,
+          "height": 720
+        }
+      },
+      "bodyBounds": {
+        "x": 184,
+        "y": 139,
+        "width": 664,
+        "height": 1146
+      },
+      "anchorCompatibility": [
+        "torso",
+        "bodyOverlay"
+      ]
+    },
+    "skin_cream": {
+      "assetId": "skin_cream",
+      "category": "body",
+      "slot": "skin",
+      "format": "png",
+      "src": {
+        "full": "/brand/ooka/avatars/ai_base/skin_cream_full.png",
+        "head": "/brand/ooka/avatars/ai_base/skin_cream_head.png"
+      },
+      "nativeCanvas": {
+        "full": {
+          "width": 1024,
+          "height": 1536
+        },
+        "head": {
+          "width": 720,
+          "height": 720
+        }
+      },
+      "bodyBounds": {
+        "x": 184,
+        "y": 139,
+        "width": 664,
+        "height": 1146
+      },
+      "anchorCompatibility": [
+        "torso",
+        "bodyOverlay"
+      ]
+    }
+  },
+  "wearables": {
+    "hoodie_navy": {
+      "assetId": "hoodie_navy",
+      "category": "outfit",
+      "slot": "outfit",
+      "format": "svg",
+      "src": "/brand/ooka/avatars/wearables/hoodie_navy.svg",
+      "nativeCanvas": {
+        "width": 1024,
+        "height": 1536
+      },
+      "boundingBox": {
+        "x": 244,
+        "y": 663,
+        "width": 536,
+        "height": 349
+      },
+      "anchor": "bodyOverlay",
+      "attach": "top-center",
+      "scale": 1.0,
+      "anchorCompatibility": [
+        "bodyOverlay",
+        "torso"
+      ],
+      "note": "vector hoodie traced to the monkey silhouette (hugs torso+arms); paws emerge at cuffs, no hood"
+    },
+    "cap_ooka": {
+      "assetId": "cap_ooka",
+      "category": "hat",
+      "slot": "hat",
+      "format": "svg",
+      "src": "/brand/ooka/avatars/wearables/cap_ooka.svg",
+      "anchor": "capAnchor",
+      "attach": "bottom-center",
+      "scale": 0.52
+    },
+    "shades": {
+      "assetId": "shades",
+      "category": "glasses",
+      "slot": "glasses",
+      "format": "svg",
+      "src": "/brand/ooka/avatars/wearables/shades.svg",
+      "anchor": "glasses",
+      "attach": "center",
+      "scale": 0.42
+    },
+    "crown_gold": {
+      "assetId": "crown_gold",
+      "category": "crown",
+      "slot": "hat",
+      "format": "svg",
+      "src": "/brand/ooka/avatars/wearables/crown_gold.svg",
+      "anchor": "crownAnchor",
+      "attach": "bottom-center",
+      "scale": 0.4
+    },
+    "scarf_red": {
+      "assetId": "scarf_red",
+      "category": "scarf",
+      "slot": "accessory",
+      "format": "svg",
+      "src": "/brand/ooka/avatars/wearables/scarf_red.svg",
+      "anchor": "scarfNeck",
+      "attach": "top-center",
+      "scale": 0.5
+    },
+    "beanie_teal": {
+      "assetId": "beanie_teal",
+      "category": "hat",
+      "slot": "hat",
+      "format": "svg",
+      "src": "/brand/ooka/avatars/wearables/beanie_teal.svg",
+      "anchor": "beanieAnchor",
+      "attach": "bottom-center",
+      "scale": 0.6,
+      "note": "knit beanie"
+    },
+    "glasses_round": {
+      "assetId": "glasses_round",
+      "category": "glasses",
+      "slot": "glasses",
+      "format": "svg",
+      "src": "/brand/ooka/avatars/wearables/glasses_round.svg",
+      "anchor": "glasses",
+      "attach": "center",
+      "scale": 0.46,
+      "note": "round specs"
+    },
+    "bowtie_red": {
+      "assetId": "bowtie_red",
+      "category": "bowtie",
+      "slot": "accessory",
+      "format": "svg",
+      "src": "/brand/ooka/avatars/wearables/bowtie_red.svg",
+      "anchor": "bowtie",
+      "attach": "center",
+      "scale": 0.3,
+      "note": "bowtie at collar"
+    },
+    "cape_red": {
+      "assetId": "cape_red",
+      "category": "cape",
+      "slot": "backItem",
+      "format": "svg",
+      "src": "/brand/ooka/avatars/wearables/cape_red.svg",
+      "anchor": "cape",
+      "attach": "top-center",
+      "scale": 0.58,
+      "note": "hero cape, renders behind body"
+    }
+  },
+  "templates": {
+    "hat_example": {
+      "assetId": "hat_example",
+      "category": "hat",
+      "slot": "hat",
+      "src": "/brand/ooka/avatars/wearables/hat_example.png",
+      "nativeCanvas": {
+        "width": 1024,
+        "height": 1024
+      },
+      "boundingBox": {
+        "x": 0,
+        "y": 0,
+        "width": 1024,
+        "height": 1024
+      },
+      "anchor": "hat",
+      "attach": "bottom-center",
+      "scale": 0.62,
+      "anchorCompatibility": [
+        "hat",
+        "crown",
+        "helmet"
+      ]
+    },
+    "glasses_example": {
+      "assetId": "glasses_example",
+      "category": "glasses",
+      "slot": "glasses",
+      "src": "/brand/ooka/avatars/wearables/glasses_example.png",
+      "nativeCanvas": {
+        "width": 1024,
+        "height": 1024
+      },
+      "boundingBox": {
+        "x": 0,
+        "y": 0,
+        "width": 1024,
+        "height": 1024
+      },
+      "anchor": "glasses",
+      "attach": "center",
+      "scale": 0.46,
+      "anchorCompatibility": [
+        "glasses",
+        "visor"
+      ]
+    },
+    "cape_example": {
+      "assetId": "cape_example",
+      "category": "cape",
+      "slot": "back",
+      "src": "/brand/ooka/avatars/wearables/cape_example.png",
+      "nativeCanvas": {
+        "width": 1024,
+        "height": 1024
+      },
+      "boundingBox": {
+        "x": 0,
+        "y": 0,
+        "width": 1024,
+        "height": 1024
+      },
+      "anchor": "cape",
+      "attach": "top-center",
+      "scale": 1.0,
+      "anchorCompatibility": [
+        "cape",
+        "backpack",
+        "jetpack"
+      ]
+    }
+  }
+}

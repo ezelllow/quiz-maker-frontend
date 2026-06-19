@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 252 158">
+ <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#36b8a8"/><stop offset="1" stop-color="#1d7768"/></linearGradient></defs>
+ <g stroke="#0e433b" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M126 60 V32" fill="none" stroke-width="6"/>
+  <circle cx="126" cy="20" r="15" fill="#eafff9"/>
+  <!-- dome -->
+  <path d="M20 132 C 16 36, 236 36, 232 132 C 162 114, 90 114, 20 132 Z" fill="url(#bg)"/>
+  <!-- ribbing, kept inside -->
+  <g stroke="#155f55" stroke-width="5" fill="none">
+   <path d="M74 66 Q68 102 76 124"/><path d="M126 58 V122"/><path d="M178 66 Q184 102 176 124"/>
+  </g>
+  <!-- folded brim band, smooth -->
+  <path d="M14 118 Q126 100 238 118 L236 142 Q126 160 16 142 Z" fill="#2aa597"/>
+ </g></svg>

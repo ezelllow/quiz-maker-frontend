@@ -64,13 +64,15 @@ export default function LeaderboardPage({ user, authToken, progression }) {
   const initialOf = (name) =>
     (name || 'U').trim().charAt(0).toUpperCase() || 'U'
 
-  // Avatar renders the user's pfp + any equipped wearables (hat / glasses /
-  // accessory / frame). Backend includes `equipped` in each entry now.
+  // Full-body avatar so each player's full customisation shows — skin tone
+  // plus every equipped asset (outfit, hat, etc). Backend includes `equipped`
+  // (skin + outfit + wearables) on every entry.
   const AvatarRow = ({ p, size = 'sm' }) => (
     <SharedAvatar
-      src={p.avatar_url}
       initials={initialOf(p.name)}
       size={size}
+      variant="full"
+      bare
       equipped={p.equipped}
     />
   )

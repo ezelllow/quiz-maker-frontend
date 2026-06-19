@@ -25,7 +25,7 @@ const accColor = (p) => (p >= 80 ? 'text-quiz-green' : p >= 50 ? 'text-quiz-yell
 export default function Settings({
   onLogout, user, onUserUpdate, rank,
   level, gems, dailyGoal, freezes, freezeCap, onFreezesChange,
-  onGemsChange, onDailyGoalChange, onProgressionChange,
+  onGemsChange, onDailyGoalChange, onProgressionChange, onNavigate,
 }) {
   const token = localStorage.getItem('auth_token')
   const stored = user || JSON.parse(localStorage.getItem('user') || '{}')
@@ -73,6 +73,28 @@ export default function Settings({
                        'radial-gradient(2px 2px at 80% 25%, #fff, transparent),' +
                        'radial-gradient(1px 1px at 10% 80%, #fff, transparent)',
                    }} />
+
+              {/* Wardrobe / hanger — jumps to the Shop to customise the avatar */}
+              {onNavigate && (
+                <motion.button
+                  type="button"
+                  onClick={() => onNavigate('customize')}
+                  aria-label="Customise your Ooka"
+                  title="Customise your Ooka"
+                  whileTap={{ scale: 0.92 }}
+                  className="absolute top-3 right-3 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30
+                             backdrop-blur border border-white/40 flex items-center justify-center
+                             text-white shadow-lg transition-colors z-10"
+                >
+                  <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor"
+                       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="5" r="1.6" />
+                    <path d="M12 6.6c0 1.4 .8 1.4 .8 2.2 0 .5-.4.8-.8 1.1" />
+                    <path d="M5 16 12 9.9 19 16" />
+                    <path d="M4.4 16.6h15.2" />
+                  </svg>
+                </motion.button>
+              )}
             </div>
 
             {/* Avatar — pure display; editing happens in the avatar
