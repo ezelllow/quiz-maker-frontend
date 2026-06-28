@@ -81,9 +81,45 @@ const SEAB_COMBINED_ORDER = [
   { n: 16, test: /radioactiv/i },
 ]
 
+// Normal (Academic) Science Physics — SEAB 5105/06/07 (13 topics, in order).
+// Like Combined G3 but WITHOUT Turning Effect of Forces, Light, and Magnetism
+// & Electromagnetism.
+const SEAB_NA_ORDER = [
+  { n: 1,  test: /physical quantit|measurement/i },
+  { n: 2,  test: /kinematic/i },
+  { n: 3,  test: /force.*pressure|^pressure\b/i },
+  { n: 4,  test: /^dynamic|mass.*weight.*densit|^density/i },
+  { n: 5,  test: /^energy\b|work,?\s*energy/i },
+  { n: 6,  test: /kinetic.*(particle|model)|particle.*model/i },
+  { n: 7,  test: /thermal/i },
+  { n: 8,  test: /general.*wave|properties of waves|wave propert|^waves\b|^sound\b/i },
+  { n: 9,  test: /electromagnetic spectrum|em spectrum/i },
+  { n: 10, test: /electric charge|static electric|current.*electric/i },
+  { n: 11, test: /d\.?\s*c\.?\s*circuit/i },
+  { n: 12, test: /practical electric/i },
+  { n: 13, test: /radioactiv/i },
+]
+
+// Normal (Technical) Science — SEAB 5148 physics strand (4 topics, in order).
+// Coarse topics: Energy, Electricity, Wave, Effects of Force. Regexes are
+// lenient so canonicalised names (e.g. "General Wave Properties") still match.
+const SEAB_NT_ORDER = [
+  { n: 1, test: /energy/i },
+  { n: 2, test: /electric/i },
+  { n: 3, test: /wave/i },
+  { n: 4, test: /effect.*force|^force|dynamic/i },
+]
+
 // Returns the syllabus map for the given physics level.
+//   pure        -> 6091 Pure (20)
+//   combinedG2  -> 5105/06/07 Normal (Academic) (13)
+//   combinedG1  -> 5148 Normal (Technical) physics (4)
+//   else (G3)   -> 5086/87/88 Combined (16)
 function syllabusFor(levelCat) {
-  return levelCat === 'combined' ? SEAB_COMBINED_ORDER : SEAB_6091_ORDER
+  if (levelCat === 'combinedG2') return SEAB_NA_ORDER
+  if (levelCat === 'combinedG1') return SEAB_NT_ORDER
+  if (levelCat && levelCat !== 'pure') return SEAB_COMBINED_ORDER
+  return SEAB_6091_ORDER
 }
 
 // Position in the syllabus (1..N), or null if not in the syllabus.
@@ -249,7 +285,7 @@ function QImage({ src, alt, className = '' }) {
   )
 }
 
-export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mode = 'daily', initialSubject, onBackToHub,
+export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mode = 'daily', initialSubject, initialLevel, levelLabel, onBackToHub,
   onProgressionChange, onGemsChange, onFreezesChange, onQuizActiveChange }) {
   const isPractice = mode === 'practice'
   const token = authToken || localStorage.getItem('auth_token')
@@ -262,7 +298,9 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
   const [selectedDifficulty, setSelectedDifficulty] = useState('Medium')
   const [questionCount, setQuestionCount]         = useState(10)
   const [quizName, setQuizName]                   = useState('')
-  const [levelCat, setLevelCat]                   = useState('pure')  // 'pure' | 'combined'
+  // Level is chosen on the Subjects page (Pure / Combined G1-G3) and passed in;
+  // it's fixed for the lifetime of this builder. 'pure' | 'combinedG1/2/3'.
+  const [levelCat, setLevelCat]                   = useState(initialLevel || 'pure')
   const [availability, setAvailability]           = useState({})      // { topic: { easy:N, medium:N, hard:N } }
   const [snapKey, setSnapKey]                     = useState(null)    // diff key just auto-snapped to
 
@@ -291,6 +329,10 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
 
   useEffect(() => { fetchFilters() }, [])
   useEffect(() => { if (retakeAttempt) loadRetakeQuiz() }, [retakeAttempt])
+  // Subject (and therefore level) chosen on the Subjects page — sync it in.
+  useEffect(() => {
+    if (initialLevel) { setLevelCat(initialLevel); setSelectedSubtopics([]) }
+  }, [initialLevel])
 
   // Daily-lock check: read did_today from /api/streak so we can short-circuit
   // entry into the build form once the user has already hit today's goal.
@@ -425,7 +467,10 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
-          subject:    selectedSubject || 'Physics',
+          // No subject filter — the level (pure / combinedG1-3) fully isolates
+          // the question pool, and some combined rows have a blank Subject cell
+          // that a 'Physics' filter would wrongly drop.
+          subject:    null,
           difficulty: selectedDifficulty || null,
           subtopics:  topics.length > 0 ? topics : null,
           subtopic:   topics[0] || null,
@@ -629,45 +674,63 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
         )}
 
         <form onSubmit={handleCreateQuiz} className="space-y-6">
-          {/* First filter — Pure / Combined Physics. Drives the topics list.
-              Rendered as a 2-button picker (was a <select>) so it matches the
-              tap-to-pick style used by Difficulty + Question count + Topics.
-              Clearing selectedSubtopics on level change keeps the picker
-              honest — a Pure-only topic shouldn't survive a switch to Combined
-              and vice-versa, since the syllabus filter would just hide it. */}
+          {/* Level / subject. In practice mode it's fixed by the Subjects-page
+              choice (read-only banner). In daily mode the user picks here. The
+              topics list below is driven by it (Pure -> 20-topic syllabus, the
+              Combined tiers -> the 16-topic Combined syllabus). */}
           <div>
-            <div className="text-xs font-black uppercase tracking-widest text-quiz-muted mb-2 px-1">Physics level</div>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { id: 'pure',     emoji: '🧪', label: 'Pure Physics',     sub: 'SEAB 6091 · 20 topics' },
-                { id: 'combined', emoji: '⚛️', label: 'Combined Physics', sub: 'SEAB 5086/87/88 · 16 topics' },
-              ].map((lvl) => {
-                const active = levelCat === lvl.id
-                return (
+            <div className="text-xs font-black uppercase tracking-widest text-quiz-muted mb-2 px-1">Subject</div>
+            {initialLevel ? (
+              <div className="flex items-center gap-3 p-3 rounded-2xl border-2 border-quiz-blue/40 bg-quiz-blue/10">
+                <div className="text-2xl leading-none">{levelCat === 'pure' ? '🧪' : '⚛️'}</div>
+                <div className="min-w-0">
+                  <div className="text-sm font-black leading-tight">{levelLabel || (levelCat === 'pure' ? 'Pure Physics' : 'Combined Physics')}</div>
+                  <div className="text-[10px] font-bold text-quiz-muted mt-0.5 normal-case tracking-normal">
+                    {levelCat === 'pure' ? 'SEAB 6091 · 20 topics' : 'Combined Science · 16 topics'}
+                  </div>
+                </div>
+                {onBackToHub && (
                   <button
-                    key={lvl.id}
                     type="button"
-                    onClick={() => {
-                      if (levelCat === lvl.id) return
-                      setLevelCat(lvl.id)
-                      setSelectedSubtopics([])
-                    }}
-                    className={
-                      'p-3 rounded-2xl border-2 font-black transition-all text-center ' +
-                      (active
-                        ? 'border-quiz-blue bg-quiz-blue/15 text-quiz-orange-deep shadow-lg scale-[1.02]'
-                        : 'border-quiz-border bg-white text-quiz-text hover:border-quiz-blue/60 hover:bg-gray-50')
-                    }
+                    onClick={onBackToHub}
+                    className="ml-auto text-[11px] font-black text-quiz-blue hover:underline shrink-0"
                   >
-                    <div className="text-2xl leading-none mb-1">{lvl.emoji}</div>
-                    <div className="text-sm leading-tight">{lvl.label}</div>
-                    <div className="text-[10px] font-bold text-quiz-muted mt-0.5 normal-case tracking-normal">
-                      {lvl.sub}
-                    </div>
+                    Change
                   </button>
-                )
-              })}
-            </div>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { id: 'pure',       emoji: '🧪', label: 'Pure Physics' },
+                  { id: 'combinedG3', emoji: '⚛️', label: 'Combined G3' },
+                  { id: 'combinedG2', emoji: '🔬', label: 'Combined G2' },
+                  { id: 'combinedG1', emoji: '🧲', label: 'G1 Science' },
+                ].map((lvl) => {
+                  const active = levelCat === lvl.id
+                  return (
+                    <button
+                      key={lvl.id}
+                      type="button"
+                      onClick={() => {
+                        if (levelCat === lvl.id) return
+                        setLevelCat(lvl.id)
+                        setSelectedSubtopics([])
+                      }}
+                      className={
+                        'p-3 rounded-2xl border-2 font-black transition-all text-center ' +
+                        (active
+                          ? 'border-quiz-blue bg-quiz-blue/15 text-quiz-orange-deep shadow-lg scale-[1.02]'
+                          : 'border-quiz-border bg-white text-quiz-text hover:border-quiz-blue/60 hover:bg-gray-50')
+                      }
+                    >
+                      <div className="text-2xl leading-none mb-1">{lvl.emoji}</div>
+                      <div className="text-sm leading-tight">{lvl.label}</div>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
           </div>
 
           {/* Topics — collapsible numbered checkbox list ordered by SEAB

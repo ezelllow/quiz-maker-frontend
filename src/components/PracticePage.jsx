@@ -50,7 +50,9 @@ export default function PracticePage({ authToken, onProgressionChange, onGemsCha
       retakeAttempt={retakeAttempt}
       onRetakeClear={() => setRetakeAttempt(null)}
       mode="practice"
-      initialSubject={subject || 'Physics'}
+      initialSubject="Physics"
+      initialLevel={subject?.levelKey || 'pure'}
+      levelLabel={subject?.label || 'Pure Physics'}
       onBackToHub={goHub}
       onProgressionChange={onProgressionChange}
       onGemsChange={onGemsChange}
@@ -64,35 +66,39 @@ export default function PracticePage({ authToken, onProgressionChange, onGemsCha
 function SubjectPicker({ onPick }) {
   // Static for now — matches what /api/subjects currently returns. Easy swap
   // to a fetched list if subjects becomes data-driven.
+  // Each physics level is its own subject. levelKey is the value sent to the
+  // backend (/api/subtopics?level=…, quiz `level`). Pure → 20-topic syllabus;
+  // the three Combined tiers (G1/G2/G3) → the 16-topic Combined syllabus.
   const subjects = [
     {
-      id: 'Physics',
-      emoji: '⚛️',
-      label: 'Physics',
-      level: 'O-Level',
-      color: '#38bdf8',
-      tint: 'from-quiz-blue/15 to-quiz-cyan/5',
-      tone: 'blue',
-      active: true,
-      tagline: 'Forces, energy, electricity & more',
+      id: 'pure', emoji: '🧪', label: 'Pure Physics', levelKey: 'pure',
+      color: '#3F8AC2', tone: 'blue', active: true, tagline: 'SEAB 6091 · 20 topics',
     },
     {
-      id: 'Math',
-      emoji: '➗',
-      label: 'Math',
-      level: 'O-Level',
-      color: '#c084fc',
-      tint: 'from-quiz-purple/15 to-quiz-magenta/5',
-      tone: 'purple',
-      active: false,
-      tagline: 'Coming soon',
+      id: 'combinedG3', emoji: '⚛️', label: 'Combined Physics G3', levelKey: 'combinedG3',
+      color: '#5BB98C', tone: 'green', active: true, tagline: 'Combined Science · 16 topics',
+    },
+    {
+      id: 'combinedG2', emoji: '🔬', label: 'Combined Physics G2', levelKey: 'combinedG2',
+      color: '#C9A24B', tone: 'gold', active: true, tagline: 'Combined Science · 16 topics',
+    },
+    {
+      id: 'combinedG1', emoji: '🧲', label: 'G1 Science', levelKey: 'combinedG1',
+      color: '#D9534F', tone: 'red', active: true, tagline: 'Normal Technical · 4 topics',
+    },
+    {
+      id: 'Math', emoji: '➗', label: 'Math', levelKey: null,
+      color: '#7C4EA8', tone: 'purple', active: false, tagline: 'Coming soon',
     },
   ]
 
+  const physics = subjects.filter((s) => s.active)
+  const comingSoon = subjects.filter((s) => !s.active)
+
   return (
     <Screen width="default">
-      <Stagger delay={0.04} step={0.08}>
-        {/* Header — same eyebrow + heading + tagline as before */}
+      <Stagger delay={0.04} step={0.06}>
+        {/* Header */}
         <StaggerItem>
           <header className="mb-6 pt-2">
             <SectionLabel>Practice</SectionLabel>
@@ -101,22 +107,49 @@ function SubjectPicker({ onPick }) {
           </header>
         </StaggerItem>
 
-        {/* Subject cards — branded TopicCards in a 2-column grid. Locked
-            subjects render dimmed and inert via a wrapper div. */}
-        <div className="grid grid-cols-2 gap-3">
-          {subjects.map((s) => (
-            <StaggerItem key={s.id}>
-              <div className={s.active ? '' : 'opacity-50 pointer-events-none'}>
+        {/* Physics — the four levels grouped under one heading, 2x2 grid */}
+        <StaggerItem>
+          <div className="flex items-baseline justify-between mb-3 px-1">
+            <SectionLabel>Physics</SectionLabel>
+            <span className="text-[10px] font-black uppercase tracking-wider text-quiz-muted">4 levels</span>
+          </div>
+        </StaggerItem>
+        <div className="grid grid-cols-2 gap-3 mb-7 auto-rows-fr">
+          {physics.map((s) => (
+            <StaggerItem key={s.id} className="h-full">
+              <TopicCard
+                icon={s.emoji}
+                label={s.label}
+                hint={s.tagline}
+                tone={s.tone}
+                onClick={() => onPick(s)}
+                className="h-full justify-center"
+              />
+            </StaggerItem>
+          ))}
+        </div>
+
+        {/* Coming soon — locked subjects, visually separated with a small badge */}
+        <StaggerItem>
+          <SectionLabel className="mb-3 px-1">Coming soon</SectionLabel>
+        </StaggerItem>
+        <div className="grid grid-cols-2 gap-3 auto-rows-fr">
+          {comingSoon.map((s) => (
+            <StaggerItem key={s.id} className="h-full">
+              <div className="relative h-full opacity-55 pointer-events-none select-none">
                 <TopicCard
                   icon={s.emoji}
                   label={s.label}
-                  hint={`${s.level} · ${s.tagline}`}
+                  hint={s.tagline}
                   tone={s.tone}
-                  onClick={s.active ? () => onPick(s.id) : undefined}
+                  className="h-full justify-center"
                 />
-                {!s.active && (
-                  <div className="text-center text-xs font-bold text-quiz-muted mt-1">🔒 Locked</div>
-                )}
+                <span
+                  className="absolute top-2 right-2 text-[9px] font-black uppercase tracking-wider text-quiz-muted rounded-full px-2 py-0.5 border border-quiz-border"
+                  style={{ background: 'var(--quiz-card-solid)' }}
+                >
+                  🔒 Soon
+                </span>
               </div>
             </StaggerItem>
           ))}
@@ -152,10 +185,8 @@ function SubjectHub({ authToken, subject, onBack, onCreateNew, onRetake }) {
     return () => { cancelled = true }
   }, [token, subject])
 
-  const subjectMeta = {
-    Physics: { emoji: '⚛️', color: '#38bdf8' },
-    Math:    { emoji: '➗', color: '#c084fc' },
-  }[subject] || { emoji: '📚', color: '#5DA9FF' }
+  const subjectMeta = { emoji: subject?.emoji || '📚', color: subject?.color || '#5DA9FF' }
+  const subjectName = subject?.label || 'Physics'
 
   // Difficulty → Badge tone for the metadata chips.
   const diffTone = (d) => {
@@ -199,7 +230,7 @@ function SubjectHub({ authToken, subject, onBack, onCreateNew, onRetake }) {
             </motion.div>
             <div className="min-w-0">
               <SectionLabel>Practice</SectionLabel>
-              <h1 className="!text-3xl !font-black tracking-tight">{subject}</h1>
+              <h1 className="!text-3xl !font-black tracking-tight">{subjectName}</h1>
             </div>
           </header>
         </StaggerItem>
@@ -255,7 +286,7 @@ function SubjectHub({ authToken, subject, onBack, onCreateNew, onRetake }) {
           <StaggerItem>
             <EmptyState
               icon="📝"
-              body={`No saved ${subject} quizzes yet. Tap "Create new quiz" to start.`}
+              body={`No saved ${subjectName} quizzes yet. Tap "Create new quiz" to start.`}
             />
           </StaggerItem>
         )}
