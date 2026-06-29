@@ -100,26 +100,42 @@ const SEAB_NA_ORDER = [
   { n: 13, test: /radioactiv/i },
 ]
 
-// Normal (Technical) Science — SEAB 5148 physics strand (4 topics, in order).
-// Coarse topics: Energy, Electricity, Wave, Effects of Force. Regexes are
-// lenient so canonicalised names (e.g. "General Wave Properties") still match.
+// Normal (Technical) Science — SEAB 5148 full syllabus (11 topics, in order):
+// Physics (Machines Around Us), Chemistry (Food Matters), Biology (Our Body
+// and Health). Regexes are lenient so canonicalised names still match.
 const SEAB_NT_ORDER = [
-  { n: 1, test: /energy/i },
-  { n: 2, test: /electric/i },
-  { n: 3, test: /wave/i },
-  { n: 4, test: /effect.*force|^force|dynamic/i },
+  { n: 1,  test: /energy/i },
+  { n: 2,  test: /electric/i },
+  { n: 3,  test: /wave/i },
+  { n: 4,  test: /effect.*force|^force|dynamic/i },
+  { n: 5,  test: /sources? of food/i },
+  { n: 6,  test: /food chemistry/i },
+  { n: 7,  test: /food safety/i },
+  { n: 8,  test: /staying healthy|healthy/i },
+  { n: 9,  test: /digestion|digestive/i },
+  { n: 10, test: /breathing|respiration/i },
+  { n: 11, test: /blood circulation|circulation/i },
 ]
 
 // Returns the syllabus map for the given physics level.
 //   pure        -> 6091 Pure (20)
 //   combinedG2  -> 5105/06/07 Normal (Academic) (13)
-//   combinedG1  -> 5148 Normal (Technical) physics (4)
+//   combinedG1  -> 5148 Normal (Technical) Science (11: Phys+Chem+Bio)
 //   else (G3)   -> 5086/87/88 Combined (16)
 function syllabusFor(levelCat) {
   if (levelCat === 'combinedG2') return SEAB_NA_ORDER
   if (levelCat === 'combinedG1') return SEAB_NT_ORDER
   if (levelCat && levelCat !== 'pure') return SEAB_COMBINED_ORDER
   return SEAB_6091_ORDER
+}
+
+// Short syllabus descriptor per level, shown under the subject name in the
+// read-only banner.
+const LEVEL_SUBTITLE = {
+  pure:       'Pure · 20 topics',
+  combinedG3: 'Combined · 16 topics',
+  combinedG2: 'Combined · 13 topics',
+  combinedG1: 'Science · 11 topics',
 }
 
 // Position in the syllabus (1..N), or null if not in the syllabus.
@@ -686,7 +702,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                 <div className="min-w-0">
                   <div className="text-sm font-black leading-tight">{levelLabel || (levelCat === 'pure' ? 'Pure Physics' : 'Combined Physics')}</div>
                   <div className="text-[10px] font-bold text-quiz-muted mt-0.5 normal-case tracking-normal">
-                    {levelCat === 'pure' ? 'SEAB 6091 · 20 topics' : 'Combined Science · 16 topics'}
+                    {LEVEL_SUBTITLE[levelCat] || 'Science'}
                   </div>
                 </div>
                 {onBackToHub && (
@@ -789,19 +805,23 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                   .sort((a, b) => a.n - b.n)
                   .map(({ sub, n }) => {
                     const isSelected = topicsSelected.includes(sub)
+                    const av = availability[sub]
+                    const isEmpty = !av || ((av.easy || 0) + (av.medium || 0) + (av.hard || 0)) === 0
                     const isMaxed = !isSelected && topicCount >= MAX_TOPICS
+                    const disabled = isMaxed || isEmpty
                     return (
                       <button
                         key={sub}
                         type="button"
-                        disabled={isMaxed}
+                        disabled={disabled}
                         onClick={() => toggleTopic(sub)}
+                        title={isEmpty ? 'No questions yet' : undefined}
                         className={
                           'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border-2 transition-colors text-left ' +
                           (isSelected
                             ? 'border-quiz-blue bg-quiz-blue/15'
                             : 'border-quiz-border bg-white hover:border-quiz-blue/60') +
-                          (isMaxed ? ' opacity-40 cursor-not-allowed' : '')
+                          (disabled ? ' opacity-40 cursor-not-allowed' : '')
                         }
                       >
                         {/* Checkbox */}
@@ -822,6 +842,9 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                         <span className="font-bold text-sm flex-1 leading-tight">
                           {sub}
                         </span>
+                        {isEmpty && (
+                          <span className="shrink-0 text-[9px] font-black uppercase tracking-wider text-quiz-muted">Soon</span>
+                        )}
                       </button>
                     )
                   })}

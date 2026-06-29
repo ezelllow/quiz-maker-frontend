@@ -72,19 +72,19 @@ function SubjectPicker({ onPick }) {
   const subjects = [
     {
       id: 'pure', emoji: '🧪', label: 'Pure Physics', levelKey: 'pure',
-      color: '#3F8AC2', tone: 'blue', active: true, tagline: 'SEAB 6091 · 20 topics',
+      color: '#3F8AC2', tone: 'blue', active: true, tagline: 'Pure · 20 topics',
     },
     {
       id: 'combinedG3', emoji: '⚛️', label: 'Combined Physics G3', levelKey: 'combinedG3',
-      color: '#5BB98C', tone: 'green', active: true, tagline: 'Combined Science · 16 topics',
+      color: '#5BB98C', tone: 'green', active: true, tagline: 'Combined · 16 topics',
     },
     {
       id: 'combinedG2', emoji: '🔬', label: 'Combined Physics G2', levelKey: 'combinedG2',
-      color: '#C9A24B', tone: 'gold', active: true, tagline: 'Combined Science · 16 topics',
+      color: '#C9A24B', tone: 'gold', active: true, tagline: 'Combined · 13 topics',
     },
     {
       id: 'combinedG1', emoji: '🧲', label: 'G1 Science', levelKey: 'combinedG1',
-      color: '#D9534F', tone: 'red', active: true, tagline: 'Normal Technical · 4 topics',
+      color: '#D9534F', tone: 'red', active: true, tagline: 'Science · 11 topics',
     },
     {
       id: 'Math', emoji: '➗', label: 'Math', levelKey: null,
@@ -110,20 +110,20 @@ function SubjectPicker({ onPick }) {
         {/* Physics — the four levels grouped under one heading, 2x2 grid */}
         <StaggerItem>
           <div className="flex items-baseline justify-between mb-3 px-1">
-            <SectionLabel>Physics</SectionLabel>
-            <span className="text-[10px] font-black uppercase tracking-wider text-quiz-muted">4 levels</span>
+            <SectionLabel>Subjects</SectionLabel>
+            <span className="text-[10px] font-black uppercase tracking-wider text-quiz-muted">4 available</span>
           </div>
         </StaggerItem>
-        <div className="grid grid-cols-2 gap-3 mb-7 auto-rows-fr">
+        <div className="grid grid-cols-2 gap-3 mb-7">
           {physics.map((s) => (
-            <StaggerItem key={s.id} className="h-full">
+            <StaggerItem key={s.id}>
               <TopicCard
                 icon={s.emoji}
                 label={s.label}
                 hint={s.tagline}
                 tone={s.tone}
                 onClick={() => onPick(s)}
-                className="h-full justify-center"
+                className="h-44 justify-center"
               />
             </StaggerItem>
           ))}
@@ -133,16 +133,16 @@ function SubjectPicker({ onPick }) {
         <StaggerItem>
           <SectionLabel className="mb-3 px-1">Coming soon</SectionLabel>
         </StaggerItem>
-        <div className="grid grid-cols-2 gap-3 auto-rows-fr">
+        <div className="grid grid-cols-2 gap-3">
           {comingSoon.map((s) => (
-            <StaggerItem key={s.id} className="h-full">
-              <div className="relative h-full opacity-55 pointer-events-none select-none">
+            <StaggerItem key={s.id}>
+              <div className="relative opacity-55 pointer-events-none select-none">
                 <TopicCard
                   icon={s.emoji}
                   label={s.label}
                   hint={s.tagline}
                   tone={s.tone}
-                  className="h-full justify-center"
+                  className="h-44 justify-center"
                 />
                 <span
                   className="absolute top-2 right-2 text-[9px] font-black uppercase tracking-wider text-quiz-muted rounded-full px-2 py-0.5 border border-quiz-border"
