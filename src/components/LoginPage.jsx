@@ -7,7 +7,7 @@ import Button3d from './ui/Button3d'
 // LoginPage — QuizQuest-styled rebuild (pilot screen for the redesign).
 // Functionality unchanged: same /api/auth/login + /api/auth/google calls,
 // same localStorage writes, same onLoginSuccess callback.
-export default function LoginPage({ onLoginSuccess }) {
+export default function LoginPage({ onLoginSuccess, notice }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -89,6 +89,11 @@ export default function LoginPage({ onLoginSuccess }) {
         </div>
 
         <Card variant="solid" className="!p-6 sm:!p-8 space-y-5">
+          {notice && !error && (
+            <div className="rounded-2xl border-2 border-quiz-blue/40 bg-quiz-blue/10 text-quiz-blue px-4 py-3 text-sm font-semibold">
+              {notice}
+            </div>
+          )}
           {error && (
             <div className="rounded-2xl border-2 border-quiz-red/50 bg-quiz-red/15 text-quiz-red px-4 py-3 text-sm font-semibold">
               {error}

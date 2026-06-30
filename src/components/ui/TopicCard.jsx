@@ -28,6 +28,7 @@ export default function TopicCard({
   onClick,              // optional: makes the card a button
   active = false,       // when true, render with a stronger ring
   className = '',
+  style,                // optional inline style (e.g. fixed height)
 }) {
   const t = TONES[tone] || TONES.gold
   const Tag = onClick ? 'button' : 'div'
@@ -44,7 +45,7 @@ export default function TopicCard({
           : 'border border-quiz-border ') +
         className
       }
-      style={active ? { borderColor: t.fg } : undefined}
+      style={{ ...(active ? { borderColor: t.fg } : {}), ...style }}
       type={onClick ? 'button' : undefined}
     >
       {/* Icon disc */}

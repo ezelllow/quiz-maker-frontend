@@ -123,7 +123,8 @@ function SubjectPicker({ onPick }) {
                 hint={s.tagline}
                 tone={s.tone}
                 onClick={() => onPick(s)}
-                className="h-44 justify-center"
+                className="justify-center w-full"
+                style={{ height: '11.5rem' }}
               />
             </StaggerItem>
           ))}
@@ -142,7 +143,8 @@ function SubjectPicker({ onPick }) {
                   label={s.label}
                   hint={s.tagline}
                   tone={s.tone}
-                  className="h-44 justify-center"
+                  className="justify-center w-full"
+                  style={{ height: '11.5rem' }}
                 />
                 <span
                   className="absolute top-2 right-2 text-[9px] font-black uppercase tracking-wider text-quiz-muted rounded-full px-2 py-0.5 border border-quiz-border"

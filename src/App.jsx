@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react'
+import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Layout from './components/Layout'
 import StreakCelebration from './components/StreakCelebration'
@@ -30,6 +30,11 @@ const TeacherAttemptReview = lazy(() => import('./components/TeacherAttemptRevie
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
+// Auto-logout after this much inactivity so a stale session can't leave the
+// app in a broken, half-authenticated state. Any interaction resets the timer.
+const INACTIVITY_LIMIT_MS = 4 * 60 * 60 * 1000  // 4 hours
+const ACTIVITY_KEY = 'last_activity'
+
 // Lightweight fallback shown while a route chunk is being fetched.
 function PageFallback() {
   return (
@@ -46,6 +51,7 @@ function App() {
   const [isSignup, setIsSignup] = useState(false)
   const [loading, setLoading] = useState(true)
   const [retakeAttempt, setRetakeAttempt] = useState(null)
+  const [sessionNotice, setSessionNotice] = useState(null)  // shown on login screen after an auto-logout
   // null = not checked yet, true = must take placement, false = already placed
   const [needsPlacement, setNeedsPlacement] = useState(null)
   // When a teacher clicks 'View as student' in the teacher dashboard, we
@@ -68,6 +74,20 @@ function App() {
   // here and show a styled Modal (replaces the old window.confirm prompt).
   // Same trigger, same wording, same outcome — just animated.
   const [pendingNav, setPendingNav] = useState(null)
+
+  // Single place that tears the session down and routes back to login, with an
+  // optional reason (inactivity / expired token). Stable so the listener
+  // effects below don't re-subscribe on every render.
+  const forceLogout = useCallback((reason) => {
+    localStorage.removeItem('auth_token')
+    localStorage.removeItem('user')
+    localStorage.removeItem(ACTIVITY_KEY)
+    setIsAuthenticated(false)
+    setUser(null)
+    setCurrentPage('login')
+    setNeedsPlacement(null)
+    if (reason) setSessionNotice(reason)
+  }, [])
 
   // Check whether the user has done their placement quiz yet.
   const checkPlacement = async (token) => {
@@ -109,21 +129,83 @@ function App() {
     }
 
     if (token && savedUser) {
-      try {
-        const userData = JSON.parse(savedUser)
-        setIsAuthenticated(true)
-        setUser(userData)
-        setCurrentPage('home')
-        checkPlacement(token)
-      } catch (err) {
-        console.error('Error parsing saved user:', err)
+      const last = parseInt(localStorage.getItem(ACTIVITY_KEY) || '0', 10)
+      if (last && Date.now() - last > INACTIVITY_LIMIT_MS) {
+        // Session went stale while away — require a fresh login.
         localStorage.removeItem('auth_token')
         localStorage.removeItem('user')
+        localStorage.removeItem(ACTIVITY_KEY)
+        setSessionNotice('You were logged out after 4 hours of inactivity. Please log in again.')
+      } else {
+        try {
+          const userData = JSON.parse(savedUser)
+          setIsAuthenticated(true)
+          setUser(userData)
+          setCurrentPage('home')
+          localStorage.setItem(ACTIVITY_KEY, String(Date.now()))
+          checkPlacement(token)
+        } catch (err) {
+          console.error('Error parsing saved user:', err)
+          localStorage.removeItem('auth_token')
+          localStorage.removeItem('user')
+        }
       }
     }
 
     setLoading(false)
   }, [])
+
+  // ── Inactivity auto-logout (4h) ───────────────────────────────────────
+  // Logs the user out after INACTIVITY_LIMIT_MS with no interaction. The last
+  // activity time is persisted, so the timer also covers closed tabs / reloads.
+  useEffect(() => {
+    if (!isAuthenticated) return
+    let lastWrite = 0
+    const record = () => {
+      const now = Date.now()
+      if (now - lastWrite > 30000) { lastWrite = now; localStorage.setItem(ACTIVITY_KEY, String(now)) }
+    }
+    const check = () => {
+      const last = parseInt(localStorage.getItem(ACTIVITY_KEY) || '0', 10)
+      if (last && Date.now() - last > INACTIVITY_LIMIT_MS) {
+        forceLogout('You were logged out after 4 hours of inactivity. Please log in again.')
+      }
+    }
+    localStorage.setItem(ACTIVITY_KEY, String(Date.now()))  // fresh start on entry
+    const evts = ['mousedown', 'keydown', 'touchstart', 'scroll', 'click']
+    evts.forEach((e) => window.addEventListener(e, record, { passive: true }))
+    const onVisible = () => { if (document.visibilityState === 'visible') check() }
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('focus', check)
+    const timer = setInterval(check, 60000)
+    return () => {
+      evts.forEach((e) => window.removeEventListener(e, record))
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('focus', check)
+      clearInterval(timer)
+    }
+  }, [isAuthenticated, forceLogout])
+
+  // ── Global 401 handler ────────────────────────────────────────────────
+  // If any authenticated API call returns 401 (token expired / invalid), tear
+  // the session down cleanly instead of letting the app half-work.
+  useEffect(() => {
+    const orig = window.fetch
+    window.fetch = async (...args) => {
+      const res = await orig(...args)
+      try {
+        if (res && res.status === 401 && localStorage.getItem('auth_token')) {
+          const a0 = args[0]
+          const url = typeof a0 === 'string' ? a0 : (a0 && a0.url) || ''
+          if (url.includes(API_BASE_URL)) {
+            forceLogout('Your session expired. Please log in again.')
+          }
+        }
+      } catch (_) { /* never let the interceptor break a request */ }
+      return res
+    }
+    return () => { window.fetch = orig }
+  }, [forceLogout])
 
   // Freeze-reminder check: when the user lands in the app and a freeze was used
   // this calendar week (and we haven't already shown the reminder for that event),
@@ -167,6 +249,8 @@ function App() {
   }, [user])
 
   const handleLoginSuccess = (token, userData) => {
+    setSessionNotice(null)
+    localStorage.setItem(ACTIVITY_KEY, String(Date.now()))
     setIsAuthenticated(true)
     setUser(userData)
     setCurrentPage('home')
@@ -175,6 +259,8 @@ function App() {
   }
 
   const handleSignupSuccess = (token, userData) => {
+    setSessionNotice(null)
+    localStorage.setItem(ACTIVITY_KEY, String(Date.now()))
     setIsAuthenticated(true)
     setUser(userData)
     setCurrentPage('home')
@@ -367,7 +453,7 @@ function App() {
       ) : isSignup ? (
         <SignupPage onSignupSuccess={handleSignupSuccess} />
       ) : (
-        <LoginPage onLoginSuccess={handleLoginSuccess} />
+        <LoginPage onLoginSuccess={handleLoginSuccess} notice={sessionNotice} />
       )}
     </div>
   )
