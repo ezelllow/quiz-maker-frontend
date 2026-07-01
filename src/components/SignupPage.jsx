@@ -10,6 +10,9 @@ export default function SignupPage({ onSignupSuccess }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [school, setSchool] = useState('')
+  const [studentClass, setStudentClass] = useState('')
+  const [teacher, setTeacher] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [showPw, setShowPw] = useState(false)
@@ -24,6 +27,9 @@ export default function SignupPage({ onSignupSuccess }) {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))       return 'Please enter a valid email'
     if (password.length < 6)                             return 'Password must be at least 6 characters'
     if (password !== confirmPassword)                    return 'Passwords do not match'
+    if (!school)                                         return 'Please select your school'
+    if (!studentClass.trim())                            return 'Please enter your class'
+    if (!teacher)                                        return 'Please select your teacher'
     return null
   }
 
@@ -37,7 +43,7 @@ export default function SignupPage({ onSignupSuccess }) {
       const res = await fetch(`${API_BASE_URL}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), email: email.trim(), password }),
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), password, school, student_class: studentClass.trim(), teacher }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.detail || 'Signup failed')
@@ -117,6 +123,38 @@ export default function SignupPage({ onSignupSuccess }) {
                 placeholder="your.email@example.com" required disabled={loading}
                 className={inputCls}
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-quiz-muted mb-1.5">School</label>
+              <select
+                value={school} onChange={(e) => setSchool(e.target.value)}
+                required disabled={loading} className={inputCls}
+              >
+                <option value="">Select your school</option>
+                <option value="ESSS">ESSS</option>
+                <option value="BGSS">BGSS</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-quiz-muted mb-1.5">Class</label>
+              <input
+                type="text" value={studentClass} onChange={(e) => setStudentClass(e.target.value)}
+                placeholder="e.g. 3E1" required disabled={loading}
+                className={inputCls}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-quiz-muted mb-1.5">Teacher</label>
+              <select
+                value={teacher} onChange={(e) => setTeacher(e.target.value)}
+                required disabled={loading} className={inputCls}
+              >
+                <option value="">Select your teacher</option>
+                <option value="Mr Lloyd Goh">Mr Lloyd Goh</option>
+              </select>
             </div>
 
             <div>
