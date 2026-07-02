@@ -50,7 +50,7 @@ export default function CompleteProfile({ user, onComplete, onLogout }) {
       <Screen width="narrow">
         <div className="text-center mb-6">
           <img
-            src="/brand/ooka/mascot/ooka_mascot_4.png"
+            src="/brand/ooka/mascot/ooka_mascot_4.webp"
             alt="Ooka mascot"
             className="w-28 h-28 sm:w-36 sm:h-36 mx-auto object-contain"
           />

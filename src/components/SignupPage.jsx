@@ -88,7 +88,7 @@ export default function SignupPage({ onSignupSuccess }) {
       <Screen width="narrow">
         <div className="text-center mb-6">
           <img
-            src="/brand/ooka/mascot/ooka_mascot_4.png"
+            src="/brand/ooka/mascot/ooka_mascot_4.webp"
             alt="Ooka mascot"
             className="w-32 h-32 sm:w-40 sm:h-40 mx-auto object-contain"
           />

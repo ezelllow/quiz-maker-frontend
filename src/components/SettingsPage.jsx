@@ -159,7 +159,7 @@ export default function SettingsPage({ user, onUserUpdate, onLogout, onNavigate,
         <StaggerItem>
           <Card variant="solid" className="!p-5 text-center">
             <img
-              src="/brand/ooka/mascot/ooka_mascot_4.png"
+              src="/brand/ooka/mascot/ooka_mascot_4.webp"
               alt="Ooka mascot"
               className="w-24 h-24 mx-auto mb-1 object-contain"
             />

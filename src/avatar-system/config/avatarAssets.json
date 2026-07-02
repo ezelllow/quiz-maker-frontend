@@ -7,8 +7,8 @@
       "slot": "skin",
       "format": "png",
       "src": {
-        "full": "/brand/ooka/avatars/ai_base/skin_default_full.png",
-        "head": "/brand/ooka/avatars/ai_base/skin_default_head.png"
+        "full": "/brand/ooka/avatars/ai_base/skin_default_full.webp",
+        "head": "/brand/ooka/avatars/ai_base/skin_default_full.webp"
       },
       "nativeCanvas": {
         "full": {
@@ -37,8 +37,8 @@
       "slot": "skin",
       "format": "png",
       "src": {
-        "full": "/brand/ooka/avatars/ai_base/skin_tan_full.png",
-        "head": "/brand/ooka/avatars/ai_base/skin_tan_head.png"
+        "full": "/brand/ooka/avatars/ai_base/skin_tan_full.webp",
+        "head": "/brand/ooka/avatars/ai_base/skin_tan_full.webp"
       },
       "nativeCanvas": {
         "full": {
@@ -67,8 +67,8 @@
       "slot": "skin",
       "format": "png",
       "src": {
-        "full": "/brand/ooka/avatars/ai_base/skin_espresso_full.png",
-        "head": "/brand/ooka/avatars/ai_base/skin_espresso_head.png"
+        "full": "/brand/ooka/avatars/ai_base/skin_espresso_full.webp",
+        "head": "/brand/ooka/avatars/ai_base/skin_espresso_full.webp"
       },
       "nativeCanvas": {
         "full": {
@@ -97,8 +97,8 @@
       "slot": "skin",
       "format": "png",
       "src": {
-        "full": "/brand/ooka/avatars/ai_base/skin_grey_full.png",
-        "head": "/brand/ooka/avatars/ai_base/skin_grey_head.png"
+        "full": "/brand/ooka/avatars/ai_base/skin_grey_full.webp",
+        "head": "/brand/ooka/avatars/ai_base/skin_grey_full.webp"
       },
       "nativeCanvas": {
         "full": {
@@ -127,8 +127,8 @@
       "slot": "skin",
       "format": "png",
       "src": {
-        "full": "/brand/ooka/avatars/ai_base/skin_golden_full.png",
-        "head": "/brand/ooka/avatars/ai_base/skin_golden_head.png"
+        "full": "/brand/ooka/avatars/ai_base/skin_golden_full.webp",
+        "head": "/brand/ooka/avatars/ai_base/skin_golden_full.webp"
       },
       "nativeCanvas": {
         "full": {
@@ -157,8 +157,8 @@
       "slot": "skin",
       "format": "png",
       "src": {
-        "full": "/brand/ooka/avatars/ai_base/skin_cream_full.png",
-        "head": "/brand/ooka/avatars/ai_base/skin_cream_head.png"
+        "full": "/brand/ooka/avatars/ai_base/skin_cream_full.webp",
+        "head": "/brand/ooka/avatars/ai_base/skin_cream_full.webp"
       },
       "nativeCanvas": {
         "full": {

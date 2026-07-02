@@ -77,7 +77,7 @@ export default function LoginPage({ onLoginSuccess, notice }) {
           {/* Ooka mascot — wordmark + tagline rendered as text since the
               mascot PNG carries no baked-in wordmark. */}
           <img
-            src="/brand/ooka/mascot/ooka_mascot_4.png"
+            src="/brand/ooka/mascot/ooka_mascot_4.webp"
             alt="Ooka mascot"
             className="w-40 h-40 sm:w-48 sm:h-48 mx-auto object-contain"
           />

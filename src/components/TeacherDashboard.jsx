@@ -66,7 +66,7 @@ export default function TeacherDashboard({ authToken, user, onLogout, onViewAsSt
       >
         <div className="max-w-5xl mx-auto w-full flex items-center justify-between gap-3 px-4 py-2">
           <div className="flex items-center gap-2 font-black text-lg tracking-tight">
-            <img src="/brand/ooka/logos/ooka_logo_2.png" alt="Ooka" className="w-7 h-7 rounded-lg" />
+            <img src="/brand/ooka/logos/ooka_logo_2_sm.webp" alt="Ooka" className="w-7 h-7 rounded-lg" />
             <span className="bg-gradient-to-r from-quiz-blue to-quiz-purple bg-clip-text text-transparent">
               Ooka
             </span>

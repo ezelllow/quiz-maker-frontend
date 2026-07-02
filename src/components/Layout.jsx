@@ -116,7 +116,7 @@ export default function Layout({
             onClick={() => onNavigate('home')}
             className="flex items-center gap-2 font-black text-lg tracking-tight"
           >
-            <img src="/brand/ooka/mascot/ooka_mascot_4.png" alt="" className="w-10 h-10 object-contain" />
+            <img src="/brand/ooka/mascot/ooka_mascot_4.webp" alt="" className="w-10 h-10 object-contain" />
             <span className="font-black text-lg tracking-tight" style={{ color: 'var(--quiz-text)' }}>Ooka</span>
           </button>
 
