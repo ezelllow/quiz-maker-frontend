@@ -6,6 +6,8 @@ import Screen from './ui/Screen'
 import Card from './ui/Card'
 import Avatar from './ui/Avatar'
 import Button3d from './ui/Button3d'
+import Icon from './ui/Icon'
+import Skeleton from './ui/Skeleton'
 import { Stagger, StaggerItem } from './ui/Motion'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
@@ -56,11 +58,13 @@ export default function HomePage({ authToken, user, rank, progression, onNavigat
   const longestStreak = streak?.longest_streak ?? 0
   const freezes = streak?.freezes_available ?? 0
 
+  // Line icons (ui/Icon) instead of emojis; each card gets a tinted icon chip
+  // so the four shortcuts read as one set, matching the bottom-nav style.
   const quickActions = [
-    { id: 'quiz',      icon: '✏️', label: 'Practice',  sub: 'Pick topics & drill',  tint: 'from-quiz-green/20 to-quiz-blue/20  border-quiz-green/40' },
-    { id: 'dashboard', icon: '📊', label: 'Dashboard', sub: 'Your full stats',      tint: 'from-quiz-blue/20 to-quiz-purple/20 border-quiz-blue/40' },
-    { id: 'saved',     icon: '💾', label: 'Saved',     sub: 'Retake your quizzes',  tint: 'from-quiz-yellow/20 to-quiz-orange/20 border-quiz-yellow/40' },
-    { id: 'history',   icon: '📋', label: 'History',   sub: 'Review past attempts', tint: 'from-quiz-cyan/20 to-quiz-purple/20 border-quiz-cyan/40' },
+    { id: 'quiz',      icon: 'pencil',   label: 'Practice',  sub: 'Pick topics & drill',  tint: 'from-quiz-green/20 to-quiz-blue/20  border-quiz-green/40',  chip: 'text-quiz-green bg-quiz-green/15 border-quiz-green/40' },
+    { id: 'dashboard', icon: 'chart',    label: 'Dashboard', sub: 'Your full stats',      tint: 'from-quiz-blue/20 to-quiz-purple/20 border-quiz-blue/40',   chip: 'text-quiz-blue bg-quiz-blue/15 border-quiz-blue/40' },
+    { id: 'saved',     icon: 'bookmark', label: 'Saved',     sub: 'Retake your quizzes',  tint: 'from-quiz-yellow/20 to-quiz-orange/20 border-quiz-yellow/40', chip: 'text-quiz-orange bg-quiz-orange/15 border-quiz-orange/40' },
+    { id: 'history',   icon: 'history',  label: 'History',   sub: 'Review past attempts', tint: 'from-quiz-cyan/20 to-quiz-purple/20 border-quiz-cyan/40',   chip: 'text-quiz-cyan bg-quiz-cyan/15 border-quiz-cyan/40' },
   ]
 
   // Next-tier XP (folded into the Rank card instead of its own card).
@@ -92,8 +96,8 @@ export default function HomePage({ authToken, user, rank, progression, onNavigat
             </div>
           </div>
           <div className="flex gap-2 shrink-0">
-            <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-quiz-orange/15 border border-quiz-orange/40 font-black text-quiz-orange text-sm">
-              🔥 <span>{currentStreak}</span>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-quiz-orange/15 border border-quiz-orange/40 font-black text-quiz-orange text-sm">
+              <Icon name="flame" className="w-4 h-4" /> <span>{currentStreak}</span>
             </div>
           </div>
         </StaggerItem>
@@ -106,23 +110,40 @@ export default function HomePage({ authToken, user, rank, progression, onNavigat
               const correct = dailyProgress?.today_correct ?? 0
               const passed = dailyProgress?.passed_today ?? dailyDone
               const pct = Math.min(100, Math.round((correct / target) * 100))
+              const loading = dailyProgress === null && dailyDone === null
               return (
                 <>
                   <div className="flex items-center justify-between mb-2">
-                    <div>
+                    <div className="min-w-0">
                       <div className="text-[10px] font-black uppercase tracking-widest text-quiz-muted">
                         Today's Daily Challenge
                       </div>
-                      <div className="text-lg sm:text-xl font-black mt-0.5">
-                        {dailyProgress === null && dailyDone === null
-                          ? 'Loading…'
-                          : passed
-                          ? "Done for today ✓"
-                          : `${correct} / ${target} correct`}
-                      </div>
+                      {loading ? (
+                        <Skeleton width="w-32" height="h-6" className="mt-1.5" />
+                      ) : (
+                        <div className="text-lg sm:text-xl font-black mt-0.5 flex items-center gap-1.5">
+                          {passed ? (
+                            <>
+                              Done for today
+                              <Icon name="check" className="w-5 h-5 text-quiz-green" />
+                            </>
+                          ) : (
+                            `${correct} / ${target} correct`
+                          )}
+                        </div>
+                      )}
                     </div>
-                    <div className={'text-3xl sm:text-4xl ' + (passed ? '' : 'opacity-50')}>
-                      {passed ? '🏅' : '🎯'}
+                    {/* Icon chip — target while in progress, medal once passed.
+                        Tinted square matches the Jump In chips for one visual language. */}
+                    <div
+                      className={
+                        'w-11 h-11 sm:w-12 sm:h-12 rounded-2xl grid place-items-center border shrink-0 ' +
+                        (passed
+                          ? 'text-quiz-yellow bg-quiz-yellow/15 border-quiz-yellow/40'
+                          : 'text-quiz-orange bg-quiz-orange/10 border-quiz-orange/30')
+                      }
+                    >
+                      <Icon name={passed ? 'medal' : 'target'} className="w-6 h-6" />
                     </div>
                   </div>
                   {/* Daily-challenge progress — same ProgressBar primitive
@@ -147,11 +168,19 @@ export default function HomePage({ authToken, user, rank, progression, onNavigat
                     // daily challenge itself ('quiz' route, rewarded).
                     onClick={() => onNavigate(passed ? 'practice' : 'quiz')}
                   >
-                    {passed
-                      ? '✏️ Bonus Practice'
-                      : correct > 0
-                      ? `🔥 Keep going — ${target - correct} to go`
-                      : "🔥 Start today's challenge"}
+                    {passed ? (
+                      <>
+                        <Icon name="pencil" className="w-4 h-4" />
+                        Bonus Practice
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="flame" className="w-4 h-4" />
+                        {correct > 0
+                          ? `Keep going — ${target - correct} to go`
+                          : "Start today's challenge"}
+                      </>
+                    )}
                   </Button3d>
                 </>
               )
@@ -164,7 +193,10 @@ export default function HomePage({ authToken, user, rank, progression, onNavigat
           <Card variant="solid" className="!p-3 sm:!p-4">
             <div className="text-[10px] font-black uppercase tracking-widest text-quiz-muted">Streak</div>
             <div className="text-2xl sm:text-3xl font-black flex items-center gap-1.5 mt-0.5">
-              <span className={currentStreak > 0 ? '' : 'opacity-40'}>🔥</span>
+              <Icon
+                name="flame"
+                className={'w-6 h-6 sm:w-7 sm:h-7 text-quiz-orange ' + (currentStreak > 0 ? '' : 'opacity-40')}
+              />
               <span>{currentStreak}</span>
               <span className="text-sm sm:text-base font-bold text-quiz-muted">d</span>
             </div>
@@ -219,7 +251,7 @@ export default function HomePage({ authToken, user, rank, progression, onNavigat
               <div className="text-white">
                 <div className="text-[10px] font-black uppercase tracking-widest opacity-90">This week</div>
                 <div className="text-xl sm:text-2xl font-black">
-                  {currentStreak} day{currentStreak === 1 ? '' : 's'} 🚀
+                  {currentStreak} day{currentStreak === 1 ? '' : 's'}
                 </div>
               </div>
             </div>
@@ -242,7 +274,9 @@ export default function HomePage({ authToken, user, rank, progression, onNavigat
                 transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                 className={'qq-card-solid !p-3 text-left flex items-center gap-2.5 border-l-4 bg-gradient-to-br ' + a.tint}
               >
-                <div className="text-2xl shrink-0">{a.icon}</div>
+                <div className={'w-9 h-9 rounded-xl grid place-items-center border shrink-0 ' + a.chip}>
+                  <Icon name={a.icon} className="w-5 h-5" />
+                </div>
                 <div className="min-w-0">
                   <div className="font-black text-sm leading-tight truncate">{a.label}</div>
                   <div className="text-[10px] font-bold text-quiz-muted mt-0.5 truncate">{a.sub}</div>

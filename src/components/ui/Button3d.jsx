@@ -76,7 +76,11 @@ const Button3d = forwardRef(function Button3d(
             animate={{ opacity: 1, y: 0, transition: { duration: dur.sm, ease: ease.out } }}
             exit={{ opacity: 0, y: -4, transition: { duration: dur.xs, ease: ease.out } }}
           >
-            <span className="inline-block animate-spin">⏳</span>
+            {/* SVG arc spinner (was an ⏳ emoji) — inherits currentColor */}
+            <svg viewBox="0 0 24 24" className="w-4 h-4 animate-spin" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="3" opacity="0.25" />
+              <path d="M12 3a9 9 0 0 1 9 9" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+            </svg>
             {loadingLabel}
           </motion.span>
         ) : (

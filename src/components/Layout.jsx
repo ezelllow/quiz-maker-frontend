@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ease } from '../motion'
 import Avatar from './ui/Avatar'
+import Icon from './ui/Icon'
 import RankOverview from './RankOverview'
 
 // Layout — QuizQuest-style mobile-app shell.
@@ -126,7 +127,7 @@ export default function Layout({
                 className="flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-black
                            bg-quiz-cyan/15 border border-quiz-cyan/40 text-quiz-cyan"
               >
-                <span>💎</span>
+                <Icon name="gem" className="w-3.5 h-3.5" />
                 <span>{gems}</span>
               </span>
             )}
@@ -169,7 +170,9 @@ export default function Layout({
                       </div>
                       {level != null && (
                         <div className="flex items-center justify-between gap-2 px-2.5 py-1.5">
-                          <span className="text-sm font-bold flex items-center gap-1.5">⭐ Level</span>
+                          <span className="text-sm font-bold flex items-center gap-1.5">
+                            <Icon name="star" className="w-4 h-4 text-quiz-yellow" /> Level
+                          </span>
                           <span className="px-2 py-0.5 rounded-full text-[11px] font-black
                                            bg-quiz-purple/20 border border-quiz-purple/40 text-quiz-purple">
                             Lv {level}
@@ -178,7 +181,9 @@ export default function Layout({
                       )}
                       {freezes != null && (
                         <div className="flex items-center justify-between gap-2 px-2.5 py-1.5">
-                          <span className="text-sm font-bold flex items-center gap-1.5">🧊 Streak Freezes</span>
+                          <span className="text-sm font-bold flex items-center gap-1.5">
+                            <Icon name="snowflake" className="w-4 h-4 text-quiz-cyan" /> Streak Freezes
+                          </span>
                           <span className="px-2 py-0.5 rounded-full text-[11px] font-black
                                            bg-quiz-blue/15 border border-quiz-blue/40 text-quiz-blue">
                             {freezes}/{freezeCap ?? 2}
@@ -190,17 +195,17 @@ export default function Layout({
                   )}
                   <button
                     onClick={() => { onNavigate('settings'); setProfileMenuOpen(false) }}
-                    className="w-full text-left px-3 py-2 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors"
-                  >👤 Profile</button>
+                    className="w-full text-left px-3 py-2 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors flex items-center gap-2"
+                  ><Icon name="user" className="w-4 h-4" /> Profile</button>
                   <button
                     onClick={() => { onNavigate('preferences'); setProfileMenuOpen(false) }}
-                    className="w-full text-left px-3 py-2 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors"
-                  >⚙️ Settings</button>
+                    className="w-full text-left px-3 py-2 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors flex items-center gap-2"
+                  ><Icon name="gear" className="w-4 h-4" /> Settings</button>
                   <div className="h-px bg-quiz-border my-1" />
                   <button
                     onClick={(e) => { e.preventDefault(); onLogout && onLogout() }}
-                    className="w-full text-left px-3 py-2 rounded-xl text-sm font-bold text-quiz-red hover:bg-quiz-red/10 transition-colors"
-                  >🚪 Logout</button>
+                    className="w-full text-left px-3 py-2 rounded-xl text-sm font-bold text-quiz-red hover:bg-quiz-red/10 transition-colors flex items-center gap-2"
+                  ><Icon name="logout" className="w-4 h-4" /> Logout</button>
                 </div>
               )}
             </div>
