@@ -4,6 +4,7 @@ import Layout from './components/Layout'
 import StreakCelebration from './components/StreakCelebration'
 import LoginPage from './components/LoginPage'
 import SignupPage from './components/SignupPage'
+import CompleteProfile from './components/CompleteProfile'
 import Modal from './components/ui/Modal'
 import { page as pageVariant } from './motion'
 import './App.css'
@@ -309,6 +310,11 @@ function App() {
   // flow + Dashboard's per-subject section, but they're no longer the "headline" rank.
   const primaryRank = progression?.rank || null
   const primaryLevel = progression?.level ?? null
+  // Students must have school / class / teacher on file. Missing any (Google
+  // signups, or accounts made before these fields existed) gates them behind
+  // the CompleteProfile screen. Teachers are exempt.
+  const needsProfile = isAuthenticated && user && !user.is_teacher &&
+    (!user.school || !user.student_class || !user.teacher)
 
   if (loading) {
     return (
@@ -407,6 +413,12 @@ function App() {
               />
             </Suspense>
           )
+        ) : needsProfile ? (
+          <CompleteProfile
+            user={user}
+            onLogout={handleLogout}
+            onComplete={(info) => setUser((u) => (u ? { ...u, ...info } : u))}
+          />
         ) : needsPlacement === true ? (
           <Suspense fallback={<PageFallback />}>
             <Placement
