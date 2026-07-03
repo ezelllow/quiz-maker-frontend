@@ -1308,14 +1308,19 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
               const isWrongPick  = isChecked && selected && optKey !== correctKey
               return (
                 <motion.label
-                  key={i}
+                  // Keyed by QUESTION + index (was just index): with key={i}
+                  // React reuses these nodes across questions, so advancing
+                  // mid-shake left the interrupted keyframe transform (x≈8px)
+                  // stuck on the next question's options — the "misaligned
+                  // options when I click Next too fast" bug.
+                  key={`${q.uid || currentQuestionIndex}-${i}`}
                   className={optionCls(selected, optKey)}
                   // Duolingo-style: tap squishes + lifts, correct option pops
-                  // with overshoot, wrong option shakes. All run AFTER check;
-                  // before check the animate prop is undefined so the label
-                  // sits still and only whileTap fires on click.
+                  // with overshoot, wrong option shakes. All run AFTER check.
+                  // Rest pose is EXPLICIT ({x:0, scale:1}, not undefined) so an
+                  // interrupted pop/shake always animates back to neutral.
                   {...(isChecked ? {} : optionTap)}
-                  animate={isCorrectOpt ? correctPop : isWrongPick ? wrongShake : undefined}
+                  animate={isCorrectOpt ? correctPop : isWrongPick ? wrongShake : { x: 0, scale: 1 }}
                 >
                   <input type="radio" checked={selected} disabled={isChecked}
                          onChange={() => setAnswer(t)} className="sr-only" />
