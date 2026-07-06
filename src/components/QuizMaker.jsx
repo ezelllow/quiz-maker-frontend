@@ -6,6 +6,7 @@ import Button3d from './ui/Button3d'
 import StreakCelebration from './StreakCelebration'
 import RankUpOverlay from './RankUpOverlay'
 import { correctPop, wrongShake, optionTap, questionEnter } from '../motion'
+import MathText from './ui/MathText'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -1219,7 +1220,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
           </div>
         )}
 
-        <h2 className="!text-base sm:!text-lg !font-black leading-snug whitespace-pre-line">{q.question_text}</h2>
+        <h2 className="!text-base sm:!text-lg !font-black leading-snug whitespace-pre-line"><MathText>{q.question_text}</MathText></h2>
 
         <QImage src={q.setup_image_url} alt="Question diagram" />
         {q.option_type === 'IMAGE' && q.image_url && q.image_url !== q.setup_image_url && (
@@ -1261,7 +1262,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                     <tr key={rIdx} onClick={() => setAnswer(letter)} className={rowCls}>
                       <td className="px-3 py-2 border-t border-quiz-border text-center font-black text-quiz-blue">{letter}</td>
                       {cells.map((c, cIdx) => (
-                        <td key={cIdx} className="px-3 py-2 border-t border-quiz-border">{c}</td>
+                        <td key={cIdx} className="px-3 py-2 border-t border-quiz-border"><MathText>{c}</MathText></td>
                       ))}
                       <td className="px-3 py-2 text-center border-t border-quiz-border">
                         <input type="radio" checked={selected} disabled={isChecked}
@@ -1342,7 +1343,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                   }>
                     {letter}
                   </span>
-                  {body && <span className="font-semibold text-sm sm:text-base leading-snug">{body}</span>}
+                  {body && <span className="font-semibold text-sm sm:text-base leading-snug"><MathText>{body}</MathText></span>}
                   {isCorrectOpt && <span className="ml-auto font-black text-[#2FBF71]">✓</span>}
                   {isWrongPick && <span className="ml-auto font-black text-[#FF5C5C]">✗</span>}
                 </motion.label>
@@ -1368,7 +1369,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
             </div>
             {q.explanation && (
               <div className="mt-2 font-semibold leading-relaxed text-quiz-text whitespace-pre-line">
-                <span className="font-black">Why: </span>{q.explanation}
+                <span className="font-black">Why: </span><MathText>{q.explanation}</MathText>
               </div>
             )}
           </div>
