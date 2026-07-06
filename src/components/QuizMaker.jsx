@@ -725,6 +725,8 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                   { id: 'combinedG3', emoji: '⚛️', label: 'Combined G3' },
                   { id: 'combinedG2', emoji: '🔬', label: 'Combined G2' },
                   { id: 'combinedG1', emoji: '🧲', label: 'G1 Science' },
+                  // 5th subject spans the bottom row of the 2-col grid
+                  { id: 'p6math',     emoji: '➗', label: 'P6 Math', span: true },
                 ].map((lvl) => {
                   const active = levelCat === lvl.id
                   return (
@@ -735,9 +737,13 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                         if (levelCat === lvl.id) return
                         setLevelCat(lvl.id)
                         setSelectedSubtopics([])
+                        // Header label follows the pick (display only —
+                        // requests never send this; quiz `level` drives filtering)
+                        setSelectedSubject(lvl.id === 'p6math' ? 'Math' : 'Physics')
                       }}
                       className={
                         'p-3 rounded-2xl border-2 font-black transition-all text-center ' +
+                        (lvl.span ? 'col-span-2 ' : '') +
                         (active
                           ? 'border-quiz-blue bg-quiz-blue/15 text-quiz-orange-deep shadow-lg scale-[1.02]'
                           : 'border-quiz-border bg-white text-quiz-text hover:border-quiz-blue/60 hover:bg-gray-50')
