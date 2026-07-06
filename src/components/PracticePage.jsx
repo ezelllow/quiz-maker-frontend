@@ -53,6 +53,7 @@ export default function PracticePage({ authToken, onProgressionChange, onGemsCha
       initialSubject="Physics"
       initialLevel={subject?.levelKey || 'pure'}
       levelLabel={subject?.label || 'Pure Physics'}
+      initialSubject={subject?.levelKey === 'p6math' ? 'Math' : 'Physics'}
       onBackToHub={goHub}
       onProgressionChange={onProgressionChange}
       onGemsChange={onGemsChange}
@@ -87,8 +88,8 @@ function SubjectPicker({ onPick }) {
       color: '#D9534F', tone: 'red', active: true, tagline: 'Science · 11 topics',
     },
     {
-      id: 'Math', emoji: '➗', label: 'Math', levelKey: null,
-      color: '#7C4EA8', tone: 'purple', active: false, tagline: 'Coming soon',
+      id: 'p6math', emoji: '➗', label: 'P6 Math', levelKey: 'p6math',
+      color: '#7C4EA8', tone: 'purple', active: true, tagline: 'PSLE · All topics',
     },
   ]
 
@@ -111,7 +112,7 @@ function SubjectPicker({ onPick }) {
         <StaggerItem>
           <div className="flex items-baseline justify-between mb-3 px-1">
             <SectionLabel>Subjects</SectionLabel>
-            <span className="text-[10px] font-black uppercase tracking-wider text-quiz-muted">4 available</span>
+            <span className="text-[10px] font-black uppercase tracking-wider text-quiz-muted">{physics.length} available</span>
           </div>
         </StaggerItem>
         <div className="grid grid-cols-2 gap-3 mb-7">
@@ -130,32 +131,36 @@ function SubjectPicker({ onPick }) {
           ))}
         </div>
 
-        {/* Coming soon — locked subjects, visually separated with a small badge */}
-        <StaggerItem>
-          <SectionLabel className="mb-3 px-1">Coming soon</SectionLabel>
-        </StaggerItem>
-        <div className="grid grid-cols-2 gap-3">
-          {comingSoon.map((s) => (
-            <StaggerItem key={s.id}>
-              <div className="relative opacity-55 pointer-events-none select-none">
-                <TopicCard
-                  icon={s.emoji}
-                  label={s.label}
-                  hint={s.tagline}
-                  tone={s.tone}
-                  className="justify-center w-full"
-                  style={{ height: '11.5rem' }}
-                />
-                <span
-                  className="absolute top-2 right-2 text-[9px] font-black uppercase tracking-wider text-quiz-muted rounded-full px-2 py-0.5 border border-quiz-border"
-                  style={{ background: 'var(--quiz-card-solid)' }}
-                >
-                  🔒 Soon
-                </span>
-              </div>
+        {/* Coming soon — locked subjects; whole section hidden when empty */}
+        {comingSoon.length > 0 && (
+          <>
+            <StaggerItem>
+              <SectionLabel className="mb-3 px-1">Coming soon</SectionLabel>
             </StaggerItem>
-          ))}
-        </div>
+            <div className="grid grid-cols-2 gap-3">
+              {comingSoon.map((s) => (
+                <StaggerItem key={s.id}>
+                  <div className="relative opacity-55 pointer-events-none select-none">
+                    <TopicCard
+                      icon={s.emoji}
+                      label={s.label}
+                      hint={s.tagline}
+                      tone={s.tone}
+                      className="justify-center w-full"
+                      style={{ height: '11.5rem' }}
+                    />
+                    <span
+                      className="absolute top-2 right-2 text-[9px] font-black uppercase tracking-wider text-quiz-muted rounded-full px-2 py-0.5 border border-quiz-border"
+                      style={{ background: 'var(--quiz-card-solid)' }}
+                    >
+                      🔒 Soon
+                    </span>
+                  </div>
+                </StaggerItem>
+              ))}
+            </div>
+          </>
+        )}
       </Stagger>
     </Screen>
   )

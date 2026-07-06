@@ -123,6 +123,7 @@ const SEAB_NT_ORDER = [
 //   combinedG1  -> 5148 Normal (Technical) Science (11: Phys+Chem+Bio)
 //   else (G3)   -> 5086/87/88 Combined (16)
 function syllabusFor(levelCat) {
+  if (levelCat === 'p6math') return []   // P6 Math: no topic list yet — "All topics" only
   if (levelCat === 'combinedG2') return SEAB_NA_ORDER
   if (levelCat === 'combinedG1') return SEAB_NT_ORDER
   if (levelCat && levelCat !== 'pure') return SEAB_COMBINED_ORDER
@@ -136,6 +137,7 @@ const LEVEL_SUBTITLE = {
   combinedG3: 'Combined · 16 topics',
   combinedG2: 'Combined · 13 topics',
   combinedG1: 'Science · 11 topics',
+  p6math:     'PSLE · All topics',
 }
 
 // Position in the syllabus (1..N), or null if not in the syllabus.
