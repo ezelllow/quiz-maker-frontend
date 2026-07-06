@@ -8,7 +8,13 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000
 function answerKey(val) {
   if (val === undefined || val === null) return ''
   const s = String(val).trim()
-  const m = s.match(/^([A-Da-d])[\.\)\s:\-]?/)
+  // PSLE Math convention: options "(1) …"–"(4) …", answer "(3)" → key "3"
+  const mNum = s.match(/^\((\d+)\)/)
+  if (mNum) return mNum[1]
+  // Letter options: delimiter (or end-of-string) now REQUIRED after the
+  // letter — the old optional delimiter graded "Density increases" as "D"
+  // and "Both" as "B", silently mis-scoring sentence-style options.
+  const m = s.match(/^([A-Da-d])(?:[\.\)\s:\-]|$)/)
   if (m) return m[1].toUpperCase()
   return s.toUpperCase()
 }
