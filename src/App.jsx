@@ -340,7 +340,7 @@ function App() {
       case 'shop':
         return <ShopPage authToken={localStorage.getItem('auth_token')} gems={gems} onGemsChange={setGems} user={user} onUserUpdate={setUser} />
       case 'customize':
-        return <CustomizePage user={user} onUserUpdate={setUser} onBack={() => setCurrentPage('settings')} />
+        return <CustomizePage authToken={localStorage.getItem('auth_token')} user={user} onUserUpdate={setUser} gems={gems} onGemsChange={setGems} onBack={() => setCurrentPage('settings')} />
       case 'daily':
         return <DailyChallenge authToken={localStorage.getItem('auth_token')} subject="Physics" onExit={() => setCurrentPage('home')} />
       case 'dashboard':

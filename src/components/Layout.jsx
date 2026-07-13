@@ -37,14 +37,13 @@ function NavIcon({ id, className = 'w-6 h-6' }) {
           <path {...stroke} d="M20 5 L13 5 L12 7 L12 19 L13 17 L20 17 Z" />
         </svg>
       )
-    case 'shop':
+    case 'dashboard':
       return (
         <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
-          <rect {...stroke} x="3" y="9" width="18" height="12" rx="1" />
-          <rect {...stroke} x="2" y="5" width="20" height="4" rx="1" />
-          <path {...stroke} d="M12 5 L12 21" />
-          <path {...stroke} d="M12 5 C 9 1, 6 2, 8 5" />
-          <path {...stroke} d="M12 5 C 15 1, 18 2, 16 5" />
+          <rect {...stroke} x="3" y="3" width="7" height="9" rx="1" />
+          <rect {...stroke} x="14" y="3" width="7" height="5" rx="1" />
+          <rect {...stroke} x="14" y="12" width="7" height="9" rx="1" />
+          <rect {...stroke} x="3" y="16" width="7" height="5" rx="1" />
         </svg>
       )
     case 'leaderboard':
@@ -93,7 +92,7 @@ export default function Layout({
   const navItems = [
     { id: 'home',        label: 'Home'        },
     { id: 'practice',    label: 'Practice'    },
-    { id: 'shop',        label: 'Shop'        },
+    { id: 'dashboard',   label: 'Dashboard'   },
     { id: 'leaderboard', label: 'Leaderboard' },
     { id: 'settings',    label: 'Profile'     },
   ]

@@ -291,6 +291,17 @@
       "attach": "top-center",
       "scale": 0.58,
       "note": "hero cape, renders behind body"
+    },
+    "wings_angel": {
+      "assetId": "wings_angel",
+      "category": "wings",
+      "slot": "backItem",
+      "format": "svg",
+      "src": "/brand/ooka/avatars/wearables/wings_angel.svg",
+      "anchor": "backpack",
+      "attach": "center",
+      "scale": 1.18,
+      "note": "legendary angel wings - render behind body, spread from the shoulders"
     }
   },
   "templates": {
