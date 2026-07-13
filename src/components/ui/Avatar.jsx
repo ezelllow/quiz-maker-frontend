@@ -161,7 +161,7 @@ export default function Avatar({
     const stageH = stageW * FULL_RATIO
     return (
       <div
-        className={cn('relative inline-block shrink-0 rounded-full overflow-hidden', className)}
+        className={cn('relative isolate inline-block shrink-0 rounded-full overflow-hidden', className)}
         style={{ width: boxW, height: boxW, background: panelBg, boxShadow: panelShadow }}
         {...rest}
       >
@@ -177,7 +177,7 @@ export default function Avatar({
   // ---- Full body ----
   return (
     <div
-      className={cn('relative inline-block shrink-0 rounded-2xl', className)}
+      className={cn('relative isolate inline-block shrink-0 rounded-2xl', className)}
       style={{ width: boxW, height: boxH }}
       {...rest}
     >
