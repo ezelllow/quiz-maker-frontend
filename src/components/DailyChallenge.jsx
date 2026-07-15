@@ -19,6 +19,38 @@ function answerKey(val) {
   return s.toUpperCase()
 }
 
+// Options-aware grading — keep in sync with QuizMaker.gradeAnswer() and the
+// backend's grade_answer(). Resolves full option text ↔ letter mismatches.
+function optionLabelAndBody(line, idx) {
+  const t = String(line || '').trim()
+  let m = t.match(/^\((\d+)\)\s*(.*)$/)
+  if (m) return [m[1], m[2]]
+  m = t.match(/^([A-Da-d])[\.\)\:\-]?\s+(.*)$/)
+  if (m) return [m[1].toUpperCase(), m[2]]
+  if (/^[A-Da-d]$/.test(t)) return [t.toUpperCase(), '']
+  return [String.fromCharCode(65 + idx), t]
+}
+
+function gradeAnswer(userAnswer, correctAnswer, options) {
+  const uk = answerKey(userAnswer)
+  const ck = answerKey(correctAnswer)
+  if (uk && ck && uk === ck) return true
+  if (!options || !uk || !ck) return false
+  const lines = String(options).split('\n').map((s) => s.trim()).filter(Boolean)
+  if (lines.length === 0) return false
+  const resolve = (raw, key) => {
+    const s = String(raw ?? '').trim().toUpperCase()
+    for (let i = 0; i < lines.length; i++) {
+      const [label, body] = optionLabelAndBody(lines[i], i)
+      if (s && (s === lines[i].toUpperCase() || (body && s === body.trim().toUpperCase()))) return label
+      if (key && key === answerKey(lines[i])) return label
+    }
+    return key
+  }
+  const ru = resolve(userAnswer, uk)
+  return !!ru && ru === resolve(correctAnswer, ck)
+}
+
 export default function DailyChallenge({ authToken, subject = 'Physics', onExit }) {
   const token = authToken || localStorage.getItem('auth_token')
   const [step, setStep] = useState('loading')
@@ -76,7 +108,7 @@ export default function DailyChallenge({ authToken, subject = 'Physics', onExit 
     try {
       let correct = 0
       questions.forEach((q, i) => {
-        if (answerKey(answers[i]) && answerKey(answers[i]) === answerKey(q.answer)) correct += 1
+        if (gradeAnswer(answers[i], q.answer, q.options)) correct += 1
       })
       const res = await fetch(`${API_BASE_URL}/api/daily-challenge/submit`, {
         method: 'POST',

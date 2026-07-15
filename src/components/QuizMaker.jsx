@@ -24,6 +24,42 @@ function answerKey(val) {
   return s.toUpperCase()
 }
 
+// Split one option line into [label, body], mirroring the render logic below
+// AND the backend's _option_letter_and_body(). Positional letter as fallback.
+function optionLabelAndBody(line, idx) {
+  const t = String(line || '').trim()
+  let m = t.match(/^\((\d+)\)\s*(.*)$/)              // PSLE "(1) …"
+  if (m) return [m[1], m[2]]
+  m = t.match(/^([A-Da-d])[\.\)\:\-]?\s+(.*)$/)      // "A. foo" / "A) foo"
+  if (m) return [m[1].toUpperCase(), m[2]]
+  if (/^[A-Da-d]$/.test(t)) return [t.toUpperCase(), '']  // bare "A"
+  return [String.fromCharCode(65 + idx), t]          // unlabelled sentence
+}
+
+// THE grading function — MUST match the backend's grade_answer() exactly.
+// 1. Compare normalized keys. 2. If that fails, resolve both sides to an
+// option label via the options list (answer stored as full text vs a letter
+// pick, and vice versa) and compare labels.
+function gradeAnswer(userAnswer, correctAnswer, options) {
+  const uk = answerKey(userAnswer)
+  const ck = answerKey(correctAnswer)
+  if (uk && ck && uk === ck) return true
+  if (!options || !uk || !ck) return false
+  const lines = String(options).split('\n').map((s) => s.trim()).filter(Boolean)
+  if (lines.length === 0) return false
+  const resolve = (raw, key) => {
+    const s = String(raw ?? '').trim().toUpperCase()
+    for (let i = 0; i < lines.length; i++) {
+      const [label, body] = optionLabelAndBody(lines[i], i)
+      if (s && (s === lines[i].toUpperCase() || (body && s === body.trim().toUpperCase()))) return label
+      if (key && key === answerKey(lines[i])) return label
+    }
+    return key
+  }
+  const ru = resolve(userAnswer, uk)
+  return !!ru && ru === resolve(correctAnswer, ck)
+}
+
 // Easy -> Medium -> Hard scale used for difficulty-availability checks.
 const DIFF_ORDER = ['easy', 'medium', 'hard']
 // The backend builds a quiz from at most 3 picked topics.
@@ -527,7 +563,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
     try {
       let correctCount = 0
       quiz.questions.forEach((question, idx) => {
-        if (answerKey(userAnswers[idx]) && answerKey(userAnswers[idx]) === answerKey(question.answer)) correctCount++
+        if (gradeAnswer(userAnswers[idx], question.answer, question.options)) correctCount++
       })
       const percentage = Math.round((correctCount / quiz.questions.length) * 100)
       const timeSpent = Math.floor((Date.now() - quizStartTime) / 1000)
@@ -1175,7 +1211,8 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
 
   const correctKey = answerKey(q.answer)
   const chosenKey  = answerKey(userAnswers[currentQuestionIndex])
-  const isCorrect  = Boolean(chosenKey) && chosenKey === correctKey
+  // Inline check verdict uses the SAME grader as the final score + backend.
+  const isCorrect  = gradeAnswer(userAnswers[currentQuestionIndex], q.answer, q.options)
 
   const _ca = userAnswers[currentQuestionIndex]
   const currentAnswered = _ca !== undefined && _ca !== null && _ca !== ''

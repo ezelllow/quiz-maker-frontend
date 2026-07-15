@@ -187,7 +187,9 @@ export default function LeaderboardPage({ user, authToken, progression }) {
                 transition: { ...ease.bouncy, delay: podiumDelay },
               }}
             >
-              <div className={'mb-1 ' + (rank === 1 ? 'animate-bounce' : '')}>
+              {/* Bounce is a "that's YOU up there!" signal — only the current
+                  user's avatar jumps, and only while they hold a podium spot. */}
+              <div className={'mb-1 ' + (p.is_me ? 'animate-bounce' : '')}>
                 <AvatarRow p={p} size="lg" />
               </div>
               <div className="text-xs font-black truncate w-full text-center text-quiz-text">
@@ -216,13 +218,21 @@ export default function LeaderboardPage({ user, authToken, progression }) {
               className={[
                 'flex items-center gap-3 p-3',
                 i > 0 ? 'border-t border-quiz-border/60' : '',
-                p.is_me ? 'bg-quiz-blue/15' : '',
+                // Off the podium there's no bouncing avatar to spot yourself
+                // by, so the row does the work: tinted band + inset ring.
+                p.is_me ? 'bg-quiz-blue/15 ring-1 ring-inset ring-quiz-blue/50' : '',
               ].join(' ')}
             >
-              <div className="w-7 text-center font-black text-quiz-muted">{p.rank}</div>
+              <div className={'w-7 text-center font-black ' + (p.is_me ? 'text-quiz-blue' : 'text-quiz-muted')}>{p.rank}</div>
               <div className="shrink-0"><AvatarRow p={p} /></div>
               <div className={'flex-1 font-black truncate flex items-center gap-1.5 ' + (p.is_me ? 'text-quiz-blue' : '')}>
-                <span className="truncate">{p.name}{p.is_me ? ' (You)' : ''}</span>
+                <span className="truncate">{p.name}</span>
+                {p.is_me && (
+                  <span className="shrink-0 px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase
+                                   tracking-widest bg-quiz-blue text-white">
+                    You
+                  </span>
+                )}
                 {p.level != null && (
                   <span className="shrink-0 px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase
                                    tracking-widest bg-quiz-purple/15 border border-quiz-purple/30 text-quiz-purple">

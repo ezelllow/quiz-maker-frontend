@@ -142,27 +142,33 @@ export default function TeacherDashboard({ authToken, user, onLogout, onViewAsSt
 
         {data && !loading && !err && (
           <Stagger>
-            {/* 1. Week at a glance */}
+            {/* 1. Week at a glance — the four numbers that answer "is the
+                class healthy?": who showed up, how well they scored, how many
+                attempts passed, who's gone quiet. (Quizzes-per-student moved
+                into the Active tile hint — it never earned its own tile.) */}
             <StaggerItem className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4">
               <StatTile
                 label="Active"
                 value={data.week_at_a_glance.active_students}
-                hint={`of ${data.week_at_a_glance.total_students} enrolled`}
+                hint={`of ${data.week_at_a_glance.total_students} enrolled · ~${fmtNum1(data.week_at_a_glance.avg_quizzes_per_active)} quizzes each`}
               />
               <StatTile
-                label="Per student"
-                value={fmtNum1(data.week_at_a_glance.avg_quizzes_per_active)}
-                hint="quizzes / active student"
+                label="Class average"
+                value={fmtPct(data.week_at_a_glance.class_avg_pct)}
+                hint="all attempts"
+                tone={pctTone(data.week_at_a_glance.class_avg_pct)}
               />
               <StatTile
                 label="Pass rate"
                 value={fmtPct(data.week_at_a_glance.pass_rate_pct)}
                 hint="attempts ≥ 60%"
+                tone={pctTone(data.week_at_a_glance.pass_rate_pct)}
               />
               <StatTile
                 label="Inactive"
                 value={data.week_at_a_glance.inactive_count}
-                tone={data.week_at_a_glance.inactive_count > 0 ? 'warn' : undefined}
+                hint="silent 5+ days"
+                tone={data.week_at_a_glance.inactive_count > 0 ? 'warn' : 'good'}
               />
             </StaggerItem>
 
@@ -214,6 +220,7 @@ export default function TeacherDashboard({ authToken, user, onLogout, onViewAsSt
                         onToggle={() =>
                           setExpanded((e) => ({ ...e, [t.topic]: !e[t.topic] }))
                         }
+                        onPickStudent={(id) => setViewingStudentId(id)}
                       />
                     ))}
                   </div>
@@ -300,6 +307,24 @@ function fmtPct(v) {
   return Math.round(v) + '%'
 }
 
+// Traffic-light tone for a percentage stat: green ≥70, orange 55–69, red <55.
+function pctTone(v) {
+  if (v == null || !isFinite(Number(v))) return undefined
+  const n = Number(v)
+  if (n >= 70) return 'good'
+  if (n >= 55) return 'warn'
+  return 'bad'
+}
+
+// Matching text color for inline percentage chips.
+function pctTextCls(v) {
+  const t = pctTone(v)
+  if (t === 'good') return 'text-quiz-green'
+  if (t === 'warn') return 'text-quiz-orange'
+  if (t === 'bad') return 'text-quiz-red'
+  return 'text-quiz-muted'
+}
+
 function fmtNum1(v) {
   // One-decimal display ("3.4"), trimming a trailing .0 so whole numbers look
   // clean ("3" not "3.0"). Used for per-student averages.
@@ -331,21 +356,39 @@ function EmptyState({ text }) {
 }
 
 function StatTile({ label, value, hint, tone }) {
-  const toneRing = tone === 'warn' ? 'ring-1 ring-quiz-orange/40' : ''
+  // Traffic-light accent: ring + number color show health at a glance so the
+  // teacher reads four colors, not four numbers.
+  const toneRing =
+    tone === 'bad'  ? 'ring-1 ring-quiz-red/40'
+    : tone === 'warn' ? 'ring-1 ring-quiz-orange/40'
+    : ''
+  const valueCls =
+    tone === 'good' ? 'text-quiz-green'
+    : tone === 'warn' ? 'text-quiz-orange'
+    : tone === 'bad' ? 'text-quiz-red'
+    : ''
   return (
     <Card variant="solid" className={`!p-3 sm:!p-4 ${toneRing}`}>
       <div className="text-[10px] font-black uppercase tracking-widest text-quiz-muted">{label}</div>
-      <div className="text-2xl sm:text-3xl font-black mt-0.5">{value}</div>
+      <div className={`text-2xl sm:text-3xl font-black mt-0.5 ${valueCls}`}>{value}</div>
       {hint && <div className="text-[11px] text-quiz-muted mt-1 font-bold truncate">{hint}</div>}
     </Card>
   )
 }
 
 function WeakTopicRow({ topic, open, onToggle, onPickStudent }) {
-  const sharePct =
-    topic.students_attempted > 0
-      ? Math.round((topic.struggling_count / topic.students_attempted) * 100)
-      : 0
+  // The class-average badge is the decision number for a teacher ("how badly
+  // is this topic going?"), so it gets the colored chip. The old "% struggling"
+  // badge duplicated the x/y count already printed on the left — removed.
+  const avg = topic.avg_pct
+  const barCls =
+    pctTone(avg) === 'bad' ? 'bg-quiz-red'
+    : pctTone(avg) === 'warn' ? 'bg-quiz-orange'
+    : 'bg-quiz-green'
+  const badgeCls =
+    pctTone(avg) === 'bad'
+      ? 'bg-quiz-red/15 border-quiz-red/40 text-quiz-red'
+      : 'bg-quiz-orange/15 border-quiz-orange/40 text-quiz-orange'
   return (
     <div className="rounded-xl border border-quiz-border bg-black/5">
       <button
@@ -356,13 +399,18 @@ function WeakTopicRow({ topic, open, onToggle, onPickStudent }) {
           <div className="font-black text-sm truncate">{topic.topic}</div>
           <div className="text-[11px] text-quiz-muted font-bold mt-0.5">
             {topic.struggling_count}/{topic.students_attempted} students under 60%
-            {' · '}{topic.attempts} attempts
-            {' · '}avg {fmtPct(topic.avg_pct)}
+            {' · '}{topic.attempts} {topic.attempts === 1 ? 'attempt' : 'attempts'}
+          </div>
+          {/* Mini score bar — instant severity read without parsing numbers. */}
+          <div className="h-1 rounded-full bg-black/10 overflow-hidden mt-1.5 max-w-[220px]">
+            <div
+              className={`h-full rounded-full ${barCls}`}
+              style={{ width: `${Math.max(0, Math.min(100, Number(avg) || 0))}%` }}
+            />
           </div>
         </div>
-        <span className="shrink-0 px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest
-                         bg-quiz-orange/20 border border-quiz-orange/40 text-quiz-orange">
-          {sharePct}% struggling
+        <span className={`shrink-0 px-2 py-1 rounded-full text-[11px] font-black border ${badgeCls}`}>
+          avg {fmtPct(avg)}
         </span>
         <span className="text-quiz-muted text-sm">{open ? '▾' : '▸'}</span>
       </button>
@@ -426,6 +474,16 @@ function ConsistencyRow({ s, onPick }) {
       <span className="shrink-0 px-2 py-1 rounded-full text-[11px] font-bold
                        bg-black/5 border border-quiz-border text-quiz-text">
         {s.quizzes_7d} {s.quizzes_7d === 1 ? 'quiz' : 'quizzes'}
+      </span>
+      {/* Effort (days/quizzes) without results is half the picture — the 7-day
+          average score chip closes the loop, colored by the same traffic light
+          as everywhere else. '—' when the student had no attempts this week. */}
+      <span
+        title="Average score, last 7 days"
+        className={`shrink-0 px-2 py-1 rounded-full text-[11px] font-black
+                    bg-black/5 border border-quiz-border ${pctTextCls(s.avg_pct_7d)}`}
+      >
+        {fmtPct(s.avg_pct_7d)}
       </span>
       <span
         title={longHint}

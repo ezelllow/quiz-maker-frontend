@@ -228,9 +228,15 @@ function QuestionReview({ q, index }) {
   )
 }
 
-// Pull a single letter out of an answer string ("A) north" -> "A", "C" -> "C")
+// Pull the option label out of an answer string ("A) north" -> "A", "C" -> "C",
+// "(3) 45 cm²" -> "3"). Delimiter (or end) REQUIRED after a letter so sentence
+// answers like "Density increases" don't wrongly highlight option D — same
+// normalization rules as the graders in QuizMaker and the backend.
 function letterOf(s) {
-  const m = String(s ?? '').trim().match(/^([A-Da-d])/)
+  const t = String(s ?? '').trim()
+  const mNum = t.match(/^\((\d+)\)/)
+  if (mNum) return mNum[1]
+  const m = t.match(/^([A-Da-d])(?:[\.\)\s:\-]|$)/)
   return m ? m[1].toUpperCase() : ''
 }
 

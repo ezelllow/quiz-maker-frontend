@@ -121,14 +121,16 @@ export default function Layout({
 
           <div className="flex items-center gap-2">
             {gems != null && (
-              <span
-                title={`${gems} Crystals`}
+              <button
+                onClick={() => onNavigate('shop')}
+                title={`${gems} Crystals — open shop`}
                 className="flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-black
-                           bg-quiz-cyan/15 border border-quiz-cyan/40 text-quiz-cyan"
+                           bg-quiz-cyan/15 border border-quiz-cyan/40 text-quiz-cyan
+                           transition-transform hover:scale-105 active:scale-95"
               >
                 <Icon name="gem" className="w-3.5 h-3.5" />
                 <span>{gems}</span>
-              </span>
+              </button>
             )}
             {rank && (
               <button
