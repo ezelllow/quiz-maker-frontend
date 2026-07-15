@@ -1253,7 +1253,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
       <Card variant="solid" className="!p-3 sm:!p-6 space-y-3 sm:space-y-4">
         <div className="flex items-center justify-between gap-3">
           <span className="px-3 py-1 rounded-full bg-quiz-orange-soft border border-quiz-orange/50 text-quiz-orange-deep text-xs font-bold">
-            Practice · {selectedSubject}
+            {isPractice ? 'Practice' : 'Challenge'} · {selectedSubject}
           </span>
           <span className="text-xs sm:text-sm font-bold text-quiz-muted">Q{currentQuestionIndex + 1}/{total}</span>
         </div>
