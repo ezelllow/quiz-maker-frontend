@@ -98,6 +98,8 @@ export default function Layout({
   ]
 
   // Phone-frame width used everywhere. QuizQuest source uses 420px; we go a touch wider.
+  // (The quiz-taking screen in QuizMaker breaks out of this frame on lg+
+  // desktop via negative margins — every other page keeps the phone view.)
   const frame = 'max-w-md mx-auto w-full'
 
   return (

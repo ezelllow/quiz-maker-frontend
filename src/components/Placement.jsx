@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Screen from './ui/Screen'
 import Card from './ui/Card'
 import Button3d from './ui/Button3d'
+import MathText from './ui/MathText'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -186,7 +187,7 @@ export default function Placement({ authToken, subject = 'Physics', onComplete }
           />
         </div>
 
-        <h2 className="!text-xl !font-black leading-snug">{q.question_text}</h2>
+        <h2 className="!text-xl !font-black leading-snug"><MathText>{q.question_text}</MathText></h2>
 
         {q.setup_image_url && (
           <div className="rounded-2xl overflow-hidden border border-quiz-border bg-white">
@@ -228,7 +229,7 @@ export default function Placement({ authToken, subject = 'Physics', onComplete }
                     >
                       {flatHeaders.map((h, cIdx) => (
                         <td key={cIdx} className="px-3 py-2 border-t border-quiz-border">
-                          {row && typeof row === 'object' ? (row[h] ?? '') : ''}
+                          <MathText>{row && typeof row === 'object' ? (row[h] ?? '') : ''}</MathText>
                         </td>
                       ))}
                       <td className="px-3 py-2 text-center border-t border-quiz-border">
@@ -261,7 +262,7 @@ export default function Placement({ authToken, subject = 'Physics', onComplete }
               return (
                 <label key={i} className={optionCls(selected)}>
                   <input type="radio" checked={selected} onChange={() => setAnswer(t)} className="sr-only" />
-                  <span className="font-semibold">{t}</span>
+                  <span className="font-semibold"><MathText>{t}</MathText></span>
                 </label>
               )
             })}

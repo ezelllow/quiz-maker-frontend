@@ -269,7 +269,7 @@ function Options({ q, optionType, correctKey, userKey, optionsImageUrl }) {
         <table className="w-full text-sm">
           {flatHeaders.length > 0 && (
             <thead><tr className="bg-black/5">
-              <th className="px-3 py-2 w-12 text-center font-bold text-quiz-muted">#</th>
+              <th className="px-3 py-2 w-12 text-center font-bold text-quiz-muted" aria-label="Option letter"></th>
               {flatHeaders.map((h, i) => (
                 <th key={i} className="px-3 py-2 text-left font-bold text-quiz-muted">{h}</th>
               ))}

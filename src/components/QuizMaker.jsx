@@ -1248,9 +1248,42 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
       : 'bg-white border-quiz-border hover:border-quiz-orange hover:bg-quiz-orange-soft/40')
   }
 
+  // The desktop two-column split (question + diagram left, options right) only
+  // pays off when there IS a diagram; text-only questions read better as a
+  // single stacked column, so the grid is applied conditionally.
+  const hasDiagram = !!(q.setup_image_url || (q.option_type !== 'IMAGE' && q.image_url))
+
+  // Inline correct/wrong feedback — reference quiz uses green for "Correct!
+  // Nice one." and warm orange for "Not quite" (encouraging rather than
+  // punishing). Always rendered directly under the answer options.
+  const feedbackBox = isChecked ? (
+    <div className={
+      'rounded-2xl border-2 px-3 py-2 text-xs sm:text-sm ' +
+      (isCorrect
+        ? 'border-[#2FBF71]/50 bg-[rgba(47,191,113,0.10)] text-[#1FA85E]'
+        : 'border-quiz-orange/40 bg-quiz-orange-soft text-quiz-orange-deep')
+    }>
+      <div className="font-black">
+        {isCorrect
+          ? '✅ Correct! Nice one.'
+          : `❌ Not quite — the correct answer is ${correctKey || '—'}.`}
+      </div>
+      {q.explanation && (
+        <div className="mt-2 font-semibold leading-relaxed text-quiz-text whitespace-pre-line">
+          <span className="font-black">Why: </span><MathText>{q.explanation}</MathText>
+        </div>
+      )}
+    </div>
+  ) : null
+
   return (
-    <Screen width="default" className="py-3 sm:py-6">
-      <Card variant="solid" className="!p-3 sm:!p-6 space-y-3 sm:space-y-4">
+    // Breakout wrapper — the app shell (Layout) pins every page to a phone-
+    // width column (max-w-md). For quiz-taking ONLY, this wrapper uses
+    // negative horizontal margins on lg+ to expand back out to a centered
+    // desktop column: min(72rem, viewport - 2rem). Mobile: no-op.
+    <div className="lg:mx-[calc((100%_-_min(72rem,100vw_-_2rem))/2)]">
+    <Screen width="wide" className="py-3 sm:py-6">
+      <Card variant="solid" className="!p-3 sm:!p-6 lg:!p-8 space-y-3 sm:space-y-4">
         <div className="flex items-center justify-between gap-3">
           <span className="px-3 py-1 rounded-full bg-quiz-orange-soft border border-quiz-orange/50 text-quiz-orange-deep text-xs font-bold">
             {isPractice ? 'Practice' : 'Challenge'} · {selectedSubject}
@@ -1269,14 +1302,29 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
           </div>
         )}
 
-        <h2 className="!text-base sm:!text-lg !font-black leading-snug whitespace-pre-line"><MathText>{q.question_text}</MathText></h2>
+        {/* Responsive quiz layout — single stacked column on mobile (original
+            order preserved). On lg+ desktop, questions WITH a diagram split
+            into two columns (question + diagram left, options right); text-only
+            questions stay stacked together full-width. */}
+        <div className={
+          'space-y-3 sm:space-y-4' +
+          (hasDiagram ? ' lg:grid lg:grid-cols-2 lg:gap-10 lg:space-y-0 lg:items-start' : '')
+        }>
+          {/* Question stem + diagrams — LEFT column when split. Sticky on
+              desktop (split mode only) so the question stays in view. */}
+          <div className={'space-y-3 sm:space-y-4' + (hasDiagram ? ' lg:sticky lg:top-6' : '')}>
+            <h2 className="!text-base sm:!text-lg lg:!text-xl !font-black leading-snug whitespace-pre-line"><MathText>{q.question_text}</MathText></h2>
 
-        <QImage src={q.setup_image_url} alt="Question diagram" />
+            <QImage src={q.setup_image_url} alt="Question diagram" />
+            {q.option_type !== 'IMAGE' && !q.setup_image_url && q.image_url && (
+              <QImage src={q.image_url} alt="Question" />
+            )}
+          </div>
+
+          {/* Answer options (+ options image) + feedback — RIGHT column when split. */}
+          <div className="space-y-3 sm:space-y-4">
         {q.option_type === 'IMAGE' && q.image_url && q.image_url !== q.setup_image_url && (
           <QImage src={q.image_url} alt="Answer options" />
-        )}
-        {q.option_type !== 'IMAGE' && !q.setup_image_url && q.image_url && (
-          <QImage src={q.image_url} alt="Question" />
         )}
 
         {q.option_type === 'TABLE' && Array.isArray(q.table_rows) ? (
@@ -1284,7 +1332,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
             <table className="w-full text-sm">
               {flatHeaders.length > 0 && (
                 <thead><tr className="bg-gray-50">
-                  <th className="px-3 py-2 w-12 text-center font-bold text-quiz-muted">#</th>
+                  <th className="px-3 py-2 w-12 text-center font-bold text-quiz-muted" aria-label="Option letter"></th>
                   {flatHeaders.map((h, i) => <th key={i} className="px-3 py-2 text-left font-bold text-quiz-muted">{h}</th>)}
                   <th className="px-3 py-2 w-16 text-center font-bold text-quiz-muted">Pick</th>
                 </tr></thead>
@@ -1404,28 +1452,10 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
           </div>
         )}
 
-        {/* Inline correct/wrong feedback — reference quiz uses green
-            for "Correct! Nice one." and warm orange for "Not quite"
-            (encouraging rather than punishing). */}
-        {isChecked && (
-          <div className={
-            'rounded-2xl border-2 px-3 py-2 text-xs sm:text-sm ' +
-            (isCorrect
-              ? 'border-[#2FBF71]/50 bg-[rgba(47,191,113,0.10)] text-[#1FA85E]'
-              : 'border-quiz-orange/40 bg-quiz-orange-soft text-quiz-orange-deep')
-          }>
-            <div className="font-black">
-              {isCorrect
-                ? '✅ Correct! Nice one.'
-                : `❌ Not quite — the correct answer is ${correctKey || '—'}.`}
-            </div>
-            {q.explanation && (
-              <div className="mt-2 font-semibold leading-relaxed text-quiz-text whitespace-pre-line">
-                <span className="font-black">Why: </span><MathText>{q.explanation}</MathText>
-              </div>
-            )}
+        {/* Feedback — always directly under the answer options. */}
+        {feedbackBox}
           </div>
-        )}
+        </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
           <Button3d
@@ -1473,5 +1503,6 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
         </div>
       </Card>
     </Screen>
+    </div>
   )
 }

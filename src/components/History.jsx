@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Screen from './ui/Screen'
 import Card from './ui/Card'
 import Button3d from './ui/Button3d'
+import MathText from './ui/MathText'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -98,7 +99,7 @@ export default function History({ authToken }) {
                     <div className="text-xs font-bold text-quiz-muted uppercase tracking-wider mb-2">
                       Question {(question.index ?? idx) + 1}
                     </div>
-                    <h3 className="!text-lg !font-black mb-3 leading-snug">{question.question_text}</h3>
+                    <h3 className="!text-lg !font-black mb-3 leading-snug"><MathText>{question.question_text}</MathText></h3>
 
                     {diagramUrl && (
                       <div className="rounded-2xl overflow-hidden border border-quiz-border bg-white mb-3">
@@ -134,7 +135,7 @@ export default function History({ authToken }) {
                                     <tr key={rIdx} className={rowCls}>
                                       {flatHeaders.map((h, cIdx) => (
                                         <td key={cIdx} className="px-3 py-2 border-t border-quiz-border">
-                                          {row && typeof row === 'object' ? (row[h] ?? '') : ''}
+                                          <MathText>{row && typeof row === 'object' ? (row[h] ?? '') : ''}</MathText>
                                         </td>
                                       ))}
                                       <td className="px-3 py-2 border-t border-quiz-border text-sm font-bold">
@@ -179,7 +180,7 @@ export default function History({ authToken }) {
                                                 : 'border-quiz-border text-quiz-muted'
                           return (
                             <div key={oIdx} className={'flex items-center gap-2 px-3 py-2 rounded-2xl border-2 ' + cls}>
-                              <span className="flex-1">{t}</span>
+                              <span className="flex-1"><MathText>{t}</MathText></span>
                               {isCorrect && <span>✅</span>}
                               {isUser && !isCorrect && <span>❌</span>}
                             </div>
@@ -188,11 +189,11 @@ export default function History({ authToken }) {
                         <div className="space-y-2 pt-2">
                           <div className="flex items-center gap-2 p-3 rounded-2xl bg-quiz-red/10 border-2 border-quiz-red/40">
                             <span className="font-bold text-quiz-red shrink-0">❌ Your Answer:</span>
-                            <span>{userAns ? findOptionByLetter(question.options, userAns) : '(Not answered)'}</span>
+                            <span><MathText>{userAns ? findOptionByLetter(question.options, userAns) : '(Not answered)'}</MathText></span>
                           </div>
                           <div className="flex items-center gap-2 p-3 rounded-2xl bg-quiz-green/10 border-2 border-quiz-green/40">
                             <span className="font-bold text-quiz-green shrink-0">✅ Correct Answer:</span>
-                            <span>{findOptionByLetter(question.options, correctAns)}</span>
+                            <span><MathText>{findOptionByLetter(question.options, correctAns)}</MathText></span>
                           </div>
                         </div>
                       </div>
