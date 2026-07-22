@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import MathText from './ui/MathText'
 
 // TeacherAttemptReview — full-page review of a single student quiz attempt.
 //
@@ -185,7 +186,7 @@ function QuestionReview({ q, index }) {
       {/* Question text */}
       {text && (
         <div className="text-sm font-bold mb-3 whitespace-pre-wrap break-words leading-relaxed">
-          {text}
+          <MathText>{text}</MathText>
         </div>
       )}
 
@@ -221,7 +222,7 @@ function QuestionReview({ q, index }) {
       {/* Explanation */}
       {explanation && (
         <div className="mt-3 rounded-xl border border-quiz-border bg-black/5 px-3 py-2 text-[13px] font-semibold leading-relaxed whitespace-pre-line">
-          <span className="font-black">Why: </span>{explanation}
+          <span className="font-black">Why: </span><MathText>{explanation}</MathText>
         </div>
       )}
     </div>
@@ -294,7 +295,7 @@ function Options({ q, optionType, correctKey, userKey, optionsImageUrl }) {
                     {letter}
                   </td>
                   {cells.map((c, cIdx) => (
-                    <td key={cIdx} className="px-3 py-2 border-t border-quiz-border">{c}</td>
+                    <td key={cIdx} className="px-3 py-2 border-t border-quiz-border"><MathText>{c}</MathText></td>
                   ))}
                 </tr>
               )
@@ -328,7 +329,7 @@ function Options({ q, optionType, correctKey, userKey, optionsImageUrl }) {
                 {letter}
               </span>
             )}
-            <span className="font-semibold text-sm">{body}</span>
+            <span className="font-semibold text-sm"><MathText>{body}</MathText></span>
             {isCorrectOpt && <span className="ml-auto font-black">✓</span>}
             {isWrongPick && <span className="ml-auto font-black">✗</span>}
           </div>

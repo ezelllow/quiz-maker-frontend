@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import MathText from './ui/MathText'
 
 // TeacherStudentDrillIn — modal that opens when a teacher clicks a student row
 // in the dashboard. Shows the student's recent quiz attempts and lets the
@@ -130,7 +131,9 @@ export default function TeacherStudentDrillIn({ studentId, authToken, onClose, o
               {/* Attempts list */}
               <div>
                 <div className="text-[10px] font-black uppercase tracking-widest text-quiz-muted mb-2">
-                  Recent attempts ({attempts.length}) · click any attempt to open the full quiz
+                  Recent attempts ({student.total_attempts > attempts.length
+                    ? `showing ${attempts.length} of ${student.total_attempts}`
+                    : attempts.length}) · click any attempt to open the full quiz
                 </div>
                 {attempts.length === 0 ? (
                   <div className="rounded-xl border border-quiz-border bg-black/5 px-3 py-6 text-center text-quiz-muted font-bold text-sm">
@@ -225,7 +228,7 @@ function QuestionReview({ q, index }) {
           <div className="text-[10px] font-black uppercase tracking-widest text-quiz-muted">
             Q{index + 1}{subtopic ? ` · ${subtopic}` : ''}
           </div>
-          <div className="text-sm font-bold mt-0.5 whitespace-pre-wrap break-words">{text}</div>
+          <div className="text-sm font-bold mt-0.5 whitespace-pre-wrap break-words"><MathText>{text}</MathText></div>
         </div>
         <span className={
           'shrink-0 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest ' +
@@ -250,7 +253,7 @@ function QuestionReview({ q, index }) {
       </div>
       {explanation && (
         <div className="mt-2 text-[12px] font-semibold text-quiz-text leading-relaxed whitespace-pre-line">
-          <span className="font-black">Why: </span>{explanation}
+          <span className="font-black">Why: </span><MathText>{explanation}</MathText>
         </div>
       )}
     </div>

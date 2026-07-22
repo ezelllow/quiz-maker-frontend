@@ -471,9 +471,17 @@ function ConsistencyRow({ s, onPick }) {
           </span>
         </div>
       </div>
-      <span className="shrink-0 px-2 py-1 rounded-full text-[11px] font-bold
-                       bg-black/5 border border-quiz-border text-quiz-text">
-        {s.quizzes_7d} {s.quizzes_7d === 1 ? 'quiz' : 'quizzes'}
+      {/* Volume chip — "show both" policy: attempts (effort, retakes counted)
+          and distinct quizzes (coverage, retakes collapsed), scoped to the
+          last 7 days. Tooltip carries the all-time totals so a student whose
+          activity predates the window doesn't read as "1 quiz" ever again. */}
+      <span
+        title={`Last 7 days: ${s.attempts_7d ?? s.quizzes_7d} attempt${(s.attempts_7d ?? s.quizzes_7d) === 1 ? '' : 's'} across ${s.distinct_quizzes_7d ?? '—'} quiz${s.distinct_quizzes_7d === 1 ? '' : 'zes'} · All-time: ${s.attempts_all ?? '—'} attempts, ${s.quizzes_all ?? '—'} quizzes`}
+        className="shrink-0 px-2 py-1 rounded-full text-[11px] font-bold
+                       bg-black/5 border border-quiz-border text-quiz-text"
+      >
+        {(s.attempts_7d ?? s.quizzes_7d)} att · {s.distinct_quizzes_7d ?? s.quizzes_7d} quiz
+        <span className="text-quiz-muted"> · {s.attempts_all ?? '—'} all-time</span>
       </span>
       {/* Effort (days/quizzes) without results is half the picture — the 7-day
           average score chip closes the loop, colored by the same traffic light
