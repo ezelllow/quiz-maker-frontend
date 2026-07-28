@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Screen from './ui/Screen'
 import Card from './ui/Card'
 import Button3d from './ui/Button3d'
+import Icon from './ui/Icon'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -54,7 +55,7 @@ export default function CompleteProfile({ user, onComplete, onLogout }) {
             alt="Ooka mascot"
             className="w-28 h-28 sm:w-36 sm:h-36 mx-auto object-contain"
           />
-          <h1 className="!text-2xl !font-black tracking-tight mt-2">One more step</h1>
+          <h1 className="font-head !text-2xl !font-extrabold tracking-tight mt-2">One more step</h1>
           <p className="text-quiz-muted font-semibold text-sm">
             Tell us your school, class and teacher to finish setting up your account.
           </p>
@@ -101,7 +102,9 @@ export default function CompleteProfile({ user, onComplete, onLogout }) {
             </div>
 
             <Button3d type="submit" variant="purple" size="lg" full disabled={loading}>
-              {loading ? '⏳ Saving...' : '✅ Finish setup'}
+              {loading
+                ? <span className="inline-flex items-center gap-2"><Icon name="loader" className="w-5 h-5" /> Saving...</span>
+                : <span className="inline-flex items-center gap-2"><Icon name="check-circle" className="w-5 h-5" /> Finish setup</span>}
             </Button3d>
           </form>
 

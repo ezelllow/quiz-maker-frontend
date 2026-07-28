@@ -3,6 +3,7 @@ import Screen from './ui/Screen'
 import Card from './ui/Card'
 import Button3d from './ui/Button3d'
 import MathText from './ui/MathText'
+import Icon from './ui/Icon'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -79,17 +80,17 @@ export default function Placement({ authToken, subject = 'Physics', onComplete }
       <div className="min-h-screen flex items-center justify-center">
         <Screen width="narrow">
           <Card variant="solid" className="!p-8 text-center">
-            <div className="text-6xl mb-3">🎯</div>
-            <h1 className="!text-3xl !font-black mb-2">Let's find your starting rank</h1>
+            <div className="text-6xl mb-3"><Icon name="target" className="w-14 h-14 mx-auto text-quiz-blue" /></div>
+            <h1 className="font-head !text-3xl !font-extrabold mb-2">Let's find your starting rank</h1>
             <p className="text-quiz-muted leading-relaxed mb-5">
               Take a short placement quiz — <strong className="text-quiz-text">15 questions</strong> across
               different {subject} topics and difficulty. Your score sets your starting rank. You can
               climb from there.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-2 mb-6 text-xs font-bold text-quiz-muted">
-              <span className="px-3 py-1.5 rounded-full bg-gray-50 border border-quiz-border">📚 {subject}</span>
-              <span className="px-3 py-1.5 rounded-full bg-gray-50 border border-quiz-border">❓ 15 questions</span>
-              <span className="px-3 py-1.5 rounded-full bg-gray-50 border border-quiz-border">📊 Sets your rank</span>
+              <span className="px-3 py-1.5 rounded-full bg-gray-50 border border-quiz-border inline-flex items-center gap-1.5"><Icon name="book" className="w-4 h-4" /> {subject}</span>
+              <span className="px-3 py-1.5 rounded-full bg-gray-50 border border-quiz-border inline-flex items-center gap-1.5"><Icon name="help" className="w-4 h-4" /> 15 questions</span>
+              <span className="px-3 py-1.5 rounded-full bg-gray-50 border border-quiz-border inline-flex items-center gap-1.5"><Icon name="chart" className="w-4 h-4" /> Sets your rank</span>
             </div>
             <Button3d variant="green" size="lg" full onClick={startPlacement} disabled={loading}>
               {loading ? 'Loading…' : 'Start placement quiz'}
@@ -106,8 +107,8 @@ export default function Placement({ authToken, subject = 'Physics', onComplete }
       <div className="min-h-screen flex items-center justify-center">
         <Screen width="narrow">
           <Card variant="solid" className="!p-8 text-center">
-            <div className="text-6xl mb-3">⚠️</div>
-            <h1 className="!text-2xl !font-black mb-2">Something went wrong</h1>
+            <div className="text-6xl mb-3"><Icon name="alert" className="w-14 h-14 mx-auto text-quiz-red" /></div>
+            <h1 className="font-head !text-2xl !font-extrabold mb-2">Something went wrong</h1>
             <p className="text-quiz-muted mb-6">{error}</p>
             <div className="flex flex-col gap-2">
               <Button3d variant="blue" size="md" full onClick={startPlacement} disabled={loading}>
@@ -210,7 +211,7 @@ export default function Placement({ authToken, subject = 'Physics', onComplete }
                 <thead>
                   <tr className="bg-gray-50">
                     {flatHeaders.map((h, i) => (
-                      <th key={i} className="px-3 py-2 text-left font-bold text-quiz-muted">{h}</th>
+                      <th key={i} className="px-3 py-2 text-left font-bold text-quiz-muted"><MathText>{h}</MathText></th>
                     ))}
                     <th className="px-3 py-2 w-16 text-center font-bold text-quiz-muted">Pick</th>
                   </tr>

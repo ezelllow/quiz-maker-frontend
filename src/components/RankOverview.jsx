@@ -1,15 +1,16 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { ease } from '../motion'
+import Icon from './ui/Icon'
 
 // Mirrors the backend STARQUEST_RANKS ladder (quiz_backend.py). XP-derived:
 // quizzes earn XP, and crossing each threshold promotes you to the next rank.
 const RANKS = [
-  { key: 'cadet',        name: 'Cadet',        xpMin: 0,    icon: '✨', blurb: 'Every legend starts here.' },
-  { key: 'pilot',        name: 'Pilot',        xpMin: 200,  icon: '🚀', blurb: 'Off the ground and flying.' },
-  { key: 'navigator',    name: 'Navigator',    xpMin: 500,  icon: '🧭', blurb: 'Finding your way through tough topics.' },
-  { key: 'commander',    name: 'Commander',    xpMin: 1200, icon: '🎖️', blurb: 'Leading the charge.' },
-  { key: 'captain',      name: 'Captain',      xpMin: 2500, icon: '🌟', blurb: 'Master of the syllabus.' },
-  { key: 'star_admiral', name: 'Star Admiral', xpMin: 5000, icon: '⭐', blurb: 'The summit. Elite of the fleet.' },
+  { key: 'cadet',        name: 'Cadet',        xpMin: 0,    icon: 'sparkle', blurb: 'Every legend starts here.' },
+  { key: 'pilot',        name: 'Pilot',        xpMin: 200,  icon: 'rocket',  blurb: 'Off the ground and flying.' },
+  { key: 'navigator',    name: 'Navigator',    xpMin: 500,  icon: 'compass', blurb: 'Finding your way through tough topics.' },
+  { key: 'commander',    name: 'Commander',    xpMin: 1200, icon: 'award',   blurb: 'Leading the charge.' },
+  { key: 'captain',      name: 'Captain',      xpMin: 2500, icon: 'star',    blurb: 'Master of the syllabus.' },
+  { key: 'star_admiral', name: 'Star Admiral', xpMin: 5000, icon: 'star',    blurb: 'The summit. Elite of the fleet.' },
 ]
 
 /**
@@ -53,7 +54,7 @@ export default function RankOverview({ open, onClose, currentKey, xp = 0 }) {
                          flex items-center justify-center text-quiz-muted hover:text-quiz-text
                          hover:-translate-y-0.5 active:scale-95 transition-all"
             >
-              ✕
+              <Icon name="x" className="w-4 h-4" />
             </button>
 
             <div className="text-center mb-3">
@@ -67,7 +68,7 @@ export default function RankOverview({ open, onClose, currentKey, xp = 0 }) {
 
             {/* Current status */}
             <div className="rounded-2xl border-2 border-quiz-blue/40 bg-quiz-blue/10 p-3 mb-4 text-center">
-              <div className="text-3xl leading-none">{cur.icon}</div>
+              <div className="flex justify-center"><Icon name={cur.icon} className="w-9 h-9 text-quiz-blue" /></div>
               <div className="font-black text-base mt-1">{cur.name}</div>
               <div className="text-[11px] font-bold text-quiz-muted mt-0.5">
                 {xp.toLocaleString()} XP{next ? ` · ${toNext.toLocaleString()} XP to ${next.name}` : ' · max rank reached!'}
@@ -101,7 +102,7 @@ export default function RankOverview({ open, onClose, currentKey, xp = 0 }) {
                           : 'border-quiz-border opacity-70')
                     }
                   >
-                    <span className="text-xl w-7 text-center shrink-0">{r.icon}</span>
+                    <span className="w-7 flex justify-center shrink-0"><Icon name={r.icon} className={'w-6 h-6 ' + (isCur ? 'text-quiz-blue' : reached ? 'text-quiz-green' : 'text-quiz-muted')} /></span>
                     <div className="flex-1 min-w-0">
                       <div className="font-black text-sm leading-tight">{r.name}</div>
                       <div className="text-[10px] font-bold text-quiz-muted leading-tight">
@@ -111,9 +112,9 @@ export default function RankOverview({ open, onClose, currentKey, xp = 0 }) {
                     {isCur ? (
                       <span className="text-[9px] font-black uppercase tracking-wider text-quiz-blue shrink-0">You</span>
                     ) : reached ? (
-                      <span className="text-quiz-green text-sm shrink-0">✓</span>
+                      <Icon name="check" className="w-4 h-4 text-quiz-green shrink-0" />
                     ) : (
-                      <span className="text-quiz-muted text-sm shrink-0">🔒</span>
+                      <Icon name="lock" className="w-4 h-4 text-quiz-muted shrink-0" />
                     )}
                   </div>
                 )

@@ -1,6 +1,7 @@
 import Screen from './ui/Screen'
 import SectionLabel from './ui/SectionLabel'
 import AvatarCustomizer from './AvatarCustomizer'
+import Icon from './ui/Icon'
 
 /**
  * CustomizePage — the dedicated avatar customisation screen, reached from the
@@ -23,7 +24,7 @@ export default function CustomizePage({ user, onUserUpdate, authToken, gems, onG
         </button>
         <div className="min-w-0">
           <SectionLabel>Wardrobe</SectionLabel>
-          <h1 className="!text-2xl !font-black tracking-tight">Customise your Ooka 🧥</h1>
+          <h1 className="!text-2xl !font-black tracking-tight inline-flex items-center gap-2">Customise your Ooka <Icon name="shirt" className="w-6 h-6 text-quiz-muted" /></h1>
         </div>
       </header>
 

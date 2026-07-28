@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { toast as toastVariant } from '../../motion'
 import { cn } from '../../lib/cn'
+import Icon from './Icon'
 
 /**
  * Toast — auto-dismissing top-right notification. Single-toast model
@@ -16,10 +17,10 @@ import { cn } from '../../lib/cn'
  *   duration: ms before auto-dismiss (default 3500). Pass 0 to disable.
  */
 const TONES = {
-  ok:     { ring: 'border-quiz-green/50 bg-quiz-green/15 text-quiz-green', icon: '✅' },
-  warn:   { ring: 'border-quiz-yellow/50 bg-quiz-yellow/15 text-quiz-yellow', icon: '⚠️' },
-  bad:    { ring: 'border-quiz-red/50    bg-quiz-red/15    text-quiz-red',    icon: '❌' },
-  accent: { ring: 'border-quiz-blue/50   bg-quiz-blue/15   text-quiz-blue',   icon: 'ℹ️' },
+  ok:     { ring: 'border-quiz-green/50 bg-quiz-green/15 text-quiz-green', icon: <Icon name="check-circle" className="w-5 h-5" /> },
+  warn:   { ring: 'border-quiz-yellow/50 bg-quiz-yellow/15 text-quiz-yellow', icon: <Icon name="alert" className="w-5 h-5" /> },
+  bad:    { ring: 'border-quiz-red/50    bg-quiz-red/15    text-quiz-red',    icon: <Icon name="x-circle" className="w-5 h-5" /> },
+  accent: { ring: 'border-quiz-blue/50   bg-quiz-blue/15   text-quiz-blue',   icon: <Icon name="info" className="w-5 h-5" /> },
 }
 
 export default function Toast({

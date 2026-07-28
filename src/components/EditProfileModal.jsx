@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import Modal from './ui/Modal'
 import Button3d from './ui/Button3d'
 import Avatar from './ui/Avatar'
+import Icon from './ui/Icon'
 import { ease } from '../motion'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
@@ -114,7 +115,7 @@ export default function EditProfileModal({ open, onClose, user, onUserUpdate }) 
           <div className="min-w-0">
             <div className="text-sm font-black">Your Ooka avatar</div>
             <p className="text-[11px] font-bold text-quiz-muted mt-0.5 leading-snug">
-              Unlock new monkey skins and wearables in the <span className="text-quiz-blue">Shop</span> using 💎.
+              Unlock new monkey skins and wearables in the <span className="text-quiz-blue">Shop</span> using <Icon name="gem" className="inline w-3.5 h-3.5 align-text-bottom text-quiz-blue" />.
             </p>
           </div>
         </div>
@@ -155,7 +156,9 @@ export default function EditProfileModal({ open, onClose, user, onUserUpdate }) 
             loadingLabel="Saving…"
             onClick={() => dirty && setConfirmOpen(true)}
           >
-            {dirty ? '💾 Save' : '✓ Saved'}
+            {dirty
+              ? <span className="inline-flex items-center gap-2"><Icon name="save" className="w-4 h-4" /> Save</span>
+              : <span className="inline-flex items-center gap-2"><Icon name="check" className="w-4 h-4" /> Saved</span>}
           </Button3d>
         </div>
       </div>

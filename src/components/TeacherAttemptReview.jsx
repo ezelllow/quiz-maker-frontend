@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import MathText from './ui/MathText'
+import Icon from './ui/Icon'
 
 // TeacherAttemptReview — full-page review of a single student quiz attempt.
 //
@@ -97,7 +98,7 @@ export default function TeacherAttemptReview({ attemptId, authToken, onBack }) {
       {/* ===== Body ===== */}
       <main className="max-w-3xl mx-auto w-full flex-1 px-4 py-5 sm:py-6 space-y-4">
         {loading && (
-          <div className="text-center py-24 text-quiz-muted font-bold">⏳ Loading attempt…</div>
+          <div className="text-center py-24 text-quiz-muted font-bold"><Icon name="loader" className="inline-block w-5 h-5 align-[-0.25em] animate-spin mr-1" /> Loading attempt…</div>
         )}
 
         {err && !loading && (
@@ -179,7 +180,7 @@ function QuestionReview({ q, index }) {
             ? 'bg-quiz-green/15 border border-quiz-green/40 text-quiz-green'
             : 'bg-quiz-red/15 border border-quiz-red/40 text-quiz-red')
         }>
-          {isCorrect ? '✓ Correct' : '✗ Wrong'}
+          {isCorrect ? <><Icon name="check" className="inline-block w-[1em] h-[1em] align-[-0.15em]" /> Correct</> : <><Icon name="x" className="inline-block w-[1em] h-[1em] align-[-0.15em]" /> Wrong</>}
         </span>
       </div>
 
@@ -210,12 +211,12 @@ function QuestionReview({ q, index }) {
         <div className="rounded-md px-2 py-1 border border-quiz-border bg-black/5">
           <span className="text-quiz-muted">They picked:</span>{' '}
           <span className={isCorrect ? 'text-quiz-green' : 'text-quiz-red'}>
-            {String(userAns) || '—'}
+            <MathText>{String(userAns) || '—'}</MathText>
           </span>
         </div>
         <div className="rounded-md px-2 py-1 border border-quiz-border bg-black/5">
           <span className="text-quiz-muted">Correct:</span>{' '}
-          <span className="text-quiz-green">{String(correctAns) || '—'}</span>
+          <span className="text-quiz-green"><MathText>{String(correctAns) || '—'}</MathText></span>
         </div>
       </div>
 
@@ -272,7 +273,7 @@ function Options({ q, optionType, correctKey, userKey, optionsImageUrl }) {
             <thead><tr className="bg-black/5">
               <th className="px-3 py-2 w-12 text-center font-bold text-quiz-muted" aria-label="Option letter"></th>
               {flatHeaders.map((h, i) => (
-                <th key={i} className="px-3 py-2 text-left font-bold text-quiz-muted">{h}</th>
+                <th key={i} className="px-3 py-2 text-left font-bold text-quiz-muted"><MathText>{h}</MathText></th>
               ))}
             </tr></thead>
           )}
@@ -330,8 +331,8 @@ function Options({ q, optionType, correctKey, userKey, optionsImageUrl }) {
               </span>
             )}
             <span className="font-semibold text-sm"><MathText>{body}</MathText></span>
-            {isCorrectOpt && <span className="ml-auto font-black">✓</span>}
-            {isWrongPick && <span className="ml-auto font-black">✗</span>}
+            {isCorrectOpt && <Icon name="check" className="ml-auto w-4 h-4" />}
+            {isWrongPick && <Icon name="x" className="ml-auto w-4 h-4" />}
           </div>
         )
       })}
@@ -350,8 +351,8 @@ function OptionTile({ letter, correctKey, userKey }) {
   return (
     <div className={'flex items-center justify-center py-2 rounded-xl border font-black ' + cls}>
       {letter}
-      {isCorrect && <span className="ml-1">✓</span>}
-      {isWrong && <span className="ml-1">✗</span>}
+      {isCorrect && <Icon name="check" className="ml-1 w-4 h-4" />}
+      {isWrong && <Icon name="x" className="ml-1 w-4 h-4" />}
     </div>
   )
 }

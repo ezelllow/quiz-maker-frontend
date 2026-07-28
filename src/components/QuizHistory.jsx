@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import Icon from './ui/Icon'
 import './QuizHistory.css'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
@@ -106,7 +107,7 @@ export default function QuizHistory({ authToken, onGoBack, onRetakeQuiz }) {
             <button onClick={() => setMistakeDetails(null)} className="btn btn-outline">
               ← Back to History
             </button>
-            <h2>📋 Mistake Review</h2>
+            <h2 className="inline-flex items-center gap-2"><Icon name="note" className="w-5 h-5" /> Mistake Review</h2>
             <div className="mistake-stats">
               <span>Score: {mistakeDetails.score}/{mistakeDetails.total_questions}</span>
               <span>Wrong: {mistakeDetails.wrong_count}</span>
@@ -116,7 +117,7 @@ export default function QuizHistory({ authToken, onGoBack, onRetakeQuiz }) {
 
           {mistakeDetails.wrong_count === 0 ? (
             <div className="perfect-score">
-              <div className="emoji">🎉</div>
+              <div className="emoji"><Icon name="party" className="w-14 h-14 mx-auto text-quiz-yellow" /></div>
               <h3>Perfect Score!</h3>
               <p>You didn't get any questions wrong. Keep it up!</p>
             </div>
@@ -129,18 +130,18 @@ export default function QuizHistory({ authToken, onGoBack, onRetakeQuiz }) {
 
                   <div className="answer-comparison">
                     <div className="wrong-answer">
-                      <span className="label">❌ Your Answer:</span>
+                      <span className="label inline-flex items-center gap-1"><Icon name="x-circle" className="w-4 h-4 text-quiz-red" /> Your Answer:</span>
                       <span className="text">{question.user_answer || '(Not answered)'}</span>
                     </div>
                     <div className="correct-answer">
-                      <span className="label">✅ Correct Answer:</span>
+                      <span className="label inline-flex items-center gap-1"><Icon name="check-circle" className="w-4 h-4 text-quiz-green" /> Correct Answer:</span>
                       <span className="text">{question.correct_answer}</span>
                     </div>
                   </div>
 
                   <div className="question-meta">
-                    <span>📌 {question.subtopic}</span>
-                    <span>⭐ {question.difficulty}</span>
+                    <span className="inline-flex items-center gap-1"><Icon name="pin" className="w-3 h-3" /> {question.subtopic}</span>
+                    <span className="inline-flex items-center gap-1"><Icon name="star" className="w-3 h-3" /> {question.difficulty}</span>
                   </div>
                 </div>
               ))}
@@ -163,7 +164,7 @@ export default function QuizHistory({ authToken, onGoBack, onRetakeQuiz }) {
           <button onClick={onGoBack} className="btn btn-outline">
             ← Back to Quiz
           </button>
-          <h2>📊 Quiz History</h2>
+          <h2 className="inline-flex items-center gap-2"><Icon name="chart" className="w-5 h-5" /> Quiz History</h2>
         </div>
 
         {error && <div className="error-message">{error}</div>}
@@ -172,14 +173,14 @@ export default function QuizHistory({ authToken, onGoBack, onRetakeQuiz }) {
           <div className="loading">Loading your quiz history...</div>
         ) : history.length === 0 ? (
           <div className="no-history">
-            <div className="emoji">📚</div>
+            <div className="emoji"><Icon name="book" className="w-14 h-14 mx-auto text-quiz-muted" /></div>
             <p>No quiz attempts yet. Start your first quiz!</p>
           </div>
         ) : (
           <>
             {/* Progress Chart */}
             <div className="progress-chart-section">
-              <h3>📈 Your Progress Over Time</h3>
+              <h3 className="inline-flex items-center gap-2"><Icon name="trend" className="w-5 h-5" /> Your Progress Over Time</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -220,7 +221,7 @@ export default function QuizHistory({ authToken, onGoBack, onRetakeQuiz }) {
 
             {/* Attempts List */}
             <div className="attempts-list">
-              <h3>📝 All Attempts</h3>
+              <h3 className="inline-flex items-center gap-2"><Icon name="note" className="w-5 h-5" /> All Attempts</h3>
               {history.map((attempt, idx) => (
                 <div key={attempt.id} className="attempt-item">
                   <div className="attempt-info">
@@ -230,9 +231,9 @@ export default function QuizHistory({ authToken, onGoBack, onRetakeQuiz }) {
                         Score: <strong>{attempt.score}/{attempt.total_questions}</strong> ({attempt.percentage}%)
                       </p>
                       <p className="attempt-meta">
-                        {attempt.subtopic && <span>📌 {attempt.subtopic}</span>}
-                        {attempt.difficulty && <span>⭐ {attempt.difficulty}</span>}
-                        <span>⏱️ {formatTime(attempt.time_spent_seconds)}</span>
+                        {attempt.subtopic && <span className="inline-flex items-center gap-1"><Icon name="pin" className="w-3 h-3" /> {attempt.subtopic}</span>}
+                        {attempt.difficulty && <span className="inline-flex items-center gap-1"><Icon name="star" className="w-3 h-3" /> {attempt.difficulty}</span>}
+                        <span className="inline-flex items-center gap-1"><Icon name="clock" className="w-3 h-3" /> {formatTime(attempt.time_spent_seconds)}</span>
                       </p>
                       <p className="attempt-date">{formatDate(attempt.attempted_at)}</p>
                     </div>
@@ -240,15 +241,15 @@ export default function QuizHistory({ authToken, onGoBack, onRetakeQuiz }) {
                   <div className="attempt-actions">
                     <button
                       onClick={() => loadMistakeReview(attempt.id)}
-                      className="btn btn-secondary btn-small"
+                      className="btn btn-secondary btn-small inline-flex items-center gap-1"
                     >
-                      👁️ Review
+                      <Icon name="eye" className="w-4 h-4" /> Review
                     </button>
                     <button
                       onClick={() => handleRetakeQuiz(attempt)}
-                      className="btn btn-primary btn-small"
+                      className="btn btn-primary btn-small inline-flex items-center gap-1"
                     >
-                      🔄 Retake
+                      <Icon name="refresh" className="w-4 h-4" /> Retake
                     </button>
                   </div>
                 </div>

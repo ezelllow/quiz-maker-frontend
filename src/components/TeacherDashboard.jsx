@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import Card from './ui/Card'
+import Icon from './ui/Icon'
 import { Stagger, StaggerItem } from './ui/Motion'
 import TeacherStudentDrillIn from './TeacherStudentDrillIn'
 
@@ -65,7 +66,7 @@ export default function TeacherDashboard({ authToken, user, onLogout, onViewAsSt
         }}
       >
         <div className="max-w-5xl mx-auto w-full flex items-center justify-between gap-3 px-4 py-2">
-          <div className="flex items-center gap-2 font-black text-lg tracking-tight">
+          <div className="flex items-center gap-2 font-head font-extrabold text-lg tracking-tight">
             <img src="/brand/ooka/logos/ooka_logo_2_sm.webp" alt="Ooka" className="w-7 h-7 rounded-lg" />
             <span className="bg-gradient-to-r from-quiz-blue to-quiz-purple bg-clip-text text-transparent">
               Ooka
@@ -83,7 +84,7 @@ export default function TeacherDashboard({ authToken, user, onLogout, onViewAsSt
               className="px-3 py-1.5 rounded-full text-xs font-black border border-quiz-border
                          hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
             >
-              ↻
+              <Icon name="refresh" className="w-4 h-4" />
             </button>
             {onViewAsStudent && (
               <button
@@ -92,7 +93,7 @@ export default function TeacherDashboard({ authToken, user, onLogout, onViewAsSt
                 className="px-3 py-1.5 rounded-full text-xs font-black text-quiz-purple
                            border border-quiz-purple/40 hover:bg-quiz-purple/10 transition-colors"
               >
-                👁️ View as student
+                <Icon name="eye" className="inline-block w-4 h-4 align-[-0.2em] mr-1" />View as student
               </button>
             )}
             <button
@@ -125,7 +126,7 @@ export default function TeacherDashboard({ authToken, user, onLogout, onViewAsSt
         </div>
 
         {loading && (
-          <div className="text-center py-24 text-quiz-muted font-bold">⏳ Loading overview…</div>
+          <div className="text-center py-24 text-quiz-muted font-bold"><Icon name="loader" className="inline-block w-5 h-5 align-[-0.25em] animate-spin mr-1" /> Loading overview…</div>
         )}
 
         {err && !loading && (
@@ -209,7 +210,7 @@ export default function TeacherDashboard({ authToken, user, onLogout, onViewAsSt
                   hint="Click a topic to see which students are under 60%"
                 />
                 {data.weakest_topics.length === 0 ? (
-                  <EmptyState text="No weak topics this week. Class is on top of it ✓" />
+                  <EmptyState text={<>No weak topics this week. Class is on top of it <Icon name="check" className="inline-block w-[1em] h-[1em] align-[-0.15em] text-quiz-green" /></>} />
                 ) : (
                   <div className="space-y-1.5 mt-2">
                     {data.weakest_topics.map((t) => (
@@ -237,7 +238,7 @@ export default function TeacherDashboard({ authToken, user, onLogout, onViewAsSt
                   hint="Silent 5+ days or never active"
                 />
                 {data.inactive_students.length === 0 ? (
-                  <EmptyState text="Everyone's been active this week. Nice ✓" />
+                  <EmptyState text={<>Everyone&apos;s been active this week. Nice <Icon name="check" className="inline-block w-[1em] h-[1em] align-[-0.15em] text-quiz-green" /></>} />
                 ) : (
                   <div className="space-y-1.5 mt-2">
                     {data.inactive_students.map((s) => (
@@ -261,7 +262,7 @@ export default function TeacherDashboard({ authToken, user, onLogout, onViewAsSt
                   }
                 />
                 <div className="text-[10px] font-bold text-quiz-muted mt-1 italic">
-                  Streak (🔥) is all-time and doesn't change with the filter.
+                  Streak (<Icon name="flame" className="inline-block w-[1em] h-[1em] align-[-0.15em] text-quiz-orange" />) is all-time and doesn&apos;t change with the filter.
                 </div>
                 {(!data.consistency || data.consistency.length === 0) ? (
                   <EmptyState text="No students yet." />
@@ -288,6 +289,12 @@ export default function TeacherDashboard({ authToken, user, onLogout, onViewAsSt
           studentId={viewingStudentId}
           authToken={token}
           onClose={() => setViewingStudentId(null)}
+          onDeleted={() => {
+            // Student is gone — close the modal and re-pull the overview so the
+            // roster, tiles and lists drop them immediately.
+            setViewingStudentId(null)
+            setRefreshKey((k) => k + 1)
+          }}
           onOpenAttempt={(id) => {
             // Close the modal first so the dashboard isn't covered when we
             // route back from the review page.
@@ -370,7 +377,7 @@ function StatTile({ label, value, hint, tone }) {
   return (
     <Card variant="solid" className={`!p-3 sm:!p-4 ${toneRing}`}>
       <div className="text-[10px] font-black uppercase tracking-widest text-quiz-muted">{label}</div>
-      <div className={`text-2xl sm:text-3xl font-black mt-0.5 ${valueCls}`}>{value}</div>
+      <div className={`font-head text-2xl sm:text-3xl font-extrabold mt-0.5 ${valueCls}`}>{value}</div>
       {hint && <div className="text-[11px] text-quiz-muted mt-1 font-bold truncate">{hint}</div>}
     </Card>
   )
@@ -498,7 +505,7 @@ function ConsistencyRow({ s, onPick }) {
         className="shrink-0 px-2 py-1 rounded-full text-[11px] font-black
                    bg-quiz-orange/15 border border-quiz-orange/40 text-quiz-orange"
       >
-        🔥 {s.current_streak}
+        <Icon name="flame" className="inline-block w-[1em] h-[1em] align-[-0.15em]" /> {s.current_streak}
       </span>
     </div>
   )

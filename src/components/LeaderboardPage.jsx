@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import Screen from './ui/Screen'
 import Card from './ui/Card'
 import SharedAvatar from './ui/Avatar'
+import Icon from './ui/Icon'
 import { ease, burst } from '../motion'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
@@ -91,7 +92,7 @@ export default function LeaderboardPage({ user, authToken, progression }) {
     <header className="mb-4 flex items-start justify-between gap-3">
       <div>
         <div className="text-[10px] font-black uppercase tracking-widest text-quiz-muted">Leaderboard</div>
-        <h1 className="!text-2xl !font-black tracking-tight">Who's grinding today?</h1>
+        <h1 className="font-head !text-2xl !font-extrabold tracking-tight">Who's grinding today?</h1>
         {lastFetched && (
           <div className="text-[10px] font-bold text-quiz-muted mt-0.5">
             Updated {fmtAgo(lastFetched)}
@@ -106,7 +107,7 @@ export default function LeaderboardPage({ user, authToken, progression }) {
                    bg-gray-50 border border-quiz-border
                    hover:bg-gray-100 disabled:opacity-50 transition-colors"
       >
-        {loading ? '…' : '🔄'}
+        {loading ? '…' : <Icon name="refresh" className="w-4 h-4 mx-auto" />}
       </button>
     </header>
   )
@@ -155,7 +156,7 @@ export default function LeaderboardPage({ user, authToken, progression }) {
   if (entries.length === 0) return (
     <Screen width="default"><Header /><Tabs />
       <Card variant="solid" className="!p-12 text-center">
-        <div className="text-6xl mb-3">🏆</div>
+        <div className="text-6xl mb-3"><Icon name="trophy" className="w-14 h-14 mx-auto text-quiz-yellow" /></div>
         <p className="text-quiz-muted font-bold">
           No scores {PERIOD_LABEL[period]} yet. Be the first — knock out today's daily.
         </p>

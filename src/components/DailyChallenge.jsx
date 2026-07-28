@@ -3,6 +3,7 @@ import Screen from './ui/Screen'
 import Card from './ui/Card'
 import Button3d from './ui/Button3d'
 import MathText from './ui/MathText'
+import Icon from './ui/Icon'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -127,7 +128,7 @@ export default function DailyChallenge({ authToken, subject = 'Physics', onExit 
   const Wrap = ({ children, narrow = false }) => (
     <Screen width={narrow ? 'narrow' : 'default'} className="py-8">
       <header className="mb-4 text-center">
-        <h1 className="!text-2xl !font-black">🔥 Daily Challenge</h1>
+        <h1 className="font-head !text-2xl !font-extrabold">Daily Challenge</h1>
       </header>
       {children}
     </Screen>
@@ -143,8 +144,8 @@ export default function DailyChallenge({ authToken, subject = 'Physics', onExit 
     return (
       <Wrap narrow>
         <Card variant="solid" className="!p-8 text-center">
-          <div className="text-5xl mb-3">⚠️</div>
-          <h2 className="!text-xl !font-black mb-2">Something went wrong</h2>
+          <div className="text-5xl mb-3"><Icon name="alert" className="w-12 h-12 mx-auto text-quiz-red" /></div>
+          <h2 className="font-head !text-xl !font-extrabold mb-2">Something went wrong</h2>
           <p className="text-quiz-muted mb-6">{error}</p>
           <Button3d variant="blue" size="md" full onClick={refetchChallenge} disabled={loading}>Try again</Button3d>
         </Card>
@@ -158,7 +159,7 @@ export default function DailyChallenge({ authToken, subject = 'Physics', onExit 
       <Wrap narrow>
         <Card variant="solid" className="!p-8 text-center">
           <StreakRing value={streakNum} variant="win" />
-          <h2 className="!text-2xl !font-black mt-4 mb-2">You're done for today ✓</h2>
+          <h2 className="font-head !text-2xl !font-extrabold mt-4 mb-2 inline-flex items-center justify-center gap-2">You're done for today <Icon name="check" className="w-6 h-6 text-quiz-green" /></h2>
           <p className="text-quiz-muted mb-6">
             Today's Daily Challenge is cleared. Your streak is safe — come back tomorrow to keep it going.
           </p>
@@ -174,7 +175,7 @@ export default function DailyChallenge({ authToken, subject = 'Physics', onExit 
       <Wrap narrow>
         <Card variant="solid" className="!p-8 text-center">
           <StreakRing value={streakNum} />
-          <h2 className="!text-2xl !font-black mt-4 mb-2">
+          <h2 className="font-head !text-2xl !font-extrabold mt-4 mb-2">
             {streakNum > 0 ? `${streakNum}-day streak` : 'Start your streak today'}
           </h2>
           {rank && (
@@ -190,16 +191,17 @@ export default function DailyChallenge({ authToken, subject = 'Physics', onExit 
             Retry with a fresh set as many times as you need.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-2 mb-6 text-xs font-bold text-quiz-muted">
-            <span className="px-3 py-1.5 rounded-full bg-gray-50 border border-quiz-border">📚 {subject}</span>
-            <span className="px-3 py-1.5 rounded-full bg-gray-50 border border-quiz-border">❓ {questions.length} questions</span>
-            <span className="px-3 py-1.5 rounded-full bg-gray-50 border border-quiz-border">🎯 {streakFloor}% to pass</span>
-            {streak && <span className="px-3 py-1.5 rounded-full bg-gray-50 border border-quiz-border">🧊 {streak.freezes_available ?? 0} freeze</span>}
+            <span className="px-3 py-1.5 rounded-full bg-gray-50 border border-quiz-border inline-flex items-center gap-1.5"><Icon name="book" className="w-4 h-4" /> {subject}</span>
+            <span className="px-3 py-1.5 rounded-full bg-gray-50 border border-quiz-border inline-flex items-center gap-1.5"><Icon name="help" className="w-4 h-4" /> {questions.length} questions</span>
+            <span className="px-3 py-1.5 rounded-full bg-gray-50 border border-quiz-border inline-flex items-center gap-1.5"><Icon name="target" className="w-4 h-4" /> {streakFloor}% to pass</span>
+            {streak && <span className="px-3 py-1.5 rounded-full bg-gray-50 border border-quiz-border inline-flex items-center gap-1.5"><Icon name="snowflake" className="w-4 h-4" /> {streak.freezes_available ?? 0} freeze</span>}
           </div>
           <Button3d variant="green" size="lg" full onClick={() => setStep('quiz')}>
             Start today's challenge
           </Button3d>
-          <div className="mt-5 px-3 py-2.5 rounded-2xl bg-quiz-blue/10 border border-quiz-blue/30 text-sm text-left">
-            💡 Weak topic tripping you up? Drill it in Practice first — that's how you train for this.
+          <div className="mt-5 px-3 py-2.5 rounded-2xl bg-quiz-blue/10 border border-quiz-blue/30 text-sm text-left flex items-start gap-2">
+            <Icon name="bulb" className="w-4 h-4 shrink-0 mt-0.5 text-quiz-blue" />
+            <span>Weak topic tripping you up? Drill it in Practice first — that's how you train for this.</span>
           </div>
         </Card>
       </Wrap>
@@ -216,7 +218,7 @@ export default function DailyChallenge({ authToken, subject = 'Physics', onExit 
           {passed ? (
             <>
               <StreakRing value={result.streak.current} variant="win" />
-              <h2 className="!text-2xl !font-black mt-4 mb-2">Streak {result.streak.current} 🔥</h2>
+              <h2 className="font-head !text-2xl !font-extrabold mt-4 mb-2 inline-flex items-center justify-center gap-2">Streak {result.streak.current} <Icon name="flame" className="w-6 h-6 text-quiz-orange" /></h2>
               <p className="text-quiz-muted mb-4">
                 {result.score}/{result.total} correct · {result.percentage}% — today's streak is earned.
                 {result.streak.freeze_used && ' A streak freeze covered a missed day.'}
@@ -235,7 +237,7 @@ export default function DailyChallenge({ authToken, subject = 'Physics', onExit 
           ) : (
             <>
               <StreakRing value={`${result.percentage}%`} variant="fail" />
-              <h2 className="!text-2xl !font-black mt-4 mb-2">So close — {result.percentage}%</h2>
+              <h2 className="font-head !text-2xl !font-extrabold mt-4 mb-2">So close — {result.percentage}%</h2>
               <p className="text-quiz-muted mb-6">
                 You need <strong className="text-quiz-text">{streakFloor}%</strong> to earn today's streak.
                 Your streak isn't broken — a fresh set is waiting. Give it another go.
@@ -311,7 +313,7 @@ export default function DailyChallenge({ authToken, subject = 'Physics', onExit 
                 <thead>
                   <tr className="bg-gray-50">
                     {flatHeaders.map((h, i) => (
-                      <th key={i} className="px-3 py-2 text-left font-bold text-quiz-muted">{h}</th>
+                      <th key={i} className="px-3 py-2 text-left font-bold text-quiz-muted"><MathText>{h}</MathText></th>
                     ))}
                     <th className="px-3 py-2 w-16 text-center font-bold text-quiz-muted">Pick</th>
                   </tr>

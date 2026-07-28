@@ -3,6 +3,7 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'
 import Screen from './ui/Screen'
 import Card from './ui/Card'
 import Button3d from './ui/Button3d'
+import Icon from './ui/Icon'
 
 // LoginPage — QuizQuest-styled rebuild (pilot screen for the redesign).
 // Functionality unchanged: same /api/auth/login + /api/auth/google calls,
@@ -81,7 +82,7 @@ export default function LoginPage({ onLoginSuccess, notice }) {
             alt="Ooka mascot"
             className="w-40 h-40 sm:w-48 sm:h-48 mx-auto object-contain"
           />
-          <h1 className="!text-4xl !font-black tracking-tight">Ooka</h1>
+          <h1 className="font-head !text-4xl !font-extrabold tracking-tight">Ooka</h1>
           <p className="text-quiz-muted font-semibold italic">Small quests. Big brains.</p>
           <p className="text-[11px] text-quiz-muted font-bold mt-2 leading-snug">
             Same app, fresher look. Ooka is the new face of HabitGo.
@@ -130,9 +131,9 @@ export default function LoginPage({ onLoginSuccess, notice }) {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xl opacity-80 hover:opacity-100"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 opacity-80 hover:opacity-100"
                 >
-                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                  {showPassword ? <Icon name="eye" className="w-5 h-5" /> : <Icon name="eye-off" className="w-5 h-5" />}
                 </button>
               </div>
             </div>
@@ -144,7 +145,9 @@ export default function LoginPage({ onLoginSuccess, notice }) {
               full
               disabled={loading}
             >
-              {loading ? '⏳ Logging in...' : '🔓 Login'}
+              {loading
+                ? <span className="inline-flex items-center gap-2"><Icon name="loader" className="w-5 h-5" /> Logging in...</span>
+                : <span className="inline-flex items-center gap-2"><Icon name="login" className="w-5 h-5" /> Login</span>}
             </Button3d>
           </form>
 

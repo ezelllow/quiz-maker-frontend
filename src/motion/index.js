@@ -21,12 +21,16 @@ export const ease = {
   /** Signature ease-out used across the app. */
   out:   [0.22, 1, 0.36, 1],
   inOut: [0.65, 0, 0.35, 1],
-  /** Drop-in spring for taps / pops — visible overshoot. */
-  spring: { type: 'spring', stiffness: 380, damping: 22, mass: 0.7 },
-  /** Bouncier spring for celebratory reveals. */
-  bouncy: { type: 'spring', stiffness: 280, damping: 12 },
+  /** Seamless loop curve for ambient/repeating motion (particles, rings). */
+  loop:  'easeInOut',
+  /** Drop-in spring for taps / pops — a touch of overshoot, settles clean. */
+  spring: { type: 'spring', stiffness: 360, damping: 26, mass: 0.85 },
+  /** Gentle, no-overshoot spring for content reveals — smooth and premium. */
+  smooth: { type: 'spring', stiffness: 190, damping: 30, mass: 0.9 },
+  /** Lively spring for celebratory reveals — livelier, but no longer wobbly. */
+  bouncy: { type: 'spring', stiffness: 260, damping: 17, mass: 0.8 },
   /** Snappy squish for buttons — fast and tight. */
-  squish: { type: 'spring', stiffness: 700, damping: 20, mass: 0.6 },
+  squish: { type: 'spring', stiffness: 640, damping: 22, mass: 0.6 },
 }
 
 // ── Durations (seconds) ─────────────────────────────────────────────
@@ -48,13 +52,15 @@ export const page = {
 
 // ── Stagger container + child ───────────────────────────────────────
 // The Stagger / StaggerItem React components in ui/Motion.jsx wrap these.
-export const stagger = (delay = 0.04, step = 0.06) => ({
+export const stagger = (delay = 0.04, step = 0.05) => ({
   hidden: {},
   show:   { transition: { delayChildren: delay, staggerChildren: step } },
 })
 export const item = {
-  hidden: { opacity: 0, y: 14 },
-  show:   { opacity: 1, y: 0, transition: { duration: dur.md, ease: ease.out } },
+  hidden: { opacity: 0, y: 12 },
+  // Gentle spring instead of a fixed tween — reveals settle naturally
+  // without a hard stop, which reads noticeably smoother in a stagger.
+  show:   { opacity: 1, y: 0, transition: ease.smooth },
 }
 
 // ── Single fade-in-up (no container required) ───────────────────────
@@ -112,12 +118,12 @@ export const idlePulseSoft = {
 // ── Celebration burst (streak, rank-up) ─────────────────────────────
 // Bigger overshoot than a regular pop — this is the hero moment.
 export const burst = {
-  initial: { scale: 0, rotate: -30, opacity: 0 },
+  initial: { scale: 0, rotate: -24, opacity: 0 },
   animate: {
-    scale:   [0, 1.35, 0.9, 1.05, 1],
-    rotate:  [-30, 12, -4, 2, 0],
+    scale:   [0, 1.26, 0.94, 1.04, 1],
+    rotate:  [-24, 9, -3, 1.5, 0],
     opacity: [0, 1, 1, 1, 1],
-    transition: { duration: 0.75, ease: ease.out, times: [0, 0.4, 0.65, 0.85, 1] },
+    transition: { duration: 0.78, ease: ease.out, times: [0, 0.42, 0.66, 0.85, 1] },
   },
 }
 

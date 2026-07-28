@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Modal from './ui/Modal'
 import Button3d from './ui/Button3d'
+import Icon from './ui/Icon'
 import { backdrop, sheet } from '../motion'
 
 /**
@@ -70,8 +71,8 @@ export default function SettingsModal({ open, onClose }) {
               aria-modal="true"
               aria-labelledby="settings-title"
             >
-              <div id="settings-title" className="text-lg font-black mb-1">
-                ⚙️ Settings
+              <div id="settings-title" className="text-lg font-black mb-1 inline-flex items-center gap-2">
+                <Icon name="gear" className="w-5 h-5" /> Settings
               </div>
               <div className="text-xs font-bold text-quiz-muted mb-4 leading-relaxed">
                 App-wide preferences. Changes apply immediately after
@@ -84,8 +85,8 @@ export default function SettingsModal({ open, onClose }) {
               </div>
               <div className="grid grid-cols-2 gap-2 mb-5">
                 {[
-                  { id: 'light', emoji: '☀️', label: 'Light', sub: 'Cream & orange' },
-                  { id: 'dark',  emoji: '🌙', label: 'Dark',  sub: 'Cosmic & violet' },
+                  { id: 'light', emoji: <Icon name="sun" className="w-6 h-6 mx-auto" />, label: 'Light', sub: 'Cream & orange' },
+                  { id: 'dark',  emoji: <Icon name="moon" className="w-6 h-6 mx-auto" />, label: 'Dark',  sub: 'Cosmic & violet' },
                 ].map((opt) => {
                   const active = theme === opt.id
                   return (
@@ -132,8 +133,8 @@ export default function SettingsModal({ open, onClose }) {
         onConfirm={() => pendingTheme && applyTheme(pendingTheme)}
         title={
           pendingTheme === 'dark'
-            ? '🌙 Switch to dark theme?'
-            : '☀️ Switch to light theme?'
+            ? <span className="inline-flex items-center gap-2"><Icon name="moon" className="w-5 h-5" /> Switch to dark theme?</span>
+            : <span className="inline-flex items-center gap-2"><Icon name="sun" className="w-5 h-5" /> Switch to light theme?</span>
         }
         body={
           pendingTheme === 'dark'

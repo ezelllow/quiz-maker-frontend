@@ -4,7 +4,7 @@ import { ease } from '../../motion'
 import Badge from './Badge'
 
 /**
- * Pill — stat chip like "💎 12" used in the top navbar and Home cards.
+ * Pill — stat chip like "12 crystals" used in the top navbar and Home cards.
  * Optionally tappable (renders as a motion.button), otherwise a static
  * <Badge>.
  *

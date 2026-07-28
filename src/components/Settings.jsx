@@ -6,6 +6,7 @@ import Avatar from './ui/Avatar'
 import CountUp from './ui/CountUp'
 import SectionLabel from './ui/SectionLabel'
 import { Stagger, StaggerItem } from './ui/Motion'
+import Icon from './ui/Icon'
 import { ease } from '../motion'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
@@ -114,7 +115,7 @@ export default function Settings({
                 />
               </div>
 
-              <div className="mt-10 text-xl font-black text-center">{name || 'Student'}</div>
+              <div className="mt-10 font-head text-2xl font-extrabold text-center">{name || 'Student'}</div>
 
               {rank && (
                 <motion.div
@@ -144,7 +145,7 @@ export default function Settings({
             <Card variant="solid" className="!p-3 text-center relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-quiz-orange/15 to-transparent" />
               <div className="relative">
-                <div className="text-2xl">🔥</div>
+                <div className="text-2xl"><Icon name="flame" className="w-6 h-6 mx-auto text-quiz-orange" /></div>
                 <div className="text-xl sm:text-2xl font-black mt-0.5 text-quiz-orange">
                   <CountUp value={currentStreak} />
                 </div>
@@ -154,7 +155,7 @@ export default function Settings({
             <Card variant="solid" className="!p-3 text-center relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-quiz-yellow/15 to-transparent" />
               <div className="relative">
-                <div className="text-2xl">🏆</div>
+                <div className="text-2xl"><Icon name="trophy" className="w-6 h-6 mx-auto text-quiz-yellow" /></div>
                 <div className="text-xl sm:text-2xl font-black mt-0.5 text-quiz-yellow">
                   <CountUp value={longestStreak} />
                 </div>
@@ -164,7 +165,7 @@ export default function Settings({
             <Card variant="solid" className="!p-3 text-center relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-quiz-green/15 to-transparent" />
               <div className="relative">
-                <div className="text-2xl">🎯</div>
+                <div className="text-2xl"><Icon name="target" className="w-6 h-6 mx-auto text-quiz-green" /></div>
                 <div className={'text-xl sm:text-2xl font-black mt-0.5 ' + accColor(overallAccuracy)}>
                   <CountUp value={overallAccuracy} />%
                 </div>
@@ -181,7 +182,7 @@ export default function Settings({
             {/* Subtle decorative gradient sweep */}
             <div className="absolute inset-0 bg-gradient-to-br from-quiz-blue/10 via-quiz-purple/8 to-quiz-pink/10 pointer-events-none" />
             <div className="relative">
-              <div className="text-5xl mb-2">🔒</div>
+              <div className="text-5xl mb-2"><Icon name="lock" className="w-12 h-12 mx-auto text-quiz-muted" /></div>
               <div className="font-black text-base mb-1">Achievements coming soon</div>
               <p className="text-xs font-bold text-quiz-muted leading-relaxed max-w-xs mx-auto">
                 Earn badges for streaks, perfect scores, milestones and more.

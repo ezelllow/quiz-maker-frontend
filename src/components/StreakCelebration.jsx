@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { AnimatePresence, motion, useMotionValue, useTransform, animate as fmAnimate } from 'framer-motion'
 import { burst, backdrop, ease, dur } from '../motion'
 import Confetti from './ui/Confetti'
+import Icon from './ui/Icon'
 
 // ── Milestone tiers ─────────────────────────────────────────────────────
 // Drives confetti/particle counts, ring counts, flash intensity, buildup
@@ -17,11 +18,11 @@ function streakTier(streak, freezeUsed) {
 }
 
 const TIER = {
-  0: { confetti: 0,   particles: 14, rings: 3, flashMax: 1.4, buildup: 0.0, badgeIcon: '',   badgeLabel: '' },
-  1: { confetti: 70,  particles: 22, rings: 3, flashMax: 1.7, buildup: 0.0, badgeIcon: '🌟', badgeLabel: 'milestone' },
-  2: { confetti: 120, particles: 34, rings: 4, flashMax: 2.0, buildup: 0.35, badgeIcon: '💎', badgeLabel: 'major milestone' },
-  3: { confetti: 180, particles: 46, rings: 5, flashMax: 2.3, buildup: 0.65, badgeIcon: '🏆', badgeLabel: 'legendary streak' },
-  4: { confetti: 260, particles: 62, rings: 6, flashMax: 2.7, buildup: 1.0,  badgeIcon: '👑', badgeLabel: 'year mark' },
+  0: { confetti: 0,   particles: 14, rings: 3, flashMax: 1.4, buildup: 0.0, badgeIcon: '',       badgeLabel: '' },
+  1: { confetti: 70,  particles: 22, rings: 3, flashMax: 1.7, buildup: 0.0, badgeIcon: 'star',   badgeLabel: 'milestone' },
+  2: { confetti: 120, particles: 34, rings: 4, flashMax: 2.0, buildup: 0.35, badgeIcon: 'gem',   badgeLabel: 'major milestone' },
+  3: { confetti: 180, particles: 46, rings: 5, flashMax: 2.3, buildup: 0.65, badgeIcon: 'trophy', badgeLabel: 'legendary streak' },
+  4: { confetti: 260, particles: 62, rings: 6, flashMax: 2.7, buildup: 1.0,  badgeIcon: 'award',  badgeLabel: 'year mark' },
 }
 
 /**
@@ -45,18 +46,18 @@ export default function StreakCelebration({
   // ── Variant palette ────────────────────────────────────────────────
   const v = freezeUsed
     ? {
-        icon: '❄️',
+        icon: 'snowflake',
         accent: '#38bdf8',
         ringColor: 'rgba(34, 211, 238, 0.45)',
         flashColor: 'rgba(34, 211, 238, 0.4)',
         glow:   '0 0 24px rgba(56, 189, 248, 0.55), 0 0 70px rgba(34, 211, 238, 0.35)',
         sparkleColors: ['#38bdf8','#22d3ee','#a5f3fc','#67e8f9','#c084fc'],
-        sparkleGlyph: '❄️',
+        sparkleGlyph: 'snowflake',
         confettiColors: ['#38bdf8', '#22d3ee', '#a5f3fc', '#bae6fd', '#c4b5fd'],
-        badge:  '🧊 0',
+        badge:  (<><Icon name="snowflake" className="inline-block w-[1em] h-[1em] align-[-0.15em]" /> 0</>),
         buttonClass: 'btn-3d btn-blue',
         title:  streak === 1 ? 'Day 1 streak!' : `Day ${streak} streak!`,
-        subtitle: '❄️ Freeze used — covered the day you missed. 0 freezes left this week.',
+        subtitle: (<><Icon name="snowflake" className="inline-block w-[1em] h-[1em] align-[-0.15em]" /> Freeze used — covered the day you missed. 0 freezes left this week.</>),
         stampLabel: 'Streak frozen',
         // Snowflake idle: stay in place. Just a slow subtle scale pulse so
         // it feels alive without rolling/drifting off its mark.
@@ -68,15 +69,15 @@ export default function StreakCelebration({
         },
       }
     : {
-        icon: '🔥',
+        icon: 'flame',
         accent: '#fb923c',
         ringColor: 'rgba(251, 146, 60, 0.55)',
         flashColor: 'rgba(251, 146, 60, 0.45)',
         glow:   '0 0 28px rgba(251, 146, 60, 0.65), 0 0 80px rgba(244, 63, 94, 0.35)',
         sparkleColors: ['#fbbf24','#fb923c','#fb7185','#c084fc','#22d3ee'],
-        sparkleGlyph: '✦',
+        sparkleGlyph: 'sparkle',
         confettiColors: ['#fbbf24', '#fb923c', '#fb7185', '#c084fc', '#22d3ee', '#a3e635'],
-        badge:  '+1 🔥',
+        badge:  (<>+1 <Icon name="flame" className="inline-block w-[1em] h-[1em] align-[-0.15em]" /></>),
         buttonClass: 'btn-3d btn-orange',
         title:  streak === 1 ? 'Streak started!' : `Day ${streak} streak!`,
         subtitle: streak === 1
@@ -207,7 +208,7 @@ export default function StreakCelebration({
               transition: { duration: 0.6, ease: ease.out, delay: 0.1 },
             }}
           >
-            {cfg.badgeIcon} {streak}-day {cfg.badgeLabel}
+            {cfg.badgeIcon && <Icon name={cfg.badgeIcon} className="inline-block w-[1em] h-[1em] align-[-0.15em]" />} {streak}-day {cfg.badgeLabel}
           </motion.div>
         )}
 
@@ -242,7 +243,7 @@ export default function StreakCelebration({
                     x:       (Math.random() - 0.5) * 60,
                     transition: { duration: dur2, delay, ease: 'linear' },
                   }}
-                >❄</motion.span>
+                ><Icon name="snowflake" style={{ width: size, height: size }} /></motion.span>
               )
             })}
           </div>
@@ -270,12 +271,12 @@ export default function StreakCelebration({
               transition: {
                 duration: p.duration,
                 delay:    p.delay,
-                ease:     ease.out,
+                ease:     ease.loop,
                 repeat:   Infinity,
                 repeatDelay: 0.5,
               },
             }}
-          >{p.glyph}</motion.span>
+          ><Icon name={p.glyph} style={{ width: p.size, height: p.size }} /></motion.span>
         ))}
 
         {/* Inner content cascade — delayed by tier buildup */}
@@ -284,9 +285,11 @@ export default function StreakCelebration({
           className="relative text-center px-6 z-10"
           initial="hidden"
           animate="show"
+          exit="exit"
           variants={{
             hidden: {},
-            show:   { transition: { staggerChildren: 0.08, delayChildren: 0.25 + cfg.buildup } },
+            show:   { transition: { staggerChildren: 0.06, delayChildren: 0.25 + cfg.buildup } },
+            exit:   { opacity: 0, scale: 0.95, y: 8, transition: { duration: dur.sm, ease: ease.out } },
           }}
         >
           {/* Floating +1 badge (fire only) */}
@@ -360,7 +363,7 @@ export default function StreakCelebration({
               animate={v.idle}
               transition={v.idleTransition}
             >
-              {v.icon}
+              <Icon name={v.icon} className="w-32 h-32 inline-block" style={{ color: v.accent }} />
             </motion.div>
           </motion.div>
 
@@ -392,7 +395,7 @@ export default function StreakCelebration({
                 show:   { opacity: 1, scale: 1, transition: ease.bouncy },
               }}
             >
-              {cfg.badgeIcon} {streak}-day {cfg.badgeLabel}
+              {cfg.badgeIcon && <Icon name={cfg.badgeIcon} className="inline-block w-[1em] h-[1em] align-[-0.15em]" />} {streak}-day {cfg.badgeLabel}
             </motion.div>
           )}
 
@@ -404,7 +407,7 @@ export default function StreakCelebration({
                 show:   { opacity: 1, scale: 1, transition: ease.bouncy },
               }}
             >
-              🏆 New personal best
+              <Icon name="trophy" className="inline-block w-[1em] h-[1em] align-[-0.15em]" /> New personal best
             </motion.div>
           )}
 

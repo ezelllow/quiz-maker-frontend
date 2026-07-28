@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import MathText from './ui/MathText'
+import Icon from './ui/Icon'
 
 // TeacherStudentDrillIn — modal that opens when a teacher clicks a student row
 // in the dashboard. Shows the student's recent quiz attempts and lets the
@@ -15,7 +16,7 @@ import MathText from './ui/MathText'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
-export default function TeacherStudentDrillIn({ studentId, authToken, onClose, onOpenAttempt }) {
+export default function TeacherStudentDrillIn({ studentId, authToken, onClose, onOpenAttempt, onDeleted }) {
   const token = authToken || localStorage.getItem('auth_token')
   const [data, setData]       = useState(null)        // { student, attempts }
   const [err, setErr]         = useState(null)
@@ -23,10 +24,21 @@ export default function TeacherStudentDrillIn({ studentId, authToken, onClose, o
   const [openAttemptId, setOpenAttemptId] = useState(null)        // currently expanded id
   const [attemptDetail, setAttemptDetail] = useState({})          // { [id]: { loading, err, data } }
 
+  // ── Account management (reset password / delete account) ──────────────────
+  const [busy, setBusy]                 = useState(null)   // 'reset' | 'delete' | null
+  const [actionErr, setActionErr]       = useState(null)
+  const [tempPassword, setTempPassword] = useState(null)  // { value, google } once reset
+  const [confirmReset, setConfirmReset]   = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [copied, setCopied]             = useState(false)
+
   // Initial load — student card + attempts list.
   useEffect(() => {
     if (!studentId || !token) return
     let cancelled = false
+    // Clear any account-management state from a previously viewed student.
+    setTempPassword(null); setConfirmReset(false); setConfirmDelete(false)
+    setActionErr(null); setBusy(null); setCopied(false)
     setLoading(true); setErr(null)
     fetch(`${API_BASE_URL}/api/teacher/students/${studentId}`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -79,6 +91,57 @@ export default function TeacherStudentDrillIn({ studentId, authToken, onClose, o
   const student = data?.student
   const attempts = data?.attempts || []
 
+  // Reset this student's password → backend returns a one-time temp password.
+  const handleResetPassword = () => {
+    if (!student || busy) return
+    setBusy('reset'); setActionErr(null); setTempPassword(null); setCopied(false)
+    setConfirmReset(false)
+    fetch(`${API_BASE_URL}/api/teacher/students/${student.id}/reset-password`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(async (r) => {
+        if (!r.ok) {
+          const b = await r.text().catch(() => '')
+          throw new Error(`HTTP ${r.status}${b ? ` — ${b.slice(0, 140)}` : ''}`)
+        }
+        return r.json()
+      })
+      .then((d) => { setTempPassword({ value: d.temp_password, google: !!d.google_account }); setBusy(null) })
+      .catch((e) => { setActionErr(String(e.message || e)); setBusy(null) })
+  }
+
+  const copyTempPassword = () => {
+    if (!tempPassword) return
+    const done = () => { setCopied(true); setTimeout(() => setCopied(false), 1500) }
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(tempPassword.value).then(done).catch(() => {})
+    }
+  }
+
+  // Permanently delete this student's account (cascades all their data).
+  const handleDeleteAccount = () => {
+    if (!student || busy) return
+    setBusy('delete'); setActionErr(null)
+    fetch(`${API_BASE_URL}/api/teacher/students/${student.id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(async (r) => {
+        if (!r.ok) {
+          const b = await r.text().catch(() => '')
+          throw new Error(`HTTP ${r.status}${b ? ` — ${b.slice(0, 140)}` : ''}`)
+        }
+        return r.json()
+      })
+      .then(() => {
+        setBusy(null)
+        onDeleted && onDeleted(student.id)   // tells the dashboard to refresh
+        onClose && onClose()
+      })
+      .catch((e) => { setActionErr(String(e.message || e)); setBusy(null); setConfirmDelete(false) })
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm p-2 sm:p-6"
          onClick={onClose}>
@@ -102,14 +165,14 @@ export default function TeacherStudentDrillIn({ studentId, authToken, onClose, o
             aria-label="Close"
             className="shrink-0 px-3 py-1.5 rounded-full text-xs font-black border border-quiz-border hover:bg-black/5 transition-colors"
           >
-            ✕ Close
+            <Icon name="x" className="inline-block w-4 h-4 align-[-0.2em] mr-1" />Close
           </button>
         </div>
 
         {/* ===== Body ===== */}
         <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-4 space-y-4">
           {loading && (
-            <div className="text-center py-12 text-quiz-muted font-bold">⏳ Loading student…</div>
+            <div className="text-center py-12 text-quiz-muted font-bold"><Icon name="loader" className="inline-block w-5 h-5 align-[-0.25em] animate-spin mr-1" /> Loading student…</div>
           )}
 
           {err && !loading && (
@@ -122,7 +185,7 @@ export default function TeacherStudentDrillIn({ studentId, authToken, onClose, o
             <>
               {/* Summary tiles for this student */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-                <SummaryTile label="Streak"      value={`🔥 ${student.current_streak}`} hint={`longest ${student.longest_streak}d`} />
+                <SummaryTile label="Streak"      value={<><Icon name="flame" className="inline-block w-[1em] h-[1em] align-[-0.15em] text-quiz-orange" /> {student.current_streak}</>} hint={`longest ${student.longest_streak}d`} />
                 <SummaryTile label="Attempts"    value={student.total_attempts} hint="all-time" />
                 <SummaryTile label="Avg score"   value={student.lifetime_avg_pct == null ? '—' : `${Math.round(student.lifetime_avg_pct)}%`} hint="all-time" />
                 <SummaryTile label="Joined"      value={student.created_at ? new Date(student.created_at).toLocaleDateString() : '—'} />
@@ -154,6 +217,119 @@ export default function TeacherStudentDrillIn({ studentId, authToken, onClose, o
             </>
           )}
         </div>
+
+        {/* ===== Teacher actions — manage this student's account ===== */}
+        {student && !loading && !err && (
+          <div className="border-t border-quiz-border bg-black/5 px-4 sm:px-5 py-3 space-y-3">
+            <div className="text-[10px] font-black uppercase tracking-widest text-quiz-muted">
+              Manage account
+            </div>
+
+            {actionErr && (
+              <div className="rounded-lg border-2 border-quiz-red/40 bg-quiz-red/10 px-3 py-2 text-quiz-red font-bold text-xs">
+                {actionErr}
+              </div>
+            )}
+
+            {/* One-time temp password reveal after a reset */}
+            {tempPassword && (
+              <div className="rounded-xl border-2 border-quiz-green/40 bg-quiz-green/10 px-3 py-3">
+                <div className="text-[11px] font-black text-quiz-green uppercase tracking-widest mb-1.5">
+                  Password reset — new password
+                </div>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 font-mono font-black text-base sm:text-lg tracking-wider bg-black/10 rounded-lg px-3 py-2 break-all">
+                    {tempPassword.value}
+                  </code>
+                  <button
+                    onClick={copyTempPassword}
+                    className="shrink-0 px-3 py-2 rounded-lg text-xs font-black border border-quiz-green/50 text-quiz-green hover:bg-quiz-green/15 transition-colors"
+                  >
+                    {copied ? <><Icon name="check" className="inline-block w-[1em] h-[1em] align-[-0.15em]" /> Copied</> : 'Copy'}
+                  </button>
+                </div>
+                <div className="text-[11px] text-quiz-muted font-bold mt-2 leading-relaxed">
+                  {student.name} can now sign in with this password and change it later in Settings.
+                  {tempPassword.google && ' This is a Google account, so they can also keep signing in with Google.'}
+                </div>
+              </div>
+            )}
+
+            {/* Reset: warning + confirm so it can't be a stray click */}
+            {confirmReset ? (
+              <div className="rounded-xl border-2 border-quiz-orange/40 bg-quiz-orange/10 px-3 py-3">
+                <div className="text-sm font-black text-quiz-orange">
+                  <Icon name="alert" className="inline-block w-[1em] h-[1em] align-[-0.15em]" /> Reset {student.name}&apos;s password?
+                </div>
+                <div className="text-[11px] text-quiz-muted font-bold mt-1 leading-relaxed">
+                  Their password will be changed to the default <span className="font-mono font-black">Curious</span>.
+                  Their current password will stop working. Tell {student.name} to sign in with
+                  <span className="font-mono font-black"> Curious</span> and change it in Settings.
+                </div>
+                <div className="flex items-center gap-2 mt-3">
+                  <button
+                    onClick={() => setConfirmReset(false)}
+                    disabled={busy === 'reset'}
+                    className="px-3 py-1.5 rounded-full text-xs font-black border border-quiz-border hover:bg-black/5 transition-colors disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleResetPassword}
+                    disabled={busy === 'reset'}
+                    className="px-3 py-1.5 rounded-full text-xs font-black text-white bg-quiz-orange hover:brightness-110 transition disabled:opacity-50"
+                  >
+                    {busy === 'reset' ? 'Resetting…' : 'Yes, reset to “Curious”'}
+                  </button>
+                </div>
+              </div>
+            ) : confirmDelete ? (
+              /* Delete: warning + confirm so it can't be a stray click */
+              <div className="rounded-xl border-2 border-quiz-red/40 bg-quiz-red/10 px-3 py-3">
+                <div className="text-sm font-black text-quiz-red">
+                  <Icon name="alert" className="inline-block w-[1em] h-[1em] align-[-0.15em]" /> Delete {student.name}&apos;s account?
+                </div>
+                <div className="text-[11px] text-quiz-muted font-bold mt-1 leading-relaxed">
+                  This permanently removes their login and ALL their data — quiz history,
+                  streaks and progress. This cannot be undone.
+                </div>
+                <div className="flex items-center gap-2 mt-3">
+                  <button
+                    onClick={() => setConfirmDelete(false)}
+                    disabled={busy === 'delete'}
+                    className="px-3 py-1.5 rounded-full text-xs font-black border border-quiz-border hover:bg-black/5 transition-colors disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={busy === 'delete'}
+                    className="px-3 py-1.5 rounded-full text-xs font-black text-white bg-quiz-red hover:brightness-110 transition disabled:opacity-50"
+                  >
+                    {busy === 'delete' ? 'Deleting…' : 'Yes, delete permanently'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => { setConfirmReset(true); setActionErr(null) }}
+                  disabled={!!busy}
+                  className="px-3 py-2 rounded-full text-xs font-black border border-quiz-blue/50 text-quiz-blue hover:bg-quiz-blue/10 transition-colors disabled:opacity-50"
+                >
+                  <Icon name="lock" className="inline-block w-4 h-4 align-[-0.2em] mr-1" />Reset password
+                </button>
+                <button
+                  onClick={() => { setConfirmDelete(true); setActionErr(null) }}
+                  disabled={!!busy}
+                  className="px-3 py-2 rounded-full text-xs font-black border border-quiz-red/50 text-quiz-red hover:bg-quiz-red/10 transition-colors disabled:opacity-50"
+                >
+                  <Icon name="x-circle" className="inline-block w-4 h-4 align-[-0.2em] mr-1" />Delete account
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -236,19 +412,19 @@ function QuestionReview({ q, index }) {
             ? 'bg-quiz-green/15 border border-quiz-green/40 text-quiz-green'
             : 'bg-quiz-red/15 border border-quiz-red/40 text-quiz-red')
         }>
-          {isCorrect ? '✓ correct' : '✗ wrong'}
+          {isCorrect ? <><Icon name="check" className="inline-block w-[1em] h-[1em] align-[-0.15em]" /> correct</> : <><Icon name="x" className="inline-block w-[1em] h-[1em] align-[-0.15em]" /> wrong</>}
         </span>
       </div>
       <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[12px] font-bold">
         <div className="rounded-md px-2 py-1 border border-quiz-border bg-black/5">
           <span className="text-quiz-muted">They picked:</span>{' '}
           <span className={isCorrect ? 'text-quiz-green' : 'text-quiz-red'}>
-            {String(userAns) || '—'}
+            <MathText>{String(userAns) || '—'}</MathText>
           </span>
         </div>
         <div className="rounded-md px-2 py-1 border border-quiz-border bg-black/5">
           <span className="text-quiz-muted">Correct:</span>{' '}
-          <span className="text-quiz-green">{String(correctAns) || '—'}</span>
+          <span className="text-quiz-green"><MathText>{String(correctAns) || '—'}</MathText></span>
         </div>
       </div>
       {explanation && (

@@ -9,6 +9,7 @@ import Badge from './ui/Badge'
 import Skeleton from './ui/Skeleton'
 import { Stagger, StaggerItem } from './ui/Motion'
 import TopicCard from './ui/TopicCard'
+import Icon from './ui/Icon'
 import { ease, burst, idlePulse } from '../motion'
 import QuizMaker from './QuizMaker'
 
@@ -72,23 +73,23 @@ function SubjectPicker({ onPick }) {
   // the three Combined tiers (G1/G2/G3) → the 16-topic Combined syllabus.
   const subjects = [
     {
-      id: 'pure', emoji: '🧪', label: 'Pure Physics', levelKey: 'pure',
+      id: 'pure', icon: 'flask', label: 'Pure Physics', levelKey: 'pure',
       color: '#3F8AC2', tone: 'blue', active: true, tagline: 'Pure · 20 topics',
     },
     {
-      id: 'combinedG3', emoji: '⚛️', label: 'Combined Physics G3', levelKey: 'combinedG3',
+      id: 'combinedG3', icon: 'atom', label: 'Combined Physics G3', levelKey: 'combinedG3',
       color: '#5BB98C', tone: 'green', active: true, tagline: 'Combined · 16 topics',
     },
     {
-      id: 'combinedG2', emoji: '🔬', label: 'Combined Physics G2', levelKey: 'combinedG2',
+      id: 'combinedG2', icon: 'dna', label: 'Combined Physics G2', levelKey: 'combinedG2',
       color: '#C9A24B', tone: 'gold', active: true, tagline: 'Combined · 13 topics',
     },
     {
-      id: 'combinedG1', emoji: '🧲', label: 'G1 Science', levelKey: 'combinedG1',
+      id: 'combinedG1', icon: 'magnet', label: 'G1 Science', levelKey: 'combinedG1',
       color: '#D9534F', tone: 'red', active: true, tagline: 'Science · 11 topics',
     },
     {
-      id: 'p6math', emoji: '➗', label: 'P6 Math', levelKey: 'p6math',
+      id: 'p6math', icon: 'divide', label: 'P6 Math', levelKey: 'p6math',
       color: '#7C4EA8', tone: 'purple', active: true, tagline: 'PSLE · All topics',
     },
   ]
@@ -103,7 +104,7 @@ function SubjectPicker({ onPick }) {
         <StaggerItem>
           <header className="mb-6 pt-2">
             <SectionLabel>Practice</SectionLabel>
-            <h1 className="!text-3xl !font-black tracking-tight mt-1">Pick a subject</h1>
+            <h1 className="font-head !text-3xl !font-extrabold tracking-tight mt-1">Pick a subject</h1>
             <p className="text-quiz-muted font-semibold mt-1 text-sm">What's the vibe today?</p>
           </header>
         </StaggerItem>
@@ -119,7 +120,7 @@ function SubjectPicker({ onPick }) {
           {physics.map((s) => (
             <StaggerItem key={s.id}>
               <TopicCard
-                icon={s.emoji}
+                icon={<Icon name={s.icon} className="w-8 h-8 sm:w-9 sm:h-9" />}
                 label={s.label}
                 hint={s.tagline}
                 tone={s.tone}
@@ -142,7 +143,7 @@ function SubjectPicker({ onPick }) {
                 <StaggerItem key={s.id}>
                   <div className="relative opacity-55 pointer-events-none select-none">
                     <TopicCard
-                      icon={s.emoji}
+                      icon={<Icon name={s.icon} className="w-8 h-8 sm:w-9 sm:h-9" />}
                       label={s.label}
                       hint={s.tagline}
                       tone={s.tone}
@@ -150,10 +151,10 @@ function SubjectPicker({ onPick }) {
                       style={{ height: '11.5rem' }}
                     />
                     <span
-                      className="absolute top-2 right-2 text-[9px] font-black uppercase tracking-wider text-quiz-muted rounded-full px-2 py-0.5 border border-quiz-border"
+                      className="absolute top-2 right-2 inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-quiz-muted rounded-full px-2 py-0.5 border border-quiz-border"
                       style={{ background: 'var(--quiz-card-solid)' }}
                     >
-                      🔒 Soon
+                      <Icon name="lock" className="w-2.5 h-2.5" /> Soon
                     </span>
                   </div>
                 </StaggerItem>
@@ -192,7 +193,7 @@ function SubjectHub({ authToken, subject, onBack, onCreateNew, onRetake }) {
     return () => { cancelled = true }
   }, [token, subject])
 
-  const subjectMeta = { emoji: subject?.emoji || '📚', color: subject?.color || '#5DA9FF' }
+  const subjectMeta = { icon: subject?.icon || 'book', color: subject?.color || '#5DA9FF' }
   const subjectName = subject?.label || 'Physics'
 
   // Difficulty → Badge tone for the metadata chips.
@@ -228,16 +229,20 @@ function SubjectHub({ authToken, subject, onBack, onCreateNew, onRetake }) {
         <StaggerItem>
           <header className="mb-5 flex items-center gap-3">
             <motion.div
-              className="text-4xl shrink-0"
+              className="w-14 h-14 rounded-2xl grid place-items-center shrink-0"
               initial={burst.initial}
               animate={burst.animate}
-              style={{ filter: `drop-shadow(0 4px 14px ${subjectMeta.color}66)` }}
+              style={{
+                background: `${subjectMeta.color}1F`,
+                color: subjectMeta.color,
+                filter: `drop-shadow(0 4px 14px ${subjectMeta.color}55)`,
+              }}
             >
-              {subjectMeta.emoji}
+              <Icon name={subjectMeta.icon} className="w-8 h-8" />
             </motion.div>
             <div className="min-w-0">
               <SectionLabel>Practice</SectionLabel>
-              <h1 className="!text-3xl !font-black tracking-tight">{subjectName}</h1>
+              <h1 className="font-head !text-3xl !font-extrabold tracking-tight">{subjectName}</h1>
             </div>
           </header>
         </StaggerItem>
@@ -246,7 +251,8 @@ function SubjectHub({ authToken, subject, onBack, onCreateNew, onRetake }) {
             inviting the tap (Duolingo-style hero CTA). */}
         <StaggerItem>
           <motion.div {...idlePulse} className="mb-5">
-            <Button3d variant="orange" size="lg" full onClick={onCreateNew}>🚀 Create new quiz
+            <Button3d variant="orange" size="lg" full onClick={onCreateNew}>
+              <Icon name="rocket" className="w-5 h-5" /> Create new quiz
             </Button3d>
           </motion.div>
         </StaggerItem>
@@ -292,7 +298,7 @@ function SubjectHub({ authToken, subject, onBack, onCreateNew, onRetake }) {
         {!loading && !error && quizzes.length === 0 && (
           <StaggerItem>
             <EmptyState
-              icon="📝"
+              icon={<Icon name="note" className="w-12 h-12 mx-auto" />}
               body={`No saved ${subjectName} quizzes yet. Tap "Create new quiz" to start.`}
             />
           </StaggerItem>
@@ -303,7 +309,7 @@ function SubjectHub({ authToken, subject, onBack, onCreateNew, onRetake }) {
             {quizzes.map((q) => (
               <StaggerItem key={q.id}>
                 <Card variant="solid" interactive className="!p-4 flex items-center gap-3">
-                  <div className="text-2xl shrink-0">📘</div>
+                  <div className="w-10 h-10 rounded-xl grid place-items-center shrink-0 text-quiz-blue bg-quiz-blue/15 border border-quiz-blue/30"><Icon name="book" className="w-5 h-5" /></div>
                   <div className="flex-1 min-w-0">
                     <div className="font-black truncate">{q.name || `Quiz #${q.id}`}</div>
                     {/* Metadata chips — Badge primitive instead of bespoke pill markup.
@@ -313,9 +319,9 @@ function SubjectHub({ authToken, subject, onBack, onCreateNew, onRetake }) {
                       {q.subtopic   && <Badge tone="muted">{q.subtopic}</Badge>}
                       {q.difficulty && <Badge tone={diffTone(q.difficulty)}>{q.difficulty}</Badge>}
                       <Badge tone="muted">{q.total_questions}Q</Badge>
-                      <Badge tone="accent" icon="🎯">{q.attempt_count || 1}×</Badge>
+                      <Badge tone="accent" icon={<Icon name="target" className="w-3 h-3" />}>{q.attempt_count || 1}×</Badge>
                     </div>
-                    <div className="text-[11px] text-quiz-muted mt-1.5">📅 {formatDate(q.attempted_at)}</div>
+                    <div className="text-[11px] text-quiz-muted mt-1.5 inline-flex items-center gap-1"><Icon name="calendar" className="w-3 h-3" /> {formatDate(q.attempted_at)}</div>
                   </div>
                   <Button3d
                     variant="blue"
@@ -325,7 +331,7 @@ function SubjectHub({ authToken, subject, onBack, onCreateNew, onRetake }) {
                       count: q.total_questions, isRetake: true,
                     })}
                   >
-                    🔄 Retake
+                    <Icon name="refresh" className="w-4 h-4" /> Retake
                   </Button3d>
                 </Card>
               </StaggerItem>

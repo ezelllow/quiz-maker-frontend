@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { burst, backdrop, ease, dur } from '../motion'
 import Confetti from './ui/Confetti'
+import Icon from './ui/Icon'
 
 // ── Rank-up intensity tiers ─────────────────────────────────────────────
 // tier=1: normal (Cadet → Pilot etc.) — quick, light celebration
@@ -158,12 +159,12 @@ export default function RankUpOverlay({ newRank, tier: tierProp, onDismiss }) {
               transition: {
                 duration: s.duration,
                 delay: s.delay,
-                ease: ease.out,
+                ease: ease.loop,
                 repeat: Infinity,
                 repeatDelay: 0.6,
               },
             }}
-          >✦</motion.span>
+          ><Icon name="sparkle" style={{ width: s.size, height: s.size }} /></motion.span>
         ))}
 
         {/* TOP REGION — banners above the icon. Anchored to the viewport
@@ -208,7 +209,11 @@ export default function RankUpOverlay({ newRank, tier: tierProp, onDismiss }) {
               transition: { duration: 0.55, ease: [0.34, 1.56, 0.64, 1], delay: cfg.buildup + 0.15 },
             }}
           >
-            ★ {cfg.label} ★
+            <span className="inline-flex items-center justify-center gap-3">
+              <Icon name="star" className="w-[0.9em] h-[0.9em]" />
+              {cfg.label}
+              <Icon name="star" className="w-[0.9em] h-[0.9em]" />
+            </span>
           </motion.div>
         </motion.div>
 
@@ -283,7 +288,7 @@ export default function RankUpOverlay({ newRank, tier: tierProp, onDismiss }) {
                       transition: {
                         duration: 2.4,
                         delay: r.delay,
-                        ease: ease.out,
+                        ease: ease.loop,
                         repeat: Infinity,
                         repeatDelay: 0.8,
                       },
@@ -311,7 +316,7 @@ export default function RankUpOverlay({ newRank, tier: tierProp, onDismiss }) {
                   animate={{
                     scale:   [0, 4, 7],
                     opacity: [0, 0.85, 0],
-                    transition: { duration: 2.0, ease: ease.out, delay: cfg.buildup + 0.45 + i * 0.4, repeat: Infinity, repeatDelay: 0.9 },
+                    transition: { duration: 2.0, ease: ease.loop, delay: cfg.buildup + 0.45 + i * 0.4, repeat: Infinity, repeatDelay: 0.9 },
                   }}
                 />
               ))}
@@ -345,9 +350,11 @@ export default function RankUpOverlay({ newRank, tier: tierProp, onDismiss }) {
           style={{ top: '50%', marginTop: 120 }}
           initial="hidden"
           animate="show"
+          exit="exit"
           variants={{
             hidden: {},
-            show:   { transition: { staggerChildren: 0.1, delayChildren: 0.4 + cfg.buildup } },
+            show:   { transition: { staggerChildren: 0.07, delayChildren: 0.4 + cfg.buildup } },
+            exit:   { opacity: 0, scale: 0.96, y: 8, transition: { duration: dur.sm, ease: ease.out } },
           }}
         >
           {/* New rank name */}

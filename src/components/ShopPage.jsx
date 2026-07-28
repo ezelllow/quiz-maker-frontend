@@ -11,6 +11,7 @@ import WearablePreview from './ui/WearablePreview'
 import { Stagger, StaggerItem } from './ui/Motion'
 import { assets as ASSET_CFG } from '../avatar-system'
 import { ease } from '../motion'
+import Icon from './ui/Icon'
 
 // Every wearable's real art, keyed by id — the exact same source the equipped
 // monkey renders, so shop previews always match what gets worn.
@@ -21,14 +22,14 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000
 // Shop shows acquirable cosmetics. Skin tones (free fur colours) are a
 // selection, not a purchase, so they live on the Profile page, not here.
 const SLOT_ORDER = [
-  { id: 'outfit',    label: 'Outfits',        icon: '🧥' },
-  { id: 'hat',       label: 'Hats',           icon: '🎩' },
-  { id: 'glasses',   label: 'Glasses',        icon: '👓' },
-  { id: 'hands',     label: 'Hands',          icon: '🤚' },
-  { id: 'legs',      label: 'Legs',           icon: '🦶' },
-  { id: 'accessory', label: 'Accessories',    icon: '⭐' },
-  { id: 'backItem',  label: 'Capes & Wings',  icon: '🦸' },
-  { id: 'frame',     label: 'Avatar Frames',  icon: '🟡' },
+  { id: 'outfit',    label: 'Outfits',        icon: 'shirt' },
+  { id: 'hat',       label: 'Hats',           icon: 'hat' },
+  { id: 'glasses',   label: 'Glasses',        icon: 'glasses' },
+  { id: 'hands',     label: 'Hands',          icon: 'hand' },
+  { id: 'legs',      label: 'Legs',           icon: 'boot' },
+  { id: 'accessory', label: 'Accessories',    icon: 'star' },
+  { id: 'backItem',  label: 'Capes & Wings',  icon: 'cape' },
+  { id: 'frame',     label: 'Avatar Frames',  icon: 'coin' },
 ]
 
 // Rarity tiers — drives the colored badge on each card AND sort order.
@@ -41,7 +42,7 @@ const RARITY = {
 const rarityOf = (item) => RARITY[item?.rarity] || RARITY.common
 
 /**
- * ShopPage — buy cosmetics with 💎. Equipping and skin-tone selection now
+ * ShopPage — buy cosmetics with crystals. Equipping and skin-tone selection now
  * live on the Profile page; the shop is purely for acquiring items. Owned
  * items stay visible (marked "Owned") so the catalogue reads as a collection.
  */
@@ -118,7 +119,7 @@ export default function ShopPage({ authToken, gems, onGemsChange }) {
       if (!res.ok) throw new Error(d.detail || 'Purchase failed')
       setOwned((prev) => [item.id, ...prev])
       if (onGemsChange) onGemsChange(d.gems_total)
-      setToast({ text: `🎉 Unlocked ${item.name}! Head to Profile to equip it.` })
+      setToast({ text: `Unlocked ${item.name}! Head to Profile to equip it.` })
     } catch (e) {
       setError(e.message)
     } finally {
@@ -133,7 +134,7 @@ export default function ShopPage({ authToken, gems, onGemsChange }) {
     <header className="flex items-center justify-between mb-3">
       <div>
         <SectionLabel>Shop</SectionLabel>
-        <h1 className="!text-2xl !font-black tracking-tight">Gear up 🛍️</h1>
+        <h1 className="font-head !text-2xl !font-extrabold tracking-tight">Gear up</h1>
       </div>
       <motion.span
         className="flex items-center gap-1 px-3 py-2 rounded-2xl text-base font-black
@@ -142,7 +143,7 @@ export default function ShopPage({ authToken, gems, onGemsChange }) {
         animate={{ scale: 1, opacity: 1 }}
         transition={ease.bouncy}
       >
-        💎 {gems ?? 0}
+        <Icon name="gem" className="w-4 h-4" /> {gems ?? 0}
       </motion.span>
     </header>
   )
@@ -174,7 +175,7 @@ export default function ShopPage({ authToken, gems, onGemsChange }) {
       {/* Equip hint — customization moved to Profile. */}
       <Card variant="solid" className="!p-3 mb-3 border-2 border-quiz-green/30 bg-quiz-green/10">
         <p className="text-xs font-bold text-quiz-green leading-relaxed">
-          👕 Buy items here, then head to <strong>Profile</strong> to pick your skin tone and equip your gear.
+          <Icon name="shirt" className="inline w-4 h-4 mr-1 align-text-bottom" /> Buy items here, then head to <strong>Profile</strong> to pick your skin tone and equip your gear.
         </p>
       </Card>
 
@@ -182,12 +183,12 @@ export default function ShopPage({ authToken, gems, onGemsChange }) {
       {hasBuyables && !unlocked && (
         <Card variant="solid" className="!p-4 mb-3 border-2 border-quiz-yellow/50
                                          bg-gradient-to-br from-quiz-yellow/10 to-quiz-orange/10 text-center">
-          <div className="text-4xl mb-1">🔒</div>
+          <div className="mb-1 flex justify-center text-quiz-yellow"><Icon name="lock" className="w-10 h-10" /></div>
           <div className="text-sm font-black text-quiz-yellow uppercase tracking-widest">Shop locked</div>
           <div className="text-xl font-black mt-1">Unlocks in {daysLeft} day{daysLeft === 1 ? '' : 's'}</div>
           <p className="text-[11px] font-bold text-quiz-muted mt-2 leading-relaxed">
             Spend your first {minDays} days building the habit — practice daily,
-            earn 💎, and the shop opens automatically.
+            earn <Icon name="gem" className="inline w-3.5 h-3.5 align-text-bottom text-quiz-cyan" />, and the shop opens automatically.
           </p>
         </Card>
       )}
@@ -196,8 +197,8 @@ export default function ShopPage({ authToken, gems, onGemsChange }) {
       {hasBuyables && (
         <Card variant="solid" className="!p-3 mb-3 border-2 border-quiz-blue/30 bg-quiz-blue/10">
           <p className="text-xs font-bold text-quiz-blue leading-relaxed">
-            💡 Earn <strong>2 💎</strong> per correct answer, <strong>5 💎</strong> per quiz,
-            and <strong>50 💎</strong> on a rank-up.
+            <Icon name="bulb" className="inline w-4 h-4 mr-1 align-text-bottom" /> Earn <strong>2 <Icon name="gem" className="inline w-3.5 h-3.5 align-text-bottom" /></strong> per correct answer, <strong>5 <Icon name="gem" className="inline w-3.5 h-3.5 align-text-bottom" /></strong> per quiz,
+            and <strong>50 <Icon name="gem" className="inline w-3.5 h-3.5 align-text-bottom" /></strong> on a rank-up.
           </p>
         </Card>
       )}
@@ -205,7 +206,7 @@ export default function ShopPage({ authToken, gems, onGemsChange }) {
       {toast && (
         <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={ease.spring}>
           <Card variant="solid" className="!p-3 mb-3 border-2 border-quiz-green/50 bg-quiz-green/10">
-            <p className="text-xs font-bold text-quiz-green">{toast.text}</p>
+            <p className="text-xs font-bold text-quiz-green inline-flex items-center gap-1"><Icon name="party" className="w-4 h-4" /> {toast.text}</p>
           </Card>
         </motion.div>
       )}
@@ -217,7 +218,7 @@ export default function ShopPage({ authToken, gems, onGemsChange }) {
 
       {totalItems === 0 && (
         <Card variant="solid" className="!p-8 text-center mb-3">
-          <div className="text-5xl mb-2">🛒</div>
+          <div className="mb-2 flex justify-center text-quiz-muted"><Icon name="cart" className="w-12 h-12" /></div>
           <div className="font-black text-base mb-1">New gear coming soon</div>
           <p className="text-xs font-bold text-quiz-muted leading-relaxed max-w-xs mx-auto">
             Fresh outfits and accessories are on the way. Meanwhile, set your
@@ -245,7 +246,9 @@ export default function ShopPage({ authToken, gems, onGemsChange }) {
                   const r = rarityOf(item)
                   const canBuy = unlocked && affordable && !ownedItem
                   const variant = ownedItem ? 'white' : canBuy ? 'orange' : 'red'
-                  const buyLabel = !unlocked ? `🔒 ${item.cost}` : `💎 ${item.cost}`
+                  const buyLabel = !unlocked
+                    ? <span className="inline-flex items-center gap-1"><Icon name="lock" className="w-3.5 h-3.5" /> {item.cost}</span>
+                    : <span className="inline-flex items-center gap-1"><Icon name="gem" className="w-3.5 h-3.5" /> {item.cost}</span>
 
                   return (
                     <Card
@@ -291,7 +294,7 @@ export default function ShopPage({ authToken, gems, onGemsChange }) {
                           onClick={() => !ownedItem && setPendingBuy(item)}
                           data-shop-state={ownedItem ? 'owned' : 'buy'}
                         >
-                          {ownedItem ? '✓ Owned' : buyLabel}
+                          {ownedItem ? <span className="inline-flex items-center gap-1"><Icon name="check" className="w-3.5 h-3.5" /> Owned</span> : buyLabel}
                         </Button3d>
                       </div>
                     </Card>

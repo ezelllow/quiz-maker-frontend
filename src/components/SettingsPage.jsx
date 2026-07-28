@@ -5,11 +5,12 @@ import Button3d from './ui/Button3d'
 import Modal from './ui/Modal'
 import SectionLabel from './ui/SectionLabel'
 import { Stagger, StaggerItem } from './ui/Motion'
+import Icon from './ui/Icon'
 import EditProfileModal from './EditProfileModal'
 
 /**
  * SettingsPage — app-wide preferences (theme + account actions).
- * Reached from the avatar dropdown's ⚙️ Settings item, which now
+ * Reached from the avatar dropdown's Settings item, which now
  * navigates to this page instead of opening a modal.
  *
  * Sections:
@@ -67,7 +68,7 @@ export default function SettingsPage({ user, onUserUpdate, onLogout, onNavigate,
             <div className="text-xs font-black uppercase tracking-widest text-quiz-muted">
               Preferences
             </div>
-            <h1 className="!text-3xl !font-black tracking-tight">⚙️ Settings</h1>
+            <h1 className="!text-3xl !font-black tracking-tight inline-flex items-center gap-2"><Icon name="gear" className="w-7 h-7" /> Settings</h1>
             <p className="text-quiz-muted font-semibold text-sm mt-1">
               App-wide preferences and account actions.
             </p>
@@ -105,8 +106,8 @@ export default function SettingsPage({ user, onUserUpdate, onLogout, onNavigate,
             </div>
             <div className="grid grid-cols-2 gap-2">
               {[
-                { id: 'light', emoji: '☀️', label: 'Light', sub: 'Cream & orange' },
-                { id: 'dark',  emoji: '🌙', label: 'Dark',  sub: 'Cosmic & violet' },
+                { id: 'light', emoji: <Icon name="sun" className="w-6 h-6 mx-auto" />, label: 'Light', sub: 'Cream & orange' },
+                { id: 'dark',  emoji: <Icon name="moon" className="w-6 h-6 mx-auto" />, label: 'Dark',  sub: 'Cosmic & violet' },
               ].map((opt) => {
                 const active = theme === opt.id
                 return (
@@ -145,11 +146,11 @@ export default function SettingsPage({ user, onUserUpdate, onLogout, onNavigate,
               of this device.
             </div>
             <Button3d variant="orange" size="md" full onClick={() => setEditOpen(true)}>
-              ✏️ Edit profile
+              <Icon name="pencil" className="w-4 h-4" /> Edit profile
             </Button3d>
             {onLogout && (
               <Button3d variant="red" size="md" full onClick={() => setLogoutOpen(true)}>
-                🚪 Logout
+                <Icon name="logout" className="w-4 h-4" /> Logout
               </Button3d>
             )}
           </Card>
@@ -180,8 +181,8 @@ export default function SettingsPage({ user, onUserUpdate, onLogout, onNavigate,
         onConfirm={() => pendingTheme && applyTheme(pendingTheme)}
         title={
           pendingTheme === 'dark'
-            ? '🌙 Switch to dark theme?'
-            : '☀️ Switch to light theme?'
+            ? <span className="inline-flex items-center gap-2"><Icon name="moon" className="w-5 h-5" /> Switch to dark theme?</span>
+            : <span className="inline-flex items-center gap-2"><Icon name="sun" className="w-5 h-5" /> Switch to light theme?</span>
         }
         body={
           pendingTheme === 'dark'
@@ -208,7 +209,7 @@ export default function SettingsPage({ user, onUserUpdate, onLogout, onNavigate,
         open={logoutOpen}
         onClose={() => setLogoutOpen(false)}
         onConfirm={() => { setLogoutOpen(false); onLogout && onLogout() }}
-        title="🚪 Log out?"
+        title={<span className="inline-flex items-center gap-2"><Icon name="logout" className="w-5 h-5" /> Log out?</span>}
         body="You'll need to sign in again to access your account. Your progress and stats are saved."
         confirmLabel="Log out"
         cancelLabel="Stay logged in"

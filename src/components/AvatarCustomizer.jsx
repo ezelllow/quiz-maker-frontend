@@ -9,6 +9,7 @@ import WearablePreview from './ui/WearablePreview'
 import { SKIN_COLORS } from './ui/skinColors'
 import { assets as ASSET_CFG } from '../avatar-system'
 import { ease } from '../motion'
+import Icon from './ui/Icon'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 const WEARABLE_ASSETS = ASSET_CFG.wearables || {}
@@ -41,7 +42,7 @@ const rarityOf = (item) => RARITY[item?.rarity] || RARITY.common
 /**
  * AvatarCustomizer — Duolingo-style wardrobe. A big live preview up top, a row
  * of category tabs, and every item for the selected category underneath.
- * Items you own (or free ones) equip on tap; items you don't own show a 💎
+ * Items you own (or free ones) equip on tap; items you don't own show a crystal
  * price and buy through a confirm modal, then become equippable — the old
  * Shop, folded straight into the wardrobe.
  */
@@ -149,7 +150,7 @@ export default function AvatarCustomizer({ user, onUserUpdate, authToken, gems, 
       if (!res.ok) throw new Error(d.detail || 'Purchase failed')
       setOwned((prev) => [item.id, ...prev])
       if (typeof d.gems_total === 'number' && onGemsChange) onGemsChange(d.gems_total)
-      setToast({ text: `🎉 Unlocked ${item.name}! Tap it to wear it.` })
+      setToast({ text: `Unlocked ${item.name}! Tap it to wear it.` })
     } catch (e) {
       setError(e.message)
     } finally {
@@ -163,11 +164,11 @@ export default function AvatarCustomizer({ user, onUserUpdate, authToken, gems, 
     if (busyId) return
     if (isAvailable(item)) { toggleEquip(item); return }
     if (!unlocked) {
-      setError(`Wardrobe buys unlock in ${daysLeft} day${daysLeft === 1 ? '' : 's'} — keep practising to earn 💎!`)
+      setError(`Wardrobe buys unlock in ${daysLeft} day${daysLeft === 1 ? '' : 's'} — keep practising to earn Crystals!`)
       return
     }
     if ((gems ?? 0) < Number(item.cost || 0)) {
-      setError(`Not enough 💎 — ${item.name} costs ${item.cost}.`)
+      setError(`Not enough Crystals — ${item.name} costs ${item.cost}.`)
       return
     }
     setPendingBuy(item)
@@ -206,7 +207,9 @@ export default function AvatarCustomizer({ user, onUserUpdate, authToken, gems, 
         <div className="min-w-0 flex-1">
           <SectionLabel>Your Ooka</SectionLabel>
           <div className="text-sm font-black mt-0.5">
-            {equipped.outfit ? '🧥 Outfit on' : 'Pick a look'}
+            {equipped.outfit
+              ? <span className="inline-flex items-center gap-1"><Icon name="shirt" className="w-4 h-4 text-quiz-muted" /> Outfit on</span>
+              : 'Pick a look'}
           </div>
           <div className="text-[10px] font-bold text-quiz-muted mt-0.5 leading-tight">
             Shown on leaderboard, home & profile. Tap gear to wear it — buy new gear right here.
@@ -217,7 +220,7 @@ export default function AvatarCustomizer({ user, onUserUpdate, authToken, gems, 
           className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-2xl text-sm font-black
                      bg-quiz-cyan/15 border border-quiz-cyan/40 text-quiz-cyan"
         >
-          💎 {gems ?? 0}
+          <Icon name="gem" className="w-4 h-4" /> {gems ?? 0}
         </span>
       </Card>
 
@@ -225,7 +228,7 @@ export default function AvatarCustomizer({ user, onUserUpdate, authToken, gems, 
       {!unlocked && (
         <Card variant="solid" className="!p-3 mb-3 border-2 border-quiz-yellow/50 bg-quiz-yellow/10">
           <p className="text-[11px] font-bold text-quiz-yellow leading-relaxed">
-            🔒 Buying unlocks in {daysLeft} day{daysLeft === 1 ? '' : 's'}. Spend your
+            <Icon name="lock" className="inline w-4 h-4 mr-1 align-text-bottom" /> Buying unlocks in {daysLeft} day{daysLeft === 1 ? '' : 's'}. Spend your
             first {minDays} days building the habit — you can still equip anything you own.
           </p>
         </Card>
@@ -306,7 +309,11 @@ export default function AvatarCustomizer({ user, onUserUpdate, authToken, gems, 
               {available ? (
                 <div className={'text-[9px] font-black uppercase tracking-wider mt-0.5 ' +
                                 (on ? 'text-quiz-green' : 'text-quiz-muted group-hover:text-quiz-blue')}>
-                  {on ? (removable ? '✓ Worn — tap off' : '✓ Worn') : 'Wear'}
+                  {on
+                    ? (removable
+                        ? <span className="inline-flex items-center gap-0.5"><Icon name="check" className="w-3 h-3" /> Worn — tap off</span>
+                        : <span className="inline-flex items-center gap-0.5"><Icon name="check" className="w-3 h-3" /> Worn</span>)
+                    : 'Wear'}
                 </div>
               ) : (
                 <div className={
@@ -316,7 +323,9 @@ export default function AvatarCustomizer({ user, onUserUpdate, authToken, gems, 
                     ? 'text-quiz-cyan bg-quiz-cyan/15 border-quiz-cyan/40'
                     : 'text-quiz-muted bg-quiz-border/30 border-quiz-border')
                 }>
-                  {unlocked ? `💎 ${item.cost}` : `🔒 ${item.cost}`}
+                  {unlocked
+                    ? <><Icon name="gem" className="w-3 h-3" /> {item.cost}</>
+                    : <><Icon name="lock" className="w-3 h-3" /> {item.cost}</>}
                 </div>
               )}
             </button>
@@ -327,7 +336,7 @@ export default function AvatarCustomizer({ user, onUserUpdate, authToken, gems, 
       {toast && (
         <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={ease.spring}>
           <Card variant="solid" className="!p-3 mt-3 border-2 border-quiz-green/50 bg-quiz-green/10">
-            <p className="text-xs font-bold text-quiz-green">{toast.text}</p>
+            <p className="text-xs font-bold text-quiz-green inline-flex items-center gap-1"><Icon name="party" className="w-4 h-4" /> {toast.text}</p>
           </Card>
         </motion.div>
       )}

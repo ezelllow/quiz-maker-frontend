@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import Icon from './ui/Icon'
 import './Progress.css'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
@@ -100,7 +101,7 @@ export default function Progress({ authToken }) {
     return (
       <div className="progress">
         <div className="progress-empty">
-          <div className="empty-icon">📊</div>
+          <div className="empty-icon"><Icon name="chart" className="w-16 h-16 mx-auto" /></div>
           <h2>No quiz data yet</h2>
           <p>Start taking quizzes to see your progress!</p>
         </div>
@@ -113,7 +114,7 @@ export default function Progress({ authToken }) {
       {error && <div className="error-message">{error}</div>}
 
       <div className="progress-header">
-        <h1>📈 Your Progress</h1>
+        <h1 className="inline-flex items-center gap-2"><Icon name="trend" className="w-7 h-7" /> Your Progress</h1>
         <p>Track your improvement over time</p>
       </div>
 

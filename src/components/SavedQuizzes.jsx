@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Screen from './ui/Screen'
 import Card from './ui/Card'
 import Button3d from './ui/Button3d'
+import Icon from './ui/Icon'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -32,7 +33,7 @@ export default function SavedQuizzes({ authToken, onRetake }) {
 
   const Header = () => (
     <header className="mb-6">
-      <h1 className="!text-3xl !font-black tracking-tight mb-1">💾 Saved Quizzes</h1>
+      <h1 className="font-head !text-3xl !font-extrabold tracking-tight mb-1">Saved quizzes</h1>
       <p className="text-quiz-muted font-semibold">Quizzes you can retake</p>
     </header>
   )
@@ -50,7 +51,7 @@ export default function SavedQuizzes({ authToken, onRetake }) {
   if (quizzes.length === 0) return (
     <Screen width="default"><Header />
       <Card variant="solid" className="!p-12 text-center">
-        <div className="text-6xl mb-3">📝</div>
+        <div className="mb-3"><Icon name="note" className="w-16 h-16 mx-auto text-quiz-muted" /></div>
         <p className="text-quiz-muted font-bold">No saved quizzes yet. Create a Practice quiz to get started!</p>
       </Card>
     </Screen>
@@ -65,17 +66,17 @@ export default function SavedQuizzes({ authToken, onRetake }) {
             <div className="flex-1 min-w-0">
               <div className="font-black text-lg mb-1.5 truncate">{q.name || `Quiz #${q.id}`}</div>
               <div className="flex flex-wrap gap-2 text-xs font-bold text-quiz-muted">
-                {q.subtopic    && <span className="px-2.5 py-1 rounded-full bg-gray-50 border border-quiz-border">📚 {q.subtopic}</span>}
-                {q.difficulty  && <span className="px-2.5 py-1 rounded-full bg-gray-50 border border-quiz-border">⭐ {q.difficulty}</span>}
-                <span className="px-2.5 py-1 rounded-full bg-gray-50 border border-quiz-border">❓ {q.total_questions} questions</span>
-                <span className="px-2.5 py-1 rounded-full bg-gray-50 border border-quiz-border">
-                  🎯 {q.attempt_count || 1} attempt{(q.attempt_count || 1) === 1 ? '' : 's'}
+                {q.subtopic    && <span className="px-2.5 py-1 rounded-full bg-gray-50 border border-quiz-border inline-flex items-center gap-1"><Icon name="book" className="w-3 h-3" /> {q.subtopic}</span>}
+                {q.difficulty  && <span className="px-2.5 py-1 rounded-full bg-gray-50 border border-quiz-border inline-flex items-center gap-1"><Icon name="star" className="w-3 h-3" /> {q.difficulty}</span>}
+                <span className="px-2.5 py-1 rounded-full bg-gray-50 border border-quiz-border inline-flex items-center gap-1"><Icon name="help" className="w-3 h-3" /> {q.total_questions} questions</span>
+                <span className="px-2.5 py-1 rounded-full bg-gray-50 border border-quiz-border inline-flex items-center gap-1">
+                  <Icon name="target" className="w-3 h-3" /> {q.attempt_count || 1} attempt{(q.attempt_count || 1) === 1 ? '' : 's'}
                 </span>
               </div>
-              <div className="text-xs text-quiz-muted mt-2">📅 Created {formatDate(q.attempted_at)}</div>
+              <div className="text-xs text-quiz-muted mt-2 inline-flex items-center gap-1"><Icon name="calendar" className="w-3 h-3" /> Created {formatDate(q.attempted_at)}</div>
             </div>
             <Button3d variant="blue" size="md" onClick={() => handleRetake(q)} className="shrink-0">
-              🔄 Retake
+              <span className="inline-flex items-center gap-1"><Icon name="refresh" className="w-4 h-4" /> Retake</span>
             </Button3d>
           </Card>
         ))}

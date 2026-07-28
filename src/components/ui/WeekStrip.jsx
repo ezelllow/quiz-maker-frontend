@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { cn } from '../../lib/cn'
 import { ease, dur } from '../../motion'
+import Icon from './Icon'
 
 /**
  * WeekStrip — 7-day strip showing Mon→Sun streak status, lifted from
@@ -9,7 +10,7 @@ import { ease, dur } from '../../motion'
  *   days:        [{ date, weekday, status, is_today }]
  *                  status: 'completed' | 'freeze_used' | 'today' | 'missed' | 'upcoming'
  *   loading:     when true, renders placeholder cells
- *   showLegend:  default true — shows the "🔥 done · ❄️ freeze · ○ upcoming · ✖ missed" row
+ *   showLegend:  default true — shows the "done · freeze · upcoming · missed" legend row
  */
 // WeekStrip chips always sit INSIDE a colored gradient card (orange in
 // light theme, purple→pink→cyan in dark theme). They must keep these
@@ -25,10 +26,10 @@ const STYLES = {
   upcoming:    'bg-[rgba(255,255,255,0.10)] text-white/70 border-[rgba(255,255,255,0.15)]',
 }
 const ICONS = {
-  completed:   '🔥',
-  freeze_used: '❄️',
+  completed:   <Icon name="flame" className="w-4 h-4" />,
+  freeze_used: <Icon name="snowflake" className="w-4 h-4" />,
   today:       '·',
-  missed:      '✖',
+  missed:      <Icon name="x" className="w-4 h-4" />,
   upcoming:    '○',
 }
 
@@ -46,10 +47,10 @@ export default function WeekStrip({ days, loading = false, showLegend = true, cl
       </div>
       {showLegend && (
         <div className="flex items-center justify-center gap-3 mt-2 text-[10px] font-bold text-white/80">
-          <span>🔥 done</span>
-          <span>❄️ freeze</span>
+          <span className="inline-flex items-center gap-1"><Icon name="flame" className="w-3 h-3" /> done</span>
+          <span className="inline-flex items-center gap-1"><Icon name="snowflake" className="w-3 h-3" /> freeze</span>
           <span>○ upcoming</span>
-          <span>✖ missed</span>
+          <span className="inline-flex items-center gap-1"><Icon name="x" className="w-3 h-3" /> missed</span>
         </div>
       )}
     </div>

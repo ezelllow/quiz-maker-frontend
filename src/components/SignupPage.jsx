@@ -3,6 +3,7 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'
 import Screen from './ui/Screen'
 import Card from './ui/Card'
 import Button3d from './ui/Button3d'
+import Icon from './ui/Icon'
 
 // SignupPage — QuizQuest-styled. Same /api/auth/signup + Google flow as before.
 export default function SignupPage({ onSignupSuccess }) {
@@ -92,7 +93,7 @@ export default function SignupPage({ onSignupSuccess }) {
             alt="Ooka mascot"
             className="w-32 h-32 sm:w-40 sm:h-40 mx-auto object-contain"
           />
-          <h1 className="!text-2xl !font-black mb-1 tracking-tight mt-3">Join Ooka</h1>
+          <h1 className="font-head !text-2xl !font-extrabold mb-1 tracking-tight mt-3">Join Ooka</h1>
           <p className="text-quiz-muted font-semibold text-sm">Create your account and start climbing the ranks</p>
           <p className="text-[11px] text-quiz-muted font-bold mt-2 leading-snug">
             Same app, fresher look. Ooka is the new face of HabitGo.
@@ -167,8 +168,8 @@ export default function SignupPage({ onSignupSuccess }) {
                   className={inputCls + ' pr-12'}
                 />
                 <button type="button" onClick={() => setShowPw(!showPw)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xl opacity-80 hover:opacity-100">
-                  {showPw ? '👁️' : '👁️‍🗨️'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 opacity-80 hover:opacity-100">
+                  {showPw ? <Icon name="eye" className="w-5 h-5" /> : <Icon name="eye-off" className="w-5 h-5" />}
                 </button>
               </div>
             </div>
@@ -183,14 +184,16 @@ export default function SignupPage({ onSignupSuccess }) {
                   className={inputCls + ' pr-12'}
                 />
                 <button type="button" onClick={() => setShowCpw(!showCpw)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xl opacity-80 hover:opacity-100">
-                  {showCpw ? '👁️' : '👁️‍🗨️'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 opacity-80 hover:opacity-100">
+                  {showCpw ? <Icon name="eye" className="w-5 h-5" /> : <Icon name="eye-off" className="w-5 h-5" />}
                 </button>
               </div>
             </div>
 
             <Button3d type="submit" variant="purple" size="lg" full disabled={loading}>
-              {loading ? '⏳ Creating Account...' : '🚀 Create Account'}
+              {loading
+                ? <span className="inline-flex items-center gap-2"><Icon name="loader" className="w-5 h-5" /> Creating Account...</span>
+                : <span className="inline-flex items-center gap-2"><Icon name="rocket" className="w-5 h-5" /> Create Account</span>}
             </Button3d>
           </form>
 

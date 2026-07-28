@@ -7,6 +7,7 @@ import StreakCelebration from './StreakCelebration'
 import RankUpOverlay from './RankUpOverlay'
 import { correctPop, wrongShake, optionTap, questionEnter } from '../motion'
 import MathText from './ui/MathText'
+import Icon from './ui/Icon'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -294,7 +295,7 @@ function QImage({ src, alt, className = '' }) {
     return (
       <div className="rounded-2xl border-2 border-dashed border-quiz-yellow/50 bg-quiz-yellow/5 p-4 text-quiz-yellow">
         <div className="font-black text-sm flex items-center gap-2">
-          <span>⚠️</span> Image failed to load
+          <Icon name="alert" className="w-4 h-4 text-quiz-yellow" /> Image failed to load
           {errInfo && (
             <span className="ml-auto text-[11px] font-bold px-2 py-0.5 rounded-md bg-quiz-yellow/15">
               HTTP {errInfo.status}
@@ -371,6 +372,10 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
   const [currentQuestionIndex, setCurrentQuestionIndex]   = useState(0)
   const [userAnswers, setUserAnswers]                     = useState({})
   const [showResults, setShowResults]                     = useState(false)
+  // Review mode — re-enters the locked question view from the results screen
+  // so students can see every question's correct answer + explanation right
+  // after finishing (works for both daily-challenge and practice flows).
+  const [reviewMode, setReviewMode]                       = useState(false)
   const [quizStartTime, setQuizStartTime]                 = useState(null)
   const [submitSuccess, setSubmitSuccess]                 = useState(null)
   const [isRetaking, setIsRetaking]                       = useState(false)
@@ -435,7 +440,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
       setSelectedDifficulty(retakeAttempt.difficulty)
       setQuestionCount(retakeAttempt.count)
       setRetakeParentId(retakeAttempt.id)
-      setCurrentQuestionIndex(0); setUserAnswers({}); setChecked({}); setShowResults(false)
+      setCurrentQuestionIndex(0); setUserAnswers({}); setChecked({}); setShowResults(false); setReviewMode(false)
       setQuizStartTime(Date.now()); setSubmitSuccess(null)
       if (onRetakeClear) onRetakeClear()
     } catch (err) {
@@ -542,7 +547,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
       if (!res.ok) { const d = await res.json(); throw new Error(d.detail || 'Failed to create quiz') }
       const quizData = await res.json()
       setQuiz(quizData)
-      setCurrentQuestionIndex(0); setUserAnswers({}); setChecked({}); setShowResults(false)
+      setCurrentQuestionIndex(0); setUserAnswers({}); setChecked({}); setShowResults(false); setReviewMode(false)
       setQuizStartTime(Date.now()); setSubmitSuccess(null)
     } catch (err) {
       setError(`Error creating quiz: ${err.message}`)
@@ -619,7 +624,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
   }
 
   const handleRetakeQuizClick = () => {
-    setQuiz(null); setCurrentQuestionIndex(0); setUserAnswers({}); setChecked({}); setShowResults(false)
+    setQuiz(null); setCurrentQuestionIndex(0); setUserAnswers({}); setChecked({}); setShowResults(false); setReviewMode(false)
     setError(null); setSubmitSuccess(null); setIsRetaking(false); setRetakeParentId(null)
     if (onRetakeClear) onRetakeClear()
   }
@@ -635,15 +640,15 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
       <Screen width="default" className="py-8">
         <Card variant="solid" className="!p-8 text-center border-2 border-quiz-green/50
                                         bg-gradient-to-br from-quiz-green/15 to-quiz-blue/15">
-          <div className="text-6xl mb-3">✅</div>
-          <h2 className="!text-2xl !font-black mb-2">Daily complete!</h2>
+          <div className="mb-3 flex justify-center text-quiz-green"><Icon name="check-circle" className="w-16 h-16" /></div>
+          <h2 className="font-head !text-2xl !font-extrabold mb-2">Daily complete!</h2>
           <p className="text-quiz-muted text-sm leading-relaxed mb-5">
             You've hit today's goal — streak is safe. The Daily Challenge is
             locked until tomorrow. Want to keep sharpening? Switch to Practice
             (no XP or gems, just pure reps).
           </p>
           <p className="text-[11px] text-quiz-muted leading-relaxed">
-            Tip: tap <strong>✏️ Practice</strong> in the bottom nav.
+            Tip: tap <strong className="inline-flex items-center gap-1"><Icon name="pencil" className="w-4 h-4" /> Practice</strong> in the bottom nav.
           </p>
         </Card>
       </Screen>
@@ -674,9 +679,9 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
     }
     const findDiff = (key) => difficulties.find((d) => normKey(d) === key) || null
     const diffSlots = [
-      { key: 'easy',   id: findDiff('easy')   || 'Easy',   label: 'Easy',   emoji: '🌱', mult: '×0.5', ring: 'border-quiz-green  bg-quiz-green/15' },
-      { key: 'medium', id: findDiff('medium') || 'Medium', label: 'Medium', emoji: '🔥', mult: '×1.5', ring: 'border-quiz-orange bg-quiz-orange/15' },
-      { key: 'hard',   id: findDiff('hard')   || 'Hard',   label: 'Hard',   emoji: '💀', mult: '×2',   ring: 'border-quiz-red    bg-quiz-red/15' },
+      { key: 'easy',   id: findDiff('easy')   || 'Easy',   label: 'Easy',   icon: 'seedling', color: 'text-quiz-green',  mult: '×0.5', ring: 'border-quiz-green  bg-quiz-green/15' },
+      { key: 'medium', id: findDiff('medium') || 'Medium', label: 'Medium', icon: 'flame',    color: 'text-quiz-orange', mult: '×1.5', ring: 'border-quiz-orange bg-quiz-orange/15' },
+      { key: 'hard',   id: findDiff('hard')   || 'Hard',   label: 'Hard',   icon: 'skull',    color: 'text-quiz-red',    mult: '×2',   ring: 'border-quiz-red    bg-quiz-red/15' },
     ]
 
     const availLoaded = Object.keys(availability).length > 0
@@ -713,7 +718,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
           <div className="text-xs font-black uppercase tracking-widest text-quiz-muted">
             {selectedSubject} · {isPractice ? 'Practice' : 'Daily Challenge'}
           </div>
-          <h1 className="!text-3xl !font-black tracking-tight">
+          <h1 className="font-head !text-3xl !font-extrabold tracking-tight">
             {isPractice ? 'New practice quiz' : "Build today's quiz"}
           </h1>
           <p className="text-quiz-muted font-semibold mt-1 text-sm">
@@ -730,7 +735,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
         )}
         {submitSuccess && (
           <div className="rounded-2xl border-2 border-quiz-green/50 bg-quiz-green/15 text-quiz-green px-4 py-3 text-sm font-bold mb-4">
-            ✅ {submitSuccess}
+            <span className="inline-flex items-center gap-1"><Icon name="check-circle" className="w-4 h-4" /> {submitSuccess}</span>
           </div>
         )}
 
@@ -743,7 +748,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
             <div className="text-xs font-black uppercase tracking-widest text-quiz-muted mb-2 px-1">Subject</div>
             {initialLevel ? (
               <div className="flex items-center gap-3 p-3 rounded-2xl border-2 border-quiz-blue/40 bg-quiz-blue/10">
-                <div className="text-2xl leading-none">{levelCat === 'pure' ? '🧪' : '⚛️'}</div>
+                <div className="text-quiz-blue"><Icon name={levelCat === 'pure' ? 'flask' : 'atom'} className="w-7 h-7" /></div>
                 <div className="min-w-0">
                   <div className="text-sm font-black leading-tight">{levelLabel || (levelCat === 'pure' ? 'Pure Physics' : 'Combined Physics')}</div>
                   <div className="text-[10px] font-bold text-quiz-muted mt-0.5 normal-case tracking-normal">
@@ -763,12 +768,12 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
             ) : (
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { id: 'pure',       emoji: '🧪', label: 'Pure Physics' },
-                  { id: 'combinedG3', emoji: '⚛️', label: 'Combined G3' },
-                  { id: 'combinedG2', emoji: '🔬', label: 'Combined G2' },
-                  { id: 'combinedG1', emoji: '🧲', label: 'G1 Science' },
+                  { id: 'pure',       icon: 'flask',  label: 'Pure Physics' },
+                  { id: 'combinedG3', icon: 'atom',   label: 'Combined G3' },
+                  { id: 'combinedG2', icon: 'dna',    label: 'Combined G2' },
+                  { id: 'combinedG1', icon: 'magnet', label: 'G1 Science' },
                   // 5th subject spans the bottom row of the 2-col grid
-                  { id: 'p6math',     emoji: '➗', label: 'P6 Math', span: true },
+                  { id: 'p6math',     icon: 'divide', label: 'P6 Math', span: true },
                 ].map((lvl) => {
                   const active = levelCat === lvl.id
                   return (
@@ -791,7 +796,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                           : 'border-quiz-border bg-white text-quiz-text hover:border-quiz-blue/60 hover:bg-gray-50')
                       }
                     >
-                      <div className="text-2xl leading-none mb-1">{lvl.emoji}</div>
+                      <div className="flex justify-center mb-1"><Icon name={lvl.icon} className="w-7 h-7" /></div>
                       <div className="text-sm leading-tight">{lvl.label}</div>
                     </button>
                   )
@@ -839,10 +844,10 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                       ? 'bg-quiz-blue border-quiz-blue'
                       : 'bg-transparent border-quiz-border')
                   }>
-                    {topicCount === 0 && <span className="text-white text-[11px] font-black leading-none">✓</span>}
+                    {topicCount === 0 && <Icon name="check" className="w-3 h-3 text-white" />}
                   </span>
-                  <span className="font-black text-sm flex-1 leading-tight">
-                    ✨ All topics — random mix
+                  <span className="font-black text-sm flex-1 leading-tight inline-flex items-center gap-1">
+                    <Icon name="sparkle" className="w-4 h-4 text-quiz-cyan" /> All topics — random mix
                   </span>
                 </button>
 
@@ -882,7 +887,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                             ? 'bg-quiz-blue border-quiz-blue'
                             : 'bg-transparent border-quiz-border')
                         }>
-                          {isSelected && <span className="text-white text-[11px] font-black leading-none">✓</span>}
+                          {isSelected && <Icon name="check" className="w-3 h-3 text-white" />}
                         </span>
                         {/* SEAB number prefix — always present (topic is
                             guaranteed to be in the syllabus at this point). */}
@@ -938,7 +943,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                           : 'border-quiz-border bg-white text-quiz-text hover:border-quiz-blue/60 hover:bg-gray-50')
                     }
                   >
-                    <div className="text-2xl">{d.emoji}</div>
+                    <div className={'flex justify-center ' + d.color}><Icon name={d.icon} className="w-7 h-7" /></div>
                     <div className="text-xs mt-1">{d.label}</div>
                     {!isPractice && (
                       <div className="text-[11px] mt-0.5 font-black text-quiz-yellow">{d.mult}</div>
@@ -1037,7 +1042,9 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
 
           <Button3d type="submit" variant="green" size="lg" full
             disabled={loading || (availLoaded && validDiffCount === 0)}>
-            {loading ? '⏳ Starting practice set...' : "🚀 Let's go!"}
+            {loading
+              ? <span className="inline-flex items-center gap-1"><Icon name="loader" className="w-4 h-4 animate-spin" /> Starting practice set...</span>
+              : <span className="inline-flex items-center gap-1"><Icon name="rocket" className="w-4 h-4" /> Let&apos;s go!</span>}
           </Button3d>
         </form>
       </Screen>
@@ -1045,7 +1052,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
   }
 
   // ===== RESULTS =====
-  if (showResults) {
+  if (showResults && !reviewMode) {
     const {
       correctCount, percentage, dailyProgress: dp, streakAwarded, freezeUsed,
       xpDelta, xpBreakdown, gemsDelta, gemsBreakdown, rankUp, newRank, progression,
@@ -1077,7 +1084,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
         )}
       <Screen width="default" className="py-8">
         <Card variant="solid" className="!p-8 text-center mb-4">
-          <h2 className="!text-2xl !font-black mb-5">📊 Quiz Results</h2>
+          <h2 className="font-head !text-2xl !font-extrabold mb-5">Quiz results</h2>
           <div className="mx-auto mb-4 w-36 h-36 rounded-full flex flex-col items-center justify-center
                           bg-gradient-to-br from-quiz-blue/20 to-quiz-purple/20 border-4 border-quiz-blue/40 shadow-xl">
             <div className={'text-5xl font-black ' + pctCls}>{percentage}%</div>
@@ -1112,7 +1119,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
               Rewards
             </div>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-bold">⭐ XP</span>
+              <span className="text-sm font-bold inline-flex items-center gap-1"><Icon name="star" className="w-4 h-4 text-quiz-yellow" /> XP</span>
               <span className="text-sm font-black text-quiz-purple">+{xpDelta}</span>
             </div>
             {xpBreakdown && (
@@ -1124,7 +1131,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
               </div>
             )}
             <div className="flex items-center justify-between">
-              <span className="text-sm font-bold">💎 Crystals</span>
+              <span className="text-sm font-bold inline-flex items-center gap-1"><Icon name="gem" className="w-4 h-4 text-quiz-cyan" /> Crystals</span>
               <span className="text-sm font-black text-quiz-cyan">+{gemsDelta}</span>
             </div>
             {gemsBreakdown && (
@@ -1146,7 +1153,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
           <Card variant="solid" className="!p-5 mb-4">
             {streakAwarded ? (
               <div className="text-center">
-                <div className="text-5xl mb-2">🎉</div>
+                <div className="mb-2 flex justify-center text-quiz-yellow"><Icon name="party" className="w-14 h-14" /></div>
                 <div className="text-xl font-black text-quiz-yellow mb-1">Streak earned!</div>
                 <p className="text-quiz-muted text-sm">
                   You hit {target} correct today. Come back tomorrow to keep it alive.
@@ -1156,8 +1163,8 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
               <>
                 <div className="flex items-center justify-between mb-2">
                   <div className="text-[10px] font-black uppercase tracking-widest text-quiz-muted">Today's progress</div>
-                  <div className="text-sm font-black">
-                    {passedToday ? '✅ ' : ''}{todayCorrect} / {target} correct
+                  <div className="text-sm font-black inline-flex items-center gap-1">
+                    {passedToday && <Icon name="check-circle" className="w-4 h-4 text-quiz-green" />}{todayCorrect} / {target} correct
                   </div>
                 </div>
                 <div className="h-2 rounded-full bg-gray-50 overflow-hidden mb-3">
@@ -1183,8 +1190,25 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
           </Card>
         )}
 
+        <Button3d
+          variant="blue"
+          size="lg"
+          full
+          onClick={() => {
+            // Lock every question as "checked" so the question view reveals
+            // the correct answer + explanation, then jump into review at Q1.
+            const all = {}
+            quiz.questions.forEach((_, i) => { all[i] = true })
+            setChecked(all)
+            setCurrentQuestionIndex(0)
+            setReviewMode(true)
+          }}
+          className="mb-2"
+        >
+          <span className="inline-flex items-center gap-1"><Icon name="eye" className="w-4 h-4" /> Review answers</span>
+        </Button3d>
         <Button3d variant="green" size="lg" full onClick={handleRetakeQuizClick}>
-          🔄 Take another
+          <span className="inline-flex items-center gap-1"><Icon name="refresh" className="w-4 h-4" /> Take another</span>
         </Button3d>
         {onBackToHub && (
           <Button3d variant="white" size="md" full onClick={onBackToHub} className="mt-2">
@@ -1265,8 +1289,8 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
     }>
       <div className="font-black">
         {isCorrect
-          ? '✅ Correct! Nice one.'
-          : `❌ Not quite — the correct answer is ${correctKey || '—'}.`}
+          ? <span className="inline-flex items-center gap-1"><Icon name="check-circle" className="w-4 h-4" /> Correct! Nice one.</span>
+          : <span className="inline-flex items-center gap-1"><Icon name="x-circle" className="w-4 h-4" /> Not quite — the correct answer is {correctKey || '—'}.</span>}
       </div>
       {q.explanation && (
         <div className="mt-2 font-semibold leading-relaxed text-quiz-text whitespace-pre-line">
@@ -1284,11 +1308,27 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
     <div className="lg:mx-[calc((100%_-_min(72rem,100vw_-_2rem))/2)]">
     <Screen width="wide" className="py-3 sm:py-6">
       <Card variant="solid" className="!p-3 sm:!p-6 lg:!p-8 space-y-3 sm:space-y-4">
+        {reviewMode && (
+          <div className="flex items-center justify-between gap-2 rounded-xl bg-quiz-blue/10 border border-quiz-blue/30 px-3 py-2">
+            <span className="text-xs font-black text-quiz-blue inline-flex items-center gap-1.5">
+              <Icon name="eye" className="w-4 h-4" /> Reviewing your attempt
+            </span>
+            <button
+              type="button"
+              onClick={() => setReviewMode(false)}
+              className="text-xs font-black text-quiz-blue underline underline-offset-2 hover:opacity-80"
+            >
+              Back to results
+            </button>
+          </div>
+        )}
         <div className="flex items-center justify-between gap-3">
           <span className="px-3 py-1 rounded-full bg-quiz-orange-soft border border-quiz-orange/50 text-quiz-orange-deep text-xs font-bold">
             {isPractice ? 'Practice' : 'Challenge'} · {selectedSubject}
           </span>
-          <span className="text-xs sm:text-sm font-bold text-quiz-muted">Q{currentQuestionIndex + 1}/{total}</span>
+          {!reviewMode && (
+            <span className="text-xs sm:text-sm font-bold text-quiz-muted">Q{currentQuestionIndex + 1}/{total}</span>
+          )}
         </div>
 
         <div className="h-1.5 rounded-full bg-gray-50 overflow-hidden">
@@ -1333,7 +1373,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
               {flatHeaders.length > 0 && (
                 <thead><tr className="bg-gray-50">
                   <th className="px-3 py-2 w-12 text-center font-bold text-quiz-muted" aria-label="Option letter"></th>
-                  {flatHeaders.map((h, i) => <th key={i} className="px-3 py-2 text-left font-bold text-quiz-muted">{h}</th>)}
+                  {flatHeaders.map((h, i) => <th key={i} className="px-3 py-2 text-left font-bold text-quiz-muted"><MathText>{h}</MathText></th>)}
                   <th className="px-3 py-2 w-16 text-center font-bold text-quiz-muted">Pick</th>
                 </tr></thead>
               )}
@@ -1444,8 +1484,8 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                     {letter}
                   </span>
                   {body && <span className="font-semibold text-sm sm:text-base leading-snug"><MathText>{body}</MathText></span>}
-                  {isCorrectOpt && <span className="ml-auto font-black text-[#2FBF71]">✓</span>}
-                  {isWrongPick && <span className="ml-auto font-black text-[#FF5C5C]">✗</span>}
+                  {isCorrectOpt && <Icon name="check" className="ml-auto w-4 h-4 text-[#2FBF71]" />}
+                  {isWrongPick && <Icon name="x" className="ml-auto w-4 h-4 text-[#FF5C5C]" />}
                 </motion.label>
               )
             })}
@@ -1467,7 +1507,9 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
             ← Previous
           </Button3d>
           <span className="text-sm font-bold text-quiz-muted order-3 sm:order-2 w-full sm:w-auto text-center">
-            {checkedCount}/{total} done
+            {reviewMode
+              ? `Q${currentQuestionIndex + 1} of ${total}`
+              : `${checkedCount}/${total} done`}
           </span>
           {!isChecked ? (
             <Button3d
@@ -1478,7 +1520,18 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
               onClick={handleCheckQuestion}
               className="order-2 sm:order-3"
             >
-              {currentAnswered ? '✅ Submit answer' : '🔒 Pick an answer'}
+              {currentAnswered
+                ? <span className="inline-flex items-center gap-1"><Icon name="check-circle" className="w-4 h-4" /> Submit answer</span>
+                : <span className="inline-flex items-center gap-1"><Icon name="lock" className="w-4 h-4" /> Pick an answer</span>}
+            </Button3d>
+          ) : reviewMode && isLast ? (
+            <Button3d
+              variant="blue"
+              size="md"
+              onClick={() => setReviewMode(false)}
+              className="order-2 sm:order-3"
+            >
+              <span className="inline-flex items-center gap-1"><Icon name="check" className="w-4 h-4" /> Back to results</span>
             </Button3d>
           ) : isLast ? (
             <Button3d
@@ -1488,7 +1541,9 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
               disabled={loading}
               className="order-2 sm:order-3"
             >
-              {loading ? '⏳ Submitting…' : '🏁 See results'}
+              {loading
+                ? <span className="inline-flex items-center gap-1"><Icon name="loader" className="w-4 h-4 animate-spin" /> Submitting…</span>
+                : <span className="inline-flex items-center gap-1"><Icon name="flag" className="w-4 h-4" /> See results</span>}
             </Button3d>
           ) : (
             <Button3d

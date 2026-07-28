@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import Screen from './ui/Screen'
 import Card from './ui/Card'
+import Icon from './ui/Icon'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -39,7 +40,7 @@ export default function Dashboard({ authToken }) {
   if (!stats || stats.total_attempts === 0) return (
     <Shell>
       <Card variant="solid" className="!p-12 text-center">
-        <div className="text-6xl mb-3">📭</div>
+        <div className="text-6xl mb-3"><Icon name="inbox" className="w-14 h-14 mx-auto text-quiz-muted" /></div>
         <p className="text-quiz-muted font-bold">
           No practice attempts yet. Take a Practice quiz and your statistics will appear here.
         </p>
@@ -122,7 +123,7 @@ function Shell({ children }) {
   return (
     <Screen width="wide">
       <header className="mb-2">
-        <h1 className="!text-3xl !font-black tracking-tight mb-1">📊 Statistics</h1>
+        <h1 className="font-head !text-3xl !font-extrabold tracking-tight mb-1">Statistics</h1>
         <p className="text-quiz-muted font-semibold">Your performance, weak spots, and progress</p>
       </header>
       {children}
@@ -136,7 +137,7 @@ function SectionTitle({ n, title, sub }) {
       <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-quiz-blue to-quiz-purple
                        flex items-center justify-center font-black text-white shrink-0">{n}</span>
       <div>
-        <h2 className="!text-xl !font-black tracking-tight leading-none">{title}</h2>
+        <h2 className="font-head !text-xl !font-extrabold tracking-tight leading-none">{title}</h2>
         {sub && <p className="text-xs text-quiz-muted font-semibold mt-1">{sub}</p>}
       </div>
     </div>

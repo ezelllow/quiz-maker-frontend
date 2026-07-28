@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { cn } from '../../lib/cn'
 import { ease } from '../../motion'
+import Icon from './Icon'
 
 /**
  * ChoiceGrid — generic "pick one of N" grid. Replaces the bespoke pickers
@@ -48,7 +49,7 @@ export default function ChoiceGrid({
             >
               {opt.emoji && <span>{opt.emoji}</span>}
               {opt.label}
-              {active && ' ✓'}
+              {active && <Icon name="check" className="inline-block w-[1em] h-[1em] align-[-0.15em] ml-1" />}
             </motion.button>
           )
         })}
@@ -84,7 +85,7 @@ export default function ChoiceGrid({
                 {opt.sub && <div className="text-xs font-bold text-quiz-muted">{opt.sub}</div>}
               </div>
               <div className="text-quiz-muted text-2xl shrink-0">
-                {opt.locked ? '🔒' : active ? '✓' : '›'}
+                {opt.locked ? <Icon name="lock" className="w-5 h-5" /> : active ? <Icon name="check" className="w-5 h-5" /> : '›'}
               </div>
             </motion.button>
           )

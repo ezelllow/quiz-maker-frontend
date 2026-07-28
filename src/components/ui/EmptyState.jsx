@@ -1,5 +1,6 @@
 import { cn } from '../../lib/cn'
 import Card from './Card'
+import Icon from './Icon'
 
 /**
  * EmptyState — big emoji + heading + body + optional CTA, wrapped in a
@@ -19,7 +20,7 @@ const TONES = {
 }
 
 export default function EmptyState({
-  icon = '📭',
+  icon = <Icon name="inbox" className="w-12 h-12 mx-auto" />,
   title,
   body,
   action,
@@ -29,7 +30,7 @@ export default function EmptyState({
 }) {
   return (
     <Card variant="solid" className={cn('!p-8 sm:!p-10 text-center', TONES[tone], className)} {...rest}>
-      {icon && <div className="text-5xl sm:text-6xl mb-3">{icon}</div>}
+      {icon && <div className="mb-3 flex justify-center text-quiz-muted text-4xl">{icon}</div>}
       {title && <div className="font-black text-lg mb-2">{title}</div>}
       {body && (
         <p className="text-sm font-bold text-quiz-muted leading-relaxed mb-0">
