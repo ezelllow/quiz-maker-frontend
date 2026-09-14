@@ -12,6 +12,7 @@ import TopicCard from './ui/TopicCard'
 import Icon from './ui/Icon'
 import { ease, burst, idlePulse } from '../motion'
 import QuizMaker from './QuizMaker'
+import EnglishEditing from './english/EnglishEditing'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -19,7 +20,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000
 //   picker  → user chooses a subject
 //   hub     → that subject's saved quizzes + "Create new" CTA
 //   quiz    → QuizMaker (create form → quiz-taking → results)
-export default function PracticePage({ authToken, onProgressionChange, onGemsChange, onFreezesChange, onQuizActiveChange }) {
+export default function PracticePage({ authToken, onProgressionChange, onGemsChange, onFreezesChange, onQuizActiveChange, onNavigate }) {
   const [step, setStep] = useState('picker')
   const [subject, setSubject] = useState(null)
   const [retakeAttempt, setRetakeAttempt] = useState(null)
@@ -29,7 +30,29 @@ export default function PracticePage({ authToken, onProgressionChange, onGemsCha
   const goQuiz   = () => { setStep('quiz') }
 
   if (step === 'picker') {
-    return <SubjectPicker onPick={(s) => { setSubject(s); setStep('hub') }} />
+    return (
+      <SubjectPicker
+        onPick={(s) => {
+          setSubject(s)
+          // English is a different question type with its own player and
+          // marking, so it skips the saved-quizzes hub and QuizMaker.
+          setStep(s.kind === 'english' ? 'english' : 'hub')
+        }}
+      />
+    )
+  }
+
+  if (step === 'english') {
+    return (
+      <EnglishEditing
+        authToken={authToken}
+        onBack={goPicker}
+        onProgressionChange={onProgressionChange}
+        onGemsChange={onGemsChange}
+        onQuizActiveChange={onQuizActiveChange}
+        onNavigate={onNavigate}
+      />
+    )
   }
 
   if (step === 'hub') {
@@ -91,6 +114,10 @@ function SubjectPicker({ onPick }) {
     {
       id: 'p6math', icon: 'divide', label: 'P6 Math', levelKey: 'p6math',
       color: '#7C4EA8', tone: 'purple', active: true, tagline: 'PSLE · All topics',
+    },
+    {
+      id: 'english', icon: 'book', label: 'English', kind: 'english',
+      color: '#5BB98C', tone: 'green', active: true, tagline: 'Editing · 60 passages',
     },
   ]
 

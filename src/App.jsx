@@ -334,7 +334,7 @@ function App() {
       case 'quiz':
         return <QuizMaker authToken={localStorage.getItem('auth_token')} retakeAttempt={retakeAttempt} onRetakeClear={() => setRetakeAttempt(null)} mode="daily" onProgressionChange={setProgression} onGemsChange={setGems} onFreezesChange={setFreezes} onQuizActiveChange={setQuizInProgress} />
       case 'practice':
-        return <PracticePage authToken={localStorage.getItem('auth_token')} onProgressionChange={setProgression} onGemsChange={setGems} onFreezesChange={setFreezes} onQuizActiveChange={setQuizInProgress} />
+        return <PracticePage authToken={localStorage.getItem('auth_token')} onProgressionChange={setProgression} onGemsChange={setGems} onFreezesChange={setFreezes} onQuizActiveChange={setQuizInProgress} onNavigate={setCurrentPage} />
       case 'leaderboard':
         return <LeaderboardPage authToken={localStorage.getItem('auth_token')} user={user} progression={progression} />
       case 'shop':

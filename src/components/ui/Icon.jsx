@@ -379,6 +379,10 @@ const PATHS = {
       <path {...S} d="M12 7v10M9.5 9.2h3.3a1.8 1.8 0 0 1 0 3.6h-1.6a1.8 1.8 0 0 0 0 3.6H14.5" />
     </>
   ),
+
+  // ── Carousel chevrons ───────────────────────────────────────
+  chevronLeft:  <path {...S} d="M15 5l-7 7 7 7" />,
+  chevronRight: <path {...S} d="M9 5l7 7-7 7" />,
 }
 
 export default function Icon({ name, className = 'w-5 h-5', ...rest }) {
