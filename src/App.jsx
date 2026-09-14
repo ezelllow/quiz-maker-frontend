@@ -12,14 +12,15 @@ import './App.css'
 // Route components are code-split: each one downloads as its own small chunk
 // only the first time the user navigates to it. This keeps the initial bundle
 // small — in particular recharts (only used by Dashboard) no longer ships on
-// first paint, and the large quiz screens load on demand.
+// first paint, and the large QuizMaker screen loads on demand.
 const Dashboard       = lazy(() => import('./components/Dashboard'))
 const SavedQuizzes    = lazy(() => import('./components/SavedQuizzes'))
 const History         = lazy(() => import('./components/History'))
 const Settings        = lazy(() => import('./components/Settings'))
 const SettingsPage    = lazy(() => import('./components/SettingsPage'))
 const Placement       = lazy(() => import('./components/Placement'))
-const DailyPicker     = lazy(() => import('./components/DailyPicker'))
+const QuizMaker       = lazy(() => import('./components/QuizMaker'))
+const EnglishDaily    = lazy(() => import('./components/english/EnglishDaily'))
 const HomePage        = lazy(() => import('./components/HomePage'))
 const LeaderboardPage = lazy(() => import('./components/LeaderboardPage'))
 const ShopPage        = lazy(() => import('./components/ShopPage'))
@@ -51,6 +52,9 @@ function App() {
   const [isSignup, setIsSignup] = useState(false)
   const [loading, setLoading] = useState(true)
   const [retakeAttempt, setRetakeAttempt] = useState(null)
+  // Which subject the Daily Challenge is on: 'physics' (QuizMaker's form) or
+  // 'english' (one editing passage). Chosen from QuizMaker's subject grid.
+  const [dailySubject, setDailySubject] = useState('physics')
   const [sessionNotice, setSessionNotice] = useState(null)  // shown on login screen after an auto-logout
   // null = not checked yet, true = must take placement, false = already placed
   const [needsPlacement, setNeedsPlacement] = useState(null)
@@ -294,13 +298,16 @@ function App() {
       setPendingNav(page)
       return
     }
+    // Leaving the daily drops the English pick, so coming back lands on the
+    // subject grid rather than straight into a passage.
+    if (page !== currentPage) setDailySubject('physics')
     setCurrentPage(page)
   }
   // Modal Confirm handler — commit the deferred navigation and clear the
   // live-quiz flag. Cancel just closes the modal via setPendingNav(null).
   const confirmLeaveQuiz = () => {
     setQuizInProgress(false)
-    if (pendingNav) setCurrentPage(pendingNav)
+    if (pendingNav) { setDailySubject('physics'); setCurrentPage(pendingNav) }
     setPendingNav(null)
   }
 
@@ -332,16 +339,26 @@ function App() {
         return <HomePage authToken={localStorage.getItem('auth_token')} user={user} rank={primaryRank} progression={progression} onNavigate={setCurrentPage} onFreezesChange={setFreezes} />
       case 'quiz':
       case 'daily':
-        // The Daily Challenge: pick Physics or English first, then play.
-        // DailyPicker renders QuizMaker itself for the Physics side.
-        return <DailyPicker authToken={localStorage.getItem('auth_token')}
-                            retakeAttempt={retakeAttempt}
-                            onRetakeClear={() => setRetakeAttempt(null)}
-                            onExit={() => setCurrentPage('home')}
-                            onProgressionChange={setProgression}
-                            onGemsChange={setGems}
-                            onFreezesChange={setFreezes}
-                            onQuizActiveChange={setQuizInProgress} />
+        // The Daily Challenge. English sits in QuizMaker's subject grid, but
+        // it isn't a question set — one editing passage is the whole daily —
+        // so picking it swaps the screen instead of filtering the form. A
+        // retake always means physics, so it can't strand you in English.
+        return (dailySubject === 'english' && !retakeAttempt)
+          ? <EnglishDaily authToken={localStorage.getItem('auth_token')}
+                          onExit={() => setDailySubject('physics')}
+                          onHome={() => { setDailySubject('physics'); setCurrentPage('home') }}
+                          onProgressionChange={setProgression}
+                          onGemsChange={setGems}
+                          onQuizActiveChange={setQuizInProgress} />
+          : <QuizMaker authToken={localStorage.getItem('auth_token')}
+                       retakeAttempt={retakeAttempt}
+                       onRetakeClear={() => setRetakeAttempt(null)}
+                       mode="daily"
+                       onPickEnglish={() => setDailySubject('english')}
+                       onProgressionChange={setProgression}
+                       onGemsChange={setGems}
+                       onFreezesChange={setFreezes}
+                       onQuizActiveChange={setQuizInProgress} />
       case 'practice':
         return <PracticePage authToken={localStorage.getItem('auth_token')} onProgressionChange={setProgression} onGemsChange={setGems} onFreezesChange={setFreezes} onQuizActiveChange={setQuizInProgress} onNavigate={setCurrentPage} />
       case 'leaderboard':

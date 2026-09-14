@@ -19,6 +19,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000
 export default function EnglishDaily({
   authToken,
   onExit,
+  onHome,
   onProgressionChange,
   onGemsChange,
   onQuizActiveChange,
@@ -78,7 +79,7 @@ export default function EnglishDaily({
     return (
       <EditingReview
         result={result}
-        onHome={onExit}
+        onHome={onHome || onExit}
         onRetry={() => setResult(null)}
       />
     )

@@ -348,7 +348,7 @@ function QImage({ src, alt, className = '' }) {
 }
 
 export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mode = 'daily', initialSubject, initialLevel, levelLabel, onBackToHub,
-  onProgressionChange, onGemsChange, onFreezesChange, onQuizActiveChange }) {
+  onProgressionChange, onGemsChange, onFreezesChange, onQuizActiveChange, onPickEnglish }) {
   const isPractice = mode === 'practice'
   const token = authToken || localStorage.getItem('auth_token')
 
@@ -772,8 +772,14 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                   { id: 'combinedG3', icon: 'atom',   label: 'Combined G3' },
                   { id: 'combinedG2', icon: 'dna',    label: 'Combined G2' },
                   { id: 'combinedG1', icon: 'magnet', label: 'G1 Science' },
-                  // 5th subject spans the bottom row of the 2-col grid
-                  { id: 'p6math',     icon: 'divide', label: 'P6 Math', span: true },
+                  // English isn't a question set — one editing passage is the
+                  // whole daily — so it leaves this form instead of filtering
+                  // it. Without it P6 Math spans the bottom row; with it the
+                  // two of them fill that row.
+                  { id: 'p6math',     icon: 'divide', label: 'P6 Math', span: !onPickEnglish },
+                  ...(onPickEnglish
+                    ? [{ id: 'english', icon: 'book', label: 'English', leaves: true }]
+                    : []),
                 ].map((lvl) => {
                   const active = levelCat === lvl.id
                   return (
@@ -781,6 +787,7 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                       key={lvl.id}
                       type="button"
                       onClick={() => {
+                        if (lvl.leaves) { onPickEnglish(); return }
                         if (levelCat === lvl.id) return
                         setLevelCat(lvl.id)
                         setSelectedSubtopics([])
