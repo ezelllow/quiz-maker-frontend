@@ -6,32 +6,56 @@ import SectionLabel from './ui/SectionLabel'
 import { Stagger, StaggerItem } from './ui/Motion'
 import { cn } from '../lib/cn'
 import { ease } from '../motion'
-import DailyChallenge from './DailyChallenge'
+import QuizMaker from './QuizMaker'
 
 const EnglishDaily = lazy(() => import('./english/EnglishDaily'))
 
 /**
  * DailyPicker — the Daily Challenge now has two ways to clear it.
  *
- * Physics gives the usual weak-topic-weighted question set; English gives one
- * editing passage, which is exactly ten marks and therefore a full daily goal
- * in one sitting. Either clears the day: both credit the same daily tally, so
- * there is one goal and one streak whatever the student picks.
+ * This sits in front of QuizMaker on the daily route: pick Physics and you
+ * get the usual builder, pick English and you get one editing passage, which
+ * is exactly ten marks and therefore a full daily goal in one sitting. Either
+ * clears the day — both credit the same daily tally, so there is one goal and
+ * one streak whatever the student picks.
+ *
+ * A retake arrives with an attempt already chosen, so it skips the picker and
+ * goes straight to QuizMaker rather than asking a question with one answer.
  */
 export default function DailyPicker({
   authToken,
+  retakeAttempt,
+  onRetakeClear,
   onExit,
   onProgressionChange,
   onGemsChange,
+  onFreezesChange,
   onQuizActiveChange,
 }) {
   const [choice, setChoice] = useState(null)
 
-  if (choice === 'physics') {
-    return <DailyChallenge authToken={authToken} subject="Physics" onExit={onExit} />
+  // Derived, not stored: a retake can also land while the picker is already
+  // open (History -> Retake), and deriving it means there is no effect to
+  // race with that.
+  const active = retakeAttempt ? 'physics' : choice
+
+  if (active === 'physics') {
+    return (
+      <QuizMaker
+        authToken={authToken}
+        retakeAttempt={retakeAttempt}
+        onRetakeClear={onRetakeClear}
+        mode="daily"
+        onBackToHub={retakeAttempt ? undefined : () => setChoice(null)}
+        onProgressionChange={onProgressionChange}
+        onGemsChange={onGemsChange}
+        onFreezesChange={onFreezesChange}
+        onQuizActiveChange={onQuizActiveChange}
+      />
+    )
   }
 
-  if (choice === 'english') {
+  if (active === 'english') {
     return (
       <Suspense fallback={null}>
         <EnglishDaily

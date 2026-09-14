@@ -12,8 +12,7 @@ import './App.css'
 // Route components are code-split: each one downloads as its own small chunk
 // only the first time the user navigates to it. This keeps the initial bundle
 // small — in particular recharts (only used by Dashboard) no longer ships on
-// first paint, and the large QuizMaker screen loads on demand.
-const QuizMaker       = lazy(() => import('./components/QuizMaker'))
+// first paint, and the large quiz screens load on demand.
 const Dashboard       = lazy(() => import('./components/Dashboard'))
 const SavedQuizzes    = lazy(() => import('./components/SavedQuizzes'))
 const History         = lazy(() => import('./components/History'))
@@ -332,7 +331,17 @@ function App() {
       case 'home':
         return <HomePage authToken={localStorage.getItem('auth_token')} user={user} rank={primaryRank} progression={progression} onNavigate={setCurrentPage} onFreezesChange={setFreezes} />
       case 'quiz':
-        return <QuizMaker authToken={localStorage.getItem('auth_token')} retakeAttempt={retakeAttempt} onRetakeClear={() => setRetakeAttempt(null)} mode="daily" onProgressionChange={setProgression} onGemsChange={setGems} onFreezesChange={setFreezes} onQuizActiveChange={setQuizInProgress} />
+      case 'daily':
+        // The Daily Challenge: pick Physics or English first, then play.
+        // DailyPicker renders QuizMaker itself for the Physics side.
+        return <DailyPicker authToken={localStorage.getItem('auth_token')}
+                            retakeAttempt={retakeAttempt}
+                            onRetakeClear={() => setRetakeAttempt(null)}
+                            onExit={() => setCurrentPage('home')}
+                            onProgressionChange={setProgression}
+                            onGemsChange={setGems}
+                            onFreezesChange={setFreezes}
+                            onQuizActiveChange={setQuizInProgress} />
       case 'practice':
         return <PracticePage authToken={localStorage.getItem('auth_token')} onProgressionChange={setProgression} onGemsChange={setGems} onFreezesChange={setFreezes} onQuizActiveChange={setQuizInProgress} onNavigate={setCurrentPage} />
       case 'leaderboard':
@@ -341,13 +350,6 @@ function App() {
         return <ShopPage authToken={localStorage.getItem('auth_token')} gems={gems} onGemsChange={setGems} user={user} onUserUpdate={setUser} />
       case 'customize':
         return <CustomizePage authToken={localStorage.getItem('auth_token')} user={user} onUserUpdate={setUser} gems={gems} onGemsChange={setGems} onBack={() => setCurrentPage('settings')} />
-      case 'daily':
-        // Physics or English — either clears today's goal (see DailyPicker).
-        return <DailyPicker authToken={localStorage.getItem('auth_token')}
-                            onExit={() => setCurrentPage('home')}
-                            onProgressionChange={setProgression}
-                            onGemsChange={setGems}
-                            onQuizActiveChange={setQuizInProgress} />
       case 'dashboard':
         return <Dashboard authToken={localStorage.getItem('auth_token')} />
       case 'saved':
