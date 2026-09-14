@@ -78,8 +78,10 @@ export default function EditingReview({ result, onHome, onRetry, onNext }) {
 
             <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
               <Badge tone="muted">{difficulty}</Badge>
-              <Badge tone={mode === 'exam' ? 'purple' : 'accent'}>
-                {mode === 'exam' ? 'Exam mode' : 'Practice mode'}
+              <Badge tone={rewarded ? 'orange' : mode === 'exam' ? 'purple' : 'accent'}>
+                {rewarded
+                  ? 'Daily Challenge'
+                  : mode === 'exam' ? 'Exam mode' : 'Practice mode'}
               </Badge>
               {wordsTotal > 0 && (
                 <Badge tone="muted" icon={<Icon name="target" className="h-3 w-3" />}>
@@ -109,7 +111,8 @@ export default function EditingReview({ result, onHome, onRetry, onNext }) {
               </div>
             ) : (
               <p className="mt-4 text-xs font-bold text-quiz-muted">
-                Practice mode — no XP. Run it in Exam mode to earn.
+                Practice doesn't pay out — XP, crystals and your streak come
+                from the Daily Challenge.
               </p>
             )}
 
@@ -222,14 +225,19 @@ export default function EditingReview({ result, onHome, onRetry, onNext }) {
               >
                 Try again
               </button>
-              <span className="text-quiz-muted-soft" aria-hidden>·</span>
-              <button
-                type="button"
-                onClick={onNext}
-                className="text-xs font-black uppercase tracking-wider text-quiz-muted hover:text-quiz-orange"
-              >
-                Next exercise
-              </button>
+              {/* Omitted in the Daily Challenge, where there is no next one. */}
+              {onNext && (
+                <>
+                  <span className="text-quiz-muted-soft" aria-hidden>·</span>
+                  <button
+                    type="button"
+                    onClick={onNext}
+                    className="text-xs font-black uppercase tracking-wider text-quiz-muted hover:text-quiz-orange"
+                  >
+                    Next exercise
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </StaggerItem>

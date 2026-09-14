@@ -159,10 +159,10 @@ export default function EditingLine({
               noError ? 'border-quiz-green text-quiz-green' : cn(rule, accent),
             )}
           >
-            <Icon
-              name="check"
-              className={cn('mx-auto h-3.5 w-3.5', !noError && state === 'idle' && 'opacity-40')}
-            />
+            {/* Empty until they actually tick it — on paper the blank starts
+                blank, and a ghost tick read as "already ticked". The ruled
+                blank itself is the target. */}
+            {noError && <Icon name="check" className="mx-auto h-3.5 w-3.5" />}
           </button>
         )}
 

@@ -184,14 +184,14 @@ export default function EnglishEditing({
               onClick={() => setMode('exam')}
               icon="flag"
               title="Exam mode"
-              blurb="Marked at the end · Earns XP"
+              blurb="Marked at the end"
             />
             <ModeCard
               active={mode === 'practice'}
               onClick={() => setMode('practice')}
               icon="bulb"
               title="Practice mode"
-              blurb="Marked as you go · No XP"
+              blurb="Marked as you go, with reasons"
             />
           </div>
           {/* Says the choice in words as well as colour, so it survives a
@@ -201,7 +201,8 @@ export default function EnglishEditing({
             <span className="text-quiz-orange">
               {mode === 'exam' ? 'Exam mode' : 'Practice mode'}
             </span>
-            .
+            . Practise as much as you like here — XP, crystals and your streak
+            come from the Daily Challenge.
           </p>
         </StaggerItem>
 

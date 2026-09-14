@@ -20,7 +20,7 @@ const History         = lazy(() => import('./components/History'))
 const Settings        = lazy(() => import('./components/Settings'))
 const SettingsPage    = lazy(() => import('./components/SettingsPage'))
 const Placement       = lazy(() => import('./components/Placement'))
-const DailyChallenge  = lazy(() => import('./components/DailyChallenge'))
+const DailyPicker     = lazy(() => import('./components/DailyPicker'))
 const HomePage        = lazy(() => import('./components/HomePage'))
 const LeaderboardPage = lazy(() => import('./components/LeaderboardPage'))
 const ShopPage        = lazy(() => import('./components/ShopPage'))
@@ -342,7 +342,12 @@ function App() {
       case 'customize':
         return <CustomizePage authToken={localStorage.getItem('auth_token')} user={user} onUserUpdate={setUser} gems={gems} onGemsChange={setGems} onBack={() => setCurrentPage('settings')} />
       case 'daily':
-        return <DailyChallenge authToken={localStorage.getItem('auth_token')} subject="Physics" onExit={() => setCurrentPage('home')} />
+        // Physics or English — either clears today's goal (see DailyPicker).
+        return <DailyPicker authToken={localStorage.getItem('auth_token')}
+                            onExit={() => setCurrentPage('home')}
+                            onProgressionChange={setProgression}
+                            onGemsChange={setGems}
+                            onQuizActiveChange={setQuizInProgress} />
       case 'dashboard':
         return <Dashboard authToken={localStorage.getItem('auth_token')} />
       case 'saved':

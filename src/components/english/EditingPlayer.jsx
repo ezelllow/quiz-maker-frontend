@@ -24,8 +24,12 @@ function PlayerScreen({ children }) {
  * EditingPlayer — work through one editing exercise.
  *
  * Two modes, chosen on the hub:
- *   exam      mark at the end, exam conditions, pays XP / streak / crystals
- *   practice  mark each line as you go, with the explanation, reward-free
+ *   exam      mark at the end, exam conditions
+ *   practice  mark each line as you go, with the explanation
+ *
+ * Neither pays out: XP, crystals and the streak come from the Daily
+ * Challenge (`daily`), exactly like physics. The Practice section is 60
+ * replayable passages, so paying it would make XP farmable.
  *
  * Answers are graded on the server in both modes. The client never receives
  * the answer key, so a curious student reading the network tab learns
@@ -35,6 +39,7 @@ export default function EditingPlayer({
   authToken,
   uid,
   mode = 'exam',
+  daily = false,
   onExit,
   onFinished,
   onActiveChange,
@@ -141,6 +146,7 @@ export default function EditingPlayer({
         body: JSON.stringify({
           uid,
           mode,
+          daily,
           time_spent_seconds: Math.floor((Date.now() - startedAt.current) / 1000),
           answers: lines.map((l) => ({
             line_no: l.line_no,
@@ -217,7 +223,7 @@ export default function EditingPlayer({
         </p>
         {isPractice && (
           <p className="mt-2 text-[13px] font-bold text-quiz-orange">
-            Practice mode marks each line as you go — no XP, so take your time.
+            Practice mode marks each line as you go, so take your time.
           </p>
         )}
       </Card>
