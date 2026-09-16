@@ -23,9 +23,9 @@ const DIFF_ORDER = ['Easy', 'Medium', 'Hard']
 // Tailwind scans for literal strings, so a class built by interpolation is
 // never generated.
 const DIFF_STYLE = {
-  Easy:   { icon: 'seedling', chip: 'bg-quiz-green text-white',  hover: 'hover:border-quiz-green',  blurb: 'Gentler passages — the error stands out.' },
-  Medium: { icon: 'flame',    chip: 'bg-quiz-orange text-white', hover: 'hover:border-quiz-orange', blurb: 'Exam standard, the usual mix.' },
-  Hard:   { icon: 'skull',    chip: 'bg-quiz-red text-white',    hover: 'hover:border-quiz-red',    blurb: 'Subtle errors and trickier traps.' },
+  Easy:   { icon: 'seedling', chip: 'bg-quiz-green text-white',  hover: 'hover:border-quiz-green',  blurb: 'Clear mistakes' },
+  Medium: { icon: 'flame',    chip: 'bg-quiz-orange text-white', hover: 'hover:border-quiz-orange', blurb: 'Exam standard' },
+  Hard:   { icon: 'skull',    chip: 'bg-quiz-red text-white',    hover: 'hover:border-quiz-red',    blurb: 'Subtle traps' },
 }
 const DIFF_FALLBACK = { icon: 'book', chip: 'bg-quiz-bg-2 text-quiz-muted', hover: 'hover:border-quiz-line-soft', blurb: '' }
 
@@ -157,8 +157,7 @@ export default function EnglishDaily({
               How hard today?
             </h1>
             <p className="mt-1 text-sm font-semibold text-quiz-muted">
-              One editing passage, 10 marks — a whole day&rsquo;s goal. Harder
-              passages are worth more.
+              One passage, 10 marks. That clears the whole day.
             </p>
           </header>
         </StaggerItem>
@@ -223,9 +222,8 @@ export default function EnglishDaily({
 
         <StaggerItem>
           <p className="px-1 text-[12px] font-bold text-quiz-muted-soft">
-            The passage itself is picked for you, aimed at the mistakes you
-            make most — and it&rsquo;s the same one all day, so there&rsquo;s
-            nothing to reroll.
+            Your passage is chosen for you, aimed at the mistakes you make
+            most. It stays the same all day.
           </p>
         </StaggerItem>
       </Stagger>
