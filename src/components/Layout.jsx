@@ -98,9 +98,11 @@ export default function Layout({
   ]
 
   // Phone-frame width used everywhere. QuizQuest source uses 420px; we go a touch wider.
-  // (The quiz-taking screen in QuizMaker breaks out of this frame on lg+
-  // desktop via negative margins — every other page keeps the phone view.)
-  const frame = 'max-w-md mx-auto w-full'
+  // A screen that genuinely needs the whole laptop widens this by putting
+  // `ooka-wide` on <body> (see useWideFrame) — the .ooka-frame hook is what
+  // that class reaches, so no page has to thread a prop up to Layout. On a
+  // phone nothing changes: the frame is already narrower than both caps.
+  const frame = 'ooka-frame max-w-md mx-auto w-full'
 
   return (
     <div className="min-h-screen flex flex-col">

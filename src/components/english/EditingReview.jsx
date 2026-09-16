@@ -11,6 +11,7 @@ import CountUp from '../ui/CountUp'
 import { Stagger, StaggerItem } from '../ui/Motion'
 import { cn } from '../../lib/cn'
 import { ease } from '../../motion'
+import useWideFrame from '../../hooks/useWideFrame'
 
 /**
  * EditingReview — the marked paper.
@@ -29,6 +30,9 @@ const MISS_COPY = {
 }
 
 export default function EditingReview({ result, onHome, onRetry, onNext }) {
+  // Same width as the player, so finishing a passage doesn't snap the page
+  // from the full window back to a phone column.
+  useWideFrame()
   const {
     title, difficulty, score, total, percentage, mode, rewarded,
     words_found: wordsFound, words_total: wordsTotal,
