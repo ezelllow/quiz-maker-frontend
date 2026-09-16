@@ -8,6 +8,7 @@ import RankUpOverlay from './RankUpOverlay'
 import { correctPop, wrongShake, optionTap, questionEnter } from '../motion'
 import MathText from './ui/MathText'
 import Icon from './ui/Icon'
+import { SUBJECTS, SUBJECT_TONES } from '../lib/subjects'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -767,22 +768,18 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-2">
-                {[
-                  { id: 'pure',       icon: 'flask',  label: 'Pure Physics' },
-                  { id: 'combinedG3', icon: 'atom',   label: 'Combined G3' },
-                  { id: 'combinedG2', icon: 'dna',    label: 'Combined G2' },
-                  { id: 'combinedG1', icon: 'magnet', label: 'G1 Science' },
+                {SUBJECTS
                   // English isn't a question set — one editing passage is the
                   // whole daily — so it leaves this form instead of filtering
-                  // it. Without it P6 Math spans the bottom row; with it the
-                  // two of them fill that row.
-                  { id: 'p6math',     icon: 'divide', label: 'P6 Math', span: !onPickEnglish },
-                  ...(onPickEnglish
-                    ? [{ id: 'english', icon: 'book', label: 'English', leaves: true }]
-                    : []),
-                ].map((lvl) => {
-                  const active = levelCat === lvl.id
-                  return (
+                  // it, and it only appears where there's somewhere to go.
+                  .filter((s) => !s.leaves || onPickEnglish)
+                  // Without English, P6 Math spans the bottom row alone; with
+                  // it, the two of them fill that row.
+                  .map((s) => (s.id === 'p6math' ? { ...s, span: !onPickEnglish } : s))
+                  .map((lvl) => {
+                    const active = levelCat === lvl.id
+                    const tone = SUBJECT_TONES[lvl.tone] || SUBJECT_TONES.gold
+                    return (
                     <button
                       key={lvl.id}
                       type="button"
@@ -803,8 +800,17 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
                           : 'border-quiz-border bg-white text-quiz-text hover:border-quiz-blue/60 hover:bg-gray-50')
                       }
                     >
-                      <div className="flex justify-center mb-1"><Icon name={lvl.icon} className="w-7 h-7" /></div>
-                      <div className="text-sm leading-tight">{lvl.label}</div>
+                      {/* Same coloured disc the Practice picker uses, so a
+                          subject looks like itself on both screens. */}
+                      <div className="flex justify-center mb-1">
+                        <span
+                          className="flex h-11 w-11 items-center justify-center rounded-full"
+                          style={{ backgroundColor: tone.bg, color: tone.fg }}
+                        >
+                          <Icon name={lvl.icon} className="w-6 h-6" />
+                        </span>
+                      </div>
+                      <div className="text-sm leading-tight">{lvl.short}</div>
                     </button>
                   )
                 })}

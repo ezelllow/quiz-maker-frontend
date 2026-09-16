@@ -13,6 +13,7 @@ import Icon from './ui/Icon'
 import { ease, burst, idlePulse } from '../motion'
 import QuizMaker from './QuizMaker'
 import EnglishEditing from './english/EnglishEditing'
+import { SUBJECTS } from '../lib/subjects'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -94,32 +95,7 @@ function SubjectPicker({ onPick }) {
   // Each physics level is its own subject. levelKey is the value sent to the
   // backend (/api/subtopics?level=…, quiz `level`). Pure → 20-topic syllabus;
   // the three Combined tiers (G1/G2/G3) → the 16-topic Combined syllabus.
-  const subjects = [
-    {
-      id: 'pure', icon: 'flask', label: 'Pure Physics', levelKey: 'pure',
-      color: '#3F8AC2', tone: 'blue', active: true, tagline: 'Pure · 20 topics',
-    },
-    {
-      id: 'combinedG3', icon: 'atom', label: 'Combined Physics G3', levelKey: 'combinedG3',
-      color: '#5BB98C', tone: 'green', active: true, tagline: 'Combined · 16 topics',
-    },
-    {
-      id: 'combinedG2', icon: 'dna', label: 'Combined Physics G2', levelKey: 'combinedG2',
-      color: '#C9A24B', tone: 'gold', active: true, tagline: 'Combined · 13 topics',
-    },
-    {
-      id: 'combinedG1', icon: 'magnet', label: 'G1 Science', levelKey: 'combinedG1',
-      color: '#D9534F', tone: 'red', active: true, tagline: 'Science · 11 topics',
-    },
-    {
-      id: 'p6math', icon: 'divide', label: 'P6 Math', levelKey: 'p6math',
-      color: '#7C4EA8', tone: 'purple', active: true, tagline: 'PSLE · All topics',
-    },
-    {
-      id: 'english', icon: 'book', label: 'English', kind: 'english',
-      color: '#5BB98C', tone: 'green', active: true, tagline: 'Editing · 60 passages',
-    },
-  ]
+  const subjects = SUBJECTS
 
   const physics = subjects.filter((s) => s.active)
   const comingSoon = subjects.filter((s) => !s.active)
