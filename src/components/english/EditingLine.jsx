@@ -1,8 +1,40 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '../../lib/cn'
 import { ease, dur } from '../../motion'
 import Icon from '../ui/Icon'
+
+// One canvas for the whole passage. Measuring the correction with a real
+// text metric beats guessing from character count: "lll" and "www" are the
+// same length and nowhere near the same width.
+let metricsCtx = null
+
+/**
+ * Shrink a correction until it fits its blank.
+ *
+ * The margin blank is narrow by design — it's the margin of an exam paper,
+ * not a form field — so a long correction used to scroll sideways inside it
+ * and show neither end. Nothing is ever clipped now; it just gets smaller,
+ * down to half size, which is where a word stops being worth reading and
+ * scrolling is the lesser evil.
+ */
+function fitCorrection(el) {
+  if (!el) return
+  // Clear first, so this reads the size the CSS wants rather than whatever
+  // the last run left behind — that's also what makes it correct after the
+  // passage itself rescales.
+  el.style.fontSize = ''
+  const text = el.value
+  if (!text) return
+  const cs = getComputedStyle(el)
+  const base = parseFloat(cs.fontSize)
+  const room = el.clientWidth - parseFloat(cs.paddingLeft || 0) - parseFloat(cs.paddingRight || 0) - 1
+  if (!base || !(room > 0)) return
+  if (!metricsCtx) metricsCtx = document.createElement('canvas').getContext('2d')
+  metricsCtx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
+  const width = metricsCtx.measureText(text).width
+  if (width > room) el.style.fontSize = `${Math.max(base * 0.5, (base * room) / width)}px`
+}
 
 /**
  * EditingLine — one printed line of an editing passage.
@@ -59,6 +91,27 @@ export default function EditingLine({
     if (circling && prevWord.current === null && !locked) inputRef.current?.focus()
     prevWord.current = wordIndex
   }, [wordIndex, circling, locked])
+
+  // Re-fit on every keystroke, and whenever the blank itself changes width —
+  // which is how it keeps up with the passage rescaling, since that happens
+  // in the DOM rather than through React.
+  useLayoutEffect(() => {
+    const el = inputRef.current
+    if (!el) return undefined
+    fitCorrection(el)
+    if (typeof ResizeObserver === 'undefined') return undefined
+    // Only width matters; the font-size this sets changes height, so
+    // watching height would be watching its own tail.
+    let lastWidth = 0
+    const ro = new ResizeObserver((entries) => {
+      const w = Math.round(entries[0].contentRect.width)
+      if (w === lastWidth) return
+      lastWidth = w
+      fitCorrection(el)
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [correction, circling])
 
   const tapWord = (i) => {
     if (locked) return
