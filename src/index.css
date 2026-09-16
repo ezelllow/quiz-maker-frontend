@@ -646,6 +646,7 @@ body.theme-dark .text-\[\#E8530A\]    { color: #38bdf8 !important; }
 .ed-passage { padding: 0.25rem 0; --ed-fs: 15px; }
 
 .ed-line {
+  position: relative;
   display: grid;
   /* The gutter and the margin scale with the type, so the page keeps its
      proportions whether the passage lands at 8px on a phone or 18px on a
@@ -677,6 +678,26 @@ button.ed-body { cursor: pointer; }
    inline-block reports its true content width, so this is what the fit
    loop measures. */
 .ed-measure { display: inline-block; white-space: nowrap; }
+
+/* Tap-to-enlarge, but only when the fitted type is genuinely too small to
+   aim at. The hit layer is always in the markup and inert by default; the
+   fit loop adds .ed-tap-to-zoom to the passage below FIT_INLINE_PX and only
+   then does it take pointer events and swallow the row. It's a size test,
+   not a device test, so a laptop and a phone in landscape both edit inline,
+   and the same phone in portrait doesn't. */
+.ed-zoom-hit { position: absolute; inset: 0; border: 0; border-radius: inherit;
+               background: none; pointer-events: none; }
+.ed-tap-to-zoom .ed-zoom-hit { pointer-events: auto; cursor: pointer; }
+/* Under the hit layer these are a picture of the answer, not controls. */
+.ed-tap-to-zoom .ed-word,
+.ed-tap-to-zoom .ed-blank { cursor: pointer; }
+.ed-zoom-hint { display: none; }
+.ed-tap-to-zoom .ed-zoom-hint { display: block; }
+
+/* The practice-mode Check chip rides the passage's scale like everything
+   else in the margin, so it can't tower over a shrunk line. */
+.ed-check { font-size: calc(var(--ed-fs) * 0.72); line-height: 1.5;
+            padding: 0 calc(var(--ed-fs) * 0.3); }
 button.ed-body:disabled { cursor: default; }
 .ed-note { grid-column: 2 / -1; }
 

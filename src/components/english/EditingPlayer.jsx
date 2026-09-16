@@ -27,6 +27,12 @@ const FIT_REF_PX = 15
 const FIT_MIN_PX = 6
 const FIT_MAX_PX = 18
 
+// At or above this fitted size a word is a realistic tap target, so the line
+// is answered where it sits. Below it the row turns into one big target that
+// opens the line enlarged instead. A laptop is always above it; a phone in
+// portrait, with a full exam line to fit, is always below.
+const FIT_INLINE_PX = 12
+
 function PlayerScreen({ children }) {
   return <Screen>{children}</Screen>
 }
@@ -182,6 +188,10 @@ export default function EditingPlayer({
     }
 
     el.style.setProperty('--ed-fs', `${fs.toFixed(2)}px`)
+    // Which answering mode this size can support. A class rather than state:
+    // this runs on every resize, and re-rendering ten lines to flip one
+    // boolean would be wasted work.
+    el.classList.toggle('ed-tap-to-zoom', fs < FIT_INLINE_PX)
   }, [])
 
   useEffect(() => {
@@ -348,17 +358,23 @@ export default function EditingPlayer({
               lineNo={l.line_no}
               tokens={l.tokens}
               answer={answers[l.line_no] || BLANK}
+              onChange={(patch) => patchAnswer(l.line_no, patch)}
               result={lineResults[l.line_no] || null}
-              locked={submitting}
+              locked={!!lineResults[l.line_no] || submitting}
+              showCheck={isPractice}
+              onCheck={() => checkLine(l.line_no)}
               onOpen={() => setOpenLine(l.line_no)}
             />
           ))}
 
           <FixedLine text={exercise.outro_line} />
+
+          {/* Only shown when the passage actually shrank past the point of
+              being directly editable — see .ed-zoom-hint. */}
+          <p className="ed-zoom-hint mt-2 text-center text-[11px] font-bold text-quiz-muted-soft">
+            Tap a line to enlarge it and answer
+          </p>
         </div>
-        <p className="mt-2 text-center text-[11px] font-bold text-quiz-muted-soft">
-          Tap a line to enlarge it and answer
-        </p>
       </Card>
 
       {/* Answering happens here: at passage size the words are too small to

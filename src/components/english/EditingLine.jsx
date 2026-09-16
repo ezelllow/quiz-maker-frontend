@@ -1,42 +1,75 @@
+import { useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '../../lib/cn'
 import { ease, dur } from '../../motion'
 import Icon from '../ui/Icon'
 
 /**
- * EditingLine — one printed line of an editing passage, as it appears in
- * the passage itself.
+ * EditingLine — one printed line of an editing passage.
  *
- * The passage is fit-to-width: each printed line stays on ONE line and the
- * type shrinks until the longest one fits (see `.ed-passage` in index.css and
- * the fit effect in EditingPlayer). That makes the words far too small to tap,
- * so this row is a *reader*, not an editor — tapping anywhere on it opens the
- * line enlarged in EditingLineSheet, which is where words get circled and
- * corrections typed.
+ * Rendered as a row of the continuous passage (see `.ed-line` in index.css),
+ * not as a card: the number hangs in the left gutter and the ruled blank sits
+ * in the right margin, so ten of these stacked read as one block of prose,
+ * the way the paper does.
  *
- * What the row still shows at a glance: the number in the gutter, the circled
- * word ringed in the prose, and the margin blank carrying either a tick or the
- * correction — the same three things you'd see on the paper.
+ * Tapping a word draws a ring round it — the paper's "circle the incorrect
+ * word" — and turns the margin blank into the correction field. Until then
+ * the blank is a tick toggle, because on paper a line gets a tick or a word,
+ * never both.
+ *
+ * The passage fits its type to the column it is given, so on a narrow screen
+ * the words can come out too small to aim at. The row therefore also carries
+ * a full-size hit layer that opens the line enlarged (EditingLineSheet).
+ * CSS decides which is live: the fit loop puts `.ed-tap-to-zoom` on the
+ * passage below the size where tapping a word is realistic, and only then
+ * does the hit layer take pointer events. Above it, everything here is
+ * directly editable and the layer is inert — so a laptop, or a phone in
+ * landscape, never has to open a sheet to answer a line.
  *
  * Props
  *   lineNo    1..10, printed in the gutter
  *   tokens    [{index, word, before, after}] from the backend
  *   answer    {noError, wordIndex, correction}
+ *   onChange  (patch) => void — merged into the answer by the parent
  *   result    marking for this line, or null
  *   locked    true once the line is marked (practice) or submitted
- *   onOpen    () => void — open this line in the sheet
+ *   onCheck   practice mode — mark this line now
+ *   onOpen    open this line enlarged (used by the hit layer)
  */
 export default function EditingLine({
   lineNo,
   tokens = [],
   answer = {},
+  onChange,
   result = null,
   locked = false,
+  onCheck,
+  showCheck = false,
   onOpen,
 }) {
+  const inputRef = useRef(null)
   const { noError = false, wordIndex = null, correction = '' } = answer
   const circling = wordIndex !== null
   const answered = noError || circling
+
+  // Focus the blank the moment a word is circled, so a student can
+  // tap-then-type without a second tap on the margin.
+  const prevWord = useRef(wordIndex)
+  useEffect(() => {
+    if (circling && prevWord.current === null && !locked) inputRef.current?.focus()
+    prevWord.current = wordIndex
+  }, [wordIndex, circling, locked])
+
+  const tapWord = (i) => {
+    if (locked) return
+    if (wordIndex === i) onChange({ wordIndex: null, correction: '' })
+    else onChange({ wordIndex: i, noError: false })
+  }
+
+  const toggleTick = () => {
+    if (locked) return
+    onChange({ noError: !noError, wordIndex: null, correction: '' })
+  }
 
   const state = result ? (result.is_correct ? 'right' : 'wrong') : answered ? 'active' : 'idle'
 
@@ -63,8 +96,8 @@ export default function EditingLine({
     wrong: 'border-quiz-red',
   }[state]
 
-  // Read aloud as the line plus what's been put against it, since the visible
-  // text is far below a comfortable reading size.
+  // Read aloud as the line plus what's been put against it: when the hit
+  // layer is live the visible text is far below a comfortable reading size.
   const plain = tokens.map((t) => `${t.before}${t.word}${t.after}`).join('')
   const said = noError
     ? 'ticked, no error'
@@ -76,50 +109,105 @@ export default function EditingLine({
     <motion.div layout className={cn('ed-line transition-colors', rowTint)}>
       <span className={cn('ed-no font-head font-extrabold', accent)}>{lineNo}</span>
 
-      <button
-        type="button"
-        onClick={onOpen}
-        disabled={locked}
-        aria-label={`Line ${lineNo}: ${plain} — ${said}. Tap to answer.`}
-        className={cn('ed-body font-sans text-quiz-text', noError && 'opacity-60')}
-      >
+      <p className={cn('ed-body font-sans text-quiz-text', noError && 'opacity-60')}>
+        {/* .ed-body is the column; this is what actually gets measured —
+            see the note on .ed-measure in index.css. */}
         <span className="ed-measure">
-          {tokens.map((t) => (
-            <span key={t.index}>
-              {t.before}
-              <span
-                className={cn(
-                  'ed-word',
-                  wordIndex === t.index && 'outline outline-1 outline-quiz-red text-quiz-red',
-                )}
-              >
-                {t.word}
+          {tokens.map((t) => {
+            const circled = wordIndex === t.index
+            return (
+              <span key={t.index}>
+                {t.before}
+                <button
+                  type="button"
+                  disabled={locked}
+                  onClick={() => tapWord(t.index)}
+                  aria-pressed={circled}
+                  aria-label={`Select the word ${t.word}`}
+                  className={cn(
+                    'ed-word',
+                    circled
+                      ? 'outline outline-1 outline-quiz-red font-extrabold text-quiz-red'
+                      : !locked && 'hover:bg-quiz-orange/20',
+                  )}
+                >
+                  {t.word}
+                </button>
+                {t.after}
               </span>
-              {t.after}
-            </span>
-          ))}
+            )
+          })}
         </span>
-      </button>
+      </p>
 
-      {/* The margin slot reports the answer; it's edited in the sheet. On
-          paper a line gets a tick or a word, never both. */}
+      {/* The margin slot: correction field once a word is circled, tick
+          toggle until then — on paper a line gets a tick or a word, never
+          both — with the practice-mode Check chip tucked underneath. */}
       <div className="ed-slot">
+        {circling ? (
+          <input
+            ref={inputRef}
+            type="text"
+            value={correction}
+            disabled={locked}
+            onChange={(e) => onChange({ correction: e.target.value })}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && showCheck && answered && !locked) {
+                e.preventDefault()
+                onCheck?.()
+              }
+            }}
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            aria-label={`Correction for line ${lineNo}`}
+            className={cn('ed-blank text-quiz-text', rule)}
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={toggleTick}
+            disabled={locked}
+            aria-pressed={noError}
+            aria-label={`Mark line ${lineNo} as having no error`}
+            title="No error on this line"
+            className={cn(
+              'ed-blank',
+              noError ? 'border-quiz-green text-quiz-green' : cn(rule, accent),
+            )}
+          >
+            {/* Empty until they actually tick it — on paper the blank starts
+                blank, and a ghost tick read as "already ticked". The ruled
+                blank itself is the target. */}
+            {noError && <Icon name="check" className="mx-auto h-3 w-3" />}
+          </button>
+        )}
+
+        {/* Practice mode: mark this line. Only on a line that has an answer
+            and hasn't been marked yet, so at most a couple are ever on
+            screen — and it never sits in the prose. */}
+        {showCheck && !locked && answered && (
+          <button
+            type="button"
+            onClick={onCheck}
+            className="ed-check rounded-pill bg-quiz-orange font-black uppercase tracking-wider text-white transition-colors hover:bg-quiz-orange-dark"
+          >
+            Check
+          </button>
+        )}
+      </div>
+
+      {/* Inert until the passage is too small to work on directly, at which
+          point CSS gives it pointer events and it swallows the whole row. */}
+      {!locked && (
         <button
           type="button"
           onClick={onOpen}
-          disabled={locked}
           tabIndex={-1}
-          aria-hidden
-          className={cn(
-            'ed-blank',
-            noError ? 'border-quiz-green text-quiz-green' : cn(rule, circling ? 'text-quiz-text' : accent),
-          )}
-        >
-          {noError
-            ? <Icon name="check" className="mx-auto h-3 w-3" />
-            : circling ? correction : null}
-        </button>
-      </div>
+          aria-label={`Line ${lineNo}: ${plain} — ${said}. Open larger to answer.`}
+          className="ed-zoom-hit"
+        />
+      )}
 
       <AnimatePresence initial={false}>
         {result && (
