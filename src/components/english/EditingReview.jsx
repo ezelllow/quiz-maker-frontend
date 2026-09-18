@@ -46,7 +46,7 @@ export default function EditingReview({ result, onHome, onRetry, onNext }) {
     title, difficulty, score, total, percentage, mode, rewarded,
     words_found: wordsFound, words_total: wordsTotal,
     results = [], by_error_code: byCode = [], miss_types: missTypes = {},
-    xp_delta: xpDelta = 0, gems_delta: gemsDelta = 0, trap_note: trapNote,
+    xp_delta: xpDelta = 0, gems_delta: gemsDelta = 0,
     daily_progress: daily,
     // Carried over by the player: the API marks lines but never returns
     // their words, so the paper itself has to travel with the result.
@@ -227,16 +227,6 @@ export default function EditingReview({ result, onHome, onRetry, onNext }) {
                   </span>
                 )
               })}
-            </Card>
-          </StaggerItem>
-        )}
-
-        {/* Teacher's note from the sheet */}
-        {trapNote && (
-          <StaggerItem>
-            <Card className="mb-4 border-l-4 border-l-quiz-orange p-4">
-              <SectionLabel className="mb-1">The trap in this one</SectionLabel>
-              <p className="text-sm font-semibold leading-snug text-quiz-muted">{trapNote}</p>
             </Card>
           </StaggerItem>
         )}
