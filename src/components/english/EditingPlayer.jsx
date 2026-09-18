@@ -9,29 +9,11 @@ import Modal from '../ui/Modal'
 import ProgressBar from '../ui/ProgressBar'
 import Skeleton from '../ui/Skeleton'
 import { ease } from '../../motion'
-import EditingLine from './EditingLine'
 import EditingLineSheet from './EditingLineSheet'
+import EditingPassage, { BLANK } from './EditingPassage'
 import useWideFrame from '../../hooks/useWideFrame'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-
-const BLANK = { noError: false, wordIndex: null, correction: '' }
-
-// Fit-to-width bounds. The passage is measured at REF and then scaled until
-// its longest line exactly fills the column. MIN is the floor, below which a
-// passage would be a grey smear rather than small text; MAX is the ceiling,
-// because past it a "passage" reads as a list of sentences. On a phone the
-// result lands near the floor and on a laptop near the ceiling — same
-// mechanism, which is why no breakpoints appear anywhere in this file.
-const FIT_REF_PX = 15
-const FIT_MIN_PX = 6
-const FIT_MAX_PX = 18
-
-// At or above this fitted size a word is a realistic tap target, so the line
-// is answered where it sits. Below it the row turns into one big target that
-// opens the line enlarged instead. A laptop is always above it; a phone in
-// portrait, with a full exam line to fit, is always below.
-const FIT_INLINE_PX = 12
 
 function PlayerScreen({ children }) {
   return <Screen>{children}</Screen>
@@ -73,7 +55,6 @@ export default function EditingPlayer({
   const [openLine, setOpenLine] = useState(null)   // line_no shown enlarged
 
   const startedAt = useRef(0)
-  const passageRef = useRef(null)
 
   // The passage fits its type to the column, so the whole window is worth
   // more here than it is on a quiz screen.
@@ -137,83 +118,6 @@ export default function EditingPlayer({
   const allDone = total > 0 && doneCount === total
   const readyToSubmit = isPractice ? checkedCount === total : allDone
 
-  // ── fit the passage to the column ───────────────────────────────────
-  // Each printed line has to stay on one line, so the type shrinks until the
-  // longest line in this passage fits. One size for the whole block, so the
-  // lines stay aligned and it reads as one page rather than a ransom note.
-  // This writes a CSS variable rather than state: it runs on every resize,
-  // and re-rendering ten lines each time would be wasteful and janky.
-  const fitPassage = useCallback(() => {
-    const el = passageRef.current
-    if (!el) return
-    const bodies = el.querySelectorAll('.ed-body')
-    if (!bodies.length) return
-
-    // Measure the inner .ed-measure span, never .ed-body itself: .ed-body is
-    // a <button>, and a button's scrollWidth is clamped to its client width,
-    // so measuring it reports "it fits" at every size.
-    const measure = (size) => {
-      el.style.setProperty('--ed-fs', `${size}px`)
-      let widest = 0
-      let avail = Infinity
-      bodies.forEach((b) => {
-        const span = b.querySelector('.ed-measure')
-        widest = Math.max(widest, span ? span.getBoundingClientRect().width : b.scrollWidth)
-        avail = Math.min(avail, b.clientWidth)
-      })
-      return { widest, avail }
-    }
-
-    // Iterative, because the gutter and margin scale with the type too: a
-    // smaller size frees width, which then allows a larger size. It settles
-    // in three or four passes from either direction.
-    let fs = FIT_REF_PX
-    for (let pass = 0; pass < 6; pass += 1) {
-      const { widest, avail } = measure(fs)
-      if (!widest || !Number.isFinite(avail) || avail <= 0) return
-      // avail - 1 leaves a hair for the circling ring, which sits outside
-      // the box model but still needs room at the end of a line.
-      const ideal = Math.min(FIT_MAX_PX, Math.max(FIT_MIN_PX, (fs * (avail - 1)) / widest))
-      const settled = Math.abs(ideal - fs) < 0.05
-      fs = ideal
-      if (settled) break
-    }
-
-    // Land on a size measured to fit rather than one predicted to: the
-    // estimate is linear, the layout it feeds is not quite.
-    for (let guard = 0; guard < 10; guard += 1) {
-      const { widest, avail } = measure(fs)
-      if (widest <= avail - 1 || fs <= FIT_MIN_PX) break
-      fs = Math.max(FIT_MIN_PX, fs * 0.97)
-    }
-
-    el.style.setProperty('--ed-fs', `${fs.toFixed(2)}px`)
-    // Which answering mode this size can support. A class rather than state:
-    // this runs on every resize, and re-rendering ten lines to flip one
-    // boolean would be wasted work.
-    el.classList.toggle('ed-tap-to-zoom', fs < FIT_INLINE_PX)
-  }, [])
-
-  useEffect(() => {
-    if (!exercise) return undefined
-    fitPassage()
-    // Web fonts land after first paint and change every measurement.
-    document.fonts?.ready?.then(fitPassage).catch(() => {})
-    const el = passageRef.current
-    if (!el || typeof ResizeObserver === 'undefined') return undefined
-    // Only the column width matters. Guarding on it also keeps the observer
-    // from chasing its own tail: changing --ed-fs changes height, not width.
-    let lastWidth = 0
-    const ro = new ResizeObserver((entries) => {
-      const w = Math.round(entries[0].contentRect.width)
-      if (w === lastWidth) return
-      lastWidth = w
-      fitPassage()
-    })
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [exercise, fitPassage])
-
   // ── practice: mark one line ─────────────────────────────────────────
   const checkLine = async (lineNo) => {
     const a = answers[lineNo]
@@ -262,7 +166,10 @@ export default function EditingPlayer({
       if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'Could not submit')
       const data = await res.json()
       onActiveChange?.(false)
-      onFinished?.(data)
+      // The review draws the marked paper, and the API returns marking per
+      // line but never the line's words — so the passage and the student's
+      // own answers travel with the result.
+      onFinished?.({ ...data, exercise, answers })
     } catch (e) {
       setError(e.message)
       setSubmitting(false)
@@ -349,32 +256,16 @@ export default function EditingPlayer({
       {/* The passage — one continuous block; the lines butt together
           rather than sitting in separate cards. */}
       <Card className="p-3 sm:p-4">
-        <div className="ed-passage" ref={passageRef}>
-          <FixedLine text={exercise.intro_line} />
-
-          {lines.map((l) => (
-            <EditingLine
-              key={l.line_no}
-              lineNo={l.line_no}
-              tokens={l.tokens}
-              answer={answers[l.line_no] || BLANK}
-              onChange={(patch) => patchAnswer(l.line_no, patch)}
-              result={lineResults[l.line_no] || null}
-              locked={!!lineResults[l.line_no] || submitting}
-              showCheck={isPractice}
-              onCheck={() => checkLine(l.line_no)}
-              onOpen={() => setOpenLine(l.line_no)}
-            />
-          ))}
-
-          <FixedLine text={exercise.outro_line} />
-
-          {/* Only shown when the passage actually shrank past the point of
-              being directly editable — see .ed-zoom-hint. */}
-          <p className="ed-zoom-hint mt-2 text-center text-[11px] font-bold text-quiz-muted-soft">
-            Tap a line to enlarge it and answer
-          </p>
-        </div>
+        <EditingPassage
+          exercise={exercise}
+          answers={answers}
+          results={lineResults}
+          locked={submitting}
+          showCheck={isPractice}
+          onChange={patchAnswer}
+          onCheck={checkLine}
+          onOpenLine={setOpenLine}
+        />
       </Card>
 
       {/* Answering happens here: at passage size the words are too small to
@@ -435,25 +326,3 @@ export default function EditingPlayer({
     </PlayerScreen>
   )
 }
-
-/**
- * The unnumbered first and last lines. They are always correct, so they are
- * printed plainly — no tap targets, no answer slot — exactly as on paper.
- */
-function FixedLine({ text }) {
-  if (!text) return null
-  return (
-    // Same row grid as the numbered lines with an empty gutter and margin —
-    // on the paper these two lines carry no number and no blank either.
-    <div className="ed-line">
-      <span className="ed-no" aria-hidden />
-      <p className="ed-body font-sans text-quiz-muted">
-        <span className="ed-measure">{text}</span>
-      </p>
-      <span className="ed-slot" aria-hidden />
-    </div>
-  )
-}
-
-
-

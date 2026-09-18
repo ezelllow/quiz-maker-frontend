@@ -12,14 +12,23 @@ import { Stagger, StaggerItem } from '../ui/Motion'
 import { cn } from '../../lib/cn'
 import { ease } from '../../motion'
 import useWideFrame from '../../hooks/useWideFrame'
+import EditingPassage from './EditingPassage'
+import EditingLineSheet from './EditingLineSheet'
 
 /**
- * EditingReview — the marked paper.
+ * EditingReview — the marked paper, literally.
  *
- * Beyond the score it answers the question a mark alone can't: WHERE the
- * student lost the mark. Circling the right word but writing the wrong fix
- * is a different problem from not seeing the error at all, and the two need
- * different teaching, so they are reported separately.
+ * The passage the student just worked on, with the marking written onto it:
+ * their circled word, their correction in the margin, a tick or a cross, and
+ * under each line they lost, what it should have been and why. Which is why
+ * there is no separate line-by-line list any more — it said exactly these
+ * things again, in a different order and out of context.
+ *
+ * Below the paper, and only below it, the two things the annotations can't
+ * show because they are about the paper as a whole: the SHAPE of the misses
+ * (not seeing an error is a different problem from seeing it and writing the
+ * wrong fix, and the two need different teaching), and which error types
+ * this passage tested.
  */
 
 const MISS_COPY = {
@@ -39,7 +48,22 @@ export default function EditingReview({ result, onHome, onRetry, onNext }) {
     results = [], by_error_code: byCode = [], miss_types: missTypes = {},
     xp_delta: xpDelta = 0, gems_delta: gemsDelta = 0, trap_note: trapNote,
     daily_progress: daily,
+    // Carried over by the player: the API marks lines but never returns
+    // their words, so the paper itself has to travel with the result.
+    exercise, answers = {},
   } = result || {}
+
+  // The passage wants marking keyed by line, not a list.
+  const byLine = useMemo(
+    () => Object.fromEntries(results.map((r) => [r.line_no, r])),
+    [results],
+  )
+
+  // On a phone the paper fits at around 7px, so a line has to be openable
+  // to be read. Read-only here: the marking is done.
+  const [openLine, setOpenLine] = useState(null)
+  const lines = exercise?.lines || []
+  const openIdx = openLine == null ? -1 : lines.findIndex((l) => l.line_no === openLine)
 
   const tone = percentage >= 80 ? 'ok' : percentage >= 50 ? 'warn' : 'bad'
   const headline =
@@ -47,9 +71,6 @@ export default function EditingReview({ result, onHome, onRetry, onNext }) {
       : percentage >= 80 ? 'Strong work.'
       : percentage >= 50 ? 'Getting there.'
       : 'Worth a second look.'
-
-  const [openRows, setOpenRows] = useState([])
-  const allOpen = results.length > 0 && openRows.length === results.length
 
   const misses = useMemo(
     () => Object.entries(missTypes)
@@ -128,6 +149,41 @@ export default function EditingReview({ result, onHome, onRetry, onNext }) {
           </Card>
         </StaggerItem>
 
+        {/* The marked paper. Everything per-line lives here, in context:
+            what they circled, what they wrote, and on a line they lost, the
+            correction and the reason. */}
+        {exercise && (
+          <StaggerItem>
+            <SectionLabel className="mb-2 px-1">Your marked paper</SectionLabel>
+            <Card className="mb-4 p-3 sm:p-4">
+              <EditingPassage
+                exercise={exercise}
+                answers={answers}
+                results={byLine}
+                locked
+                noteWhen="wrong"
+                onOpenLine={setOpenLine}
+              />
+            </Card>
+          </StaggerItem>
+        )}
+
+        {openIdx >= 0 && (
+          <EditingLineSheet
+            open
+            onClose={() => setOpenLine(null)}
+            lineNo={lines[openIdx].line_no}
+            total={lines.length}
+            tokens={lines[openIdx].tokens}
+            answer={answers[lines[openIdx].line_no] || {}}
+            onChange={() => {}}
+            result={byLine[lines[openIdx].line_no] || null}
+            locked
+            onPrev={openIdx > 0 ? () => setOpenLine(lines[openIdx - 1].line_no) : null}
+            onNext={openIdx < lines.length - 1 ? () => setOpenLine(lines[openIdx + 1].line_no) : null}
+          />
+        )}
+
         {/* Where the marks went */}
         {misses.length > 0 && (
           <StaggerItem>
@@ -175,35 +231,6 @@ export default function EditingReview({ result, onHome, onRetry, onNext }) {
           </StaggerItem>
         )}
 
-        {/* Line by line — the marked answer column. One row per line, the
-            reasoning on tap: showing ten explanations at once turned this
-            into a wall nobody reads. */}
-        <StaggerItem>
-          <div className="mb-2 flex items-baseline justify-between px-1">
-            <SectionLabel>Line by line</SectionLabel>
-            <button
-              type="button"
-              onClick={() => setOpenRows(allOpen ? [] : results.map((r) => r.line_no))}
-              className="text-[11px] font-black uppercase tracking-wider text-quiz-orange hover:text-quiz-orange-dark"
-            >
-              {allOpen ? 'Hide why' : 'Show why'}
-            </button>
-          </div>
-        </StaggerItem>
-        <Card className="mb-4 divide-y divide-quiz-line p-0">
-          {results.map((r) => (
-            <ReviewRow
-              key={r.line_no}
-              r={r}
-              open={openRows.includes(r.line_no)}
-              onToggle={() => setOpenRows((prev) =>
-                prev.includes(r.line_no)
-                  ? prev.filter((n) => n !== r.line_no)
-                  : [...prev, r.line_no])}
-            />
-          ))}
-        </Card>
-
         {/* Teacher's note from the sheet */}
         {trapNote && (
           <StaggerItem>
@@ -247,83 +274,5 @@ export default function EditingReview({ result, onHome, onRetry, onNext }) {
         </StaggerItem>
       </Stagger>
     </Screen>
-  )
-}
-
-/**
- * Describe what the student actually did on a line, in words that survive a
- * half-finished answer. Concatenating word and correction blindly produced
- * things like "— → I \\" when one half was missing.
- */
-function describeAnswer(r) {
-  if (r.user_no_error) return 'no error'
-  const word = (r.user_word || '').trim()
-  const fix = (r.user_correction || '').trim()
-  if (word && fix) return `${word} \u2192 ${fix}`
-  if (word) return `circled ${word}, no correction`
-  if (fix) return fix
-  return 'left blank'
-}
-
-/**
- * One marked line, collapsed to a single row: the correct edit, and — when
- * they missed it — what they put instead. The explanation expands on tap.
- */
-function ReviewRow({ r, open, onToggle }) {
-  const right = r.is_correct
-  const answer = r.expected_no_error
-    ? 'No error'
-    : `${r.incorrect_word} \u2192 ${r.correct_word}`
-
-  return (
-    <div>
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={open}
-        className="flex w-full items-start gap-2 px-3 py-2 text-left"
-      >
-        <Icon
-          name={right ? 'check' : 'x'}
-          className={cn('mt-0.5 h-4 w-4 flex-none', right ? 'text-quiz-green' : 'text-quiz-red')}
-        />
-        <span className="mt-0.5 w-4 flex-none text-right font-head text-xs font-extrabold tabular-nums text-quiz-muted">
-          {r.line_no}
-        </span>
-
-        <span className="min-w-0 flex-1">
-          <span className={cn('block text-sm font-bold', right ? 'text-quiz-text' : 'text-quiz-green')}>
-            {answer}
-          </span>
-          {/* Only worth showing when it differs from the answer. */}
-          {!right && (
-            <span className="mt-0.5 block text-xs font-semibold text-quiz-muted">
-              you: {describeAnswer(r)}
-            </span>
-          )}
-        </span>
-
-        {r.explanation && (
-          <Icon
-            name="chevronRight"
-            className={cn(
-              'mt-1 h-3.5 w-3.5 flex-none text-quiz-muted-soft transition-transform',
-              open && 'rotate-90',
-            )}
-          />
-        )}
-      </button>
-
-      {open && r.explanation && (
-        <p className="px-3 pb-2.5 pl-[3.25rem] text-[13px] font-semibold leading-snug text-quiz-muted">
-          {r.error_name && (
-            <span className="mr-1.5 text-[10px] font-black uppercase tracking-wider text-quiz-muted-soft">
-              {r.error_name}
-            </span>
-          )}
-          {r.explanation}
-        </p>
-      )}
-    </div>
   )
 }

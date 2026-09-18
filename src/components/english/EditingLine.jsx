@@ -65,6 +65,10 @@ function fitCorrection(el) {
  *   onChange  (patch) => void — merged into the answer by the parent
  *   result    marking for this line, or null
  *   locked    true once the line is marked (practice) or submitted
+ *   showNote  whether to print the marking note under the line. The parent
+ *             decides: as each line is checked in practice it's the whole
+ *             point, but on a finished paper a green tick already says
+ *             "correct" and ten explanations at once is a wall nobody reads.
  *   onCheck   practice mode — mark this line now
  *   onOpen    open this line enlarged (used by the hit layer)
  */
@@ -74,6 +78,7 @@ export default function EditingLine({
   answer = {},
   onChange,
   result = null,
+  showNote = true,
   locked = false,
   onCheck,
   showCheck = false,
@@ -250,20 +255,22 @@ export default function EditingLine({
         )}
       </div>
 
-      {/* Inert until the passage is too small to work on directly, at which
-          point CSS gives it pointer events and it swallows the whole row. */}
-      {!locked && (
+      {/* Inert until the passage is too small to READ directly, at which
+          point CSS gives it pointer events and it swallows the whole row.
+          Present on a locked line too: a marked line at 7px still has to be
+          openable, or the marking is unreadable on a phone. */}
+      {onOpen && (
         <button
           type="button"
           onClick={onOpen}
           tabIndex={-1}
-          aria-label={`Line ${lineNo}: ${plain} — ${said}. Open larger to answer.`}
+          aria-label={`Line ${lineNo}: ${plain} — ${said}. Open larger.`}
           className="ed-zoom-hit"
         />
       )}
 
       <AnimatePresence initial={false}>
-        {result && (
+        {result && showNote && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
