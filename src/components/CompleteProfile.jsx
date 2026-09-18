@@ -3,6 +3,7 @@ import Screen from './ui/Screen'
 import Card from './ui/Card'
 import Button3d from './ui/Button3d'
 import Icon from './ui/Icon'
+import { SCHOOLS, TEACHERS } from '../lib/roster'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -76,8 +77,7 @@ export default function CompleteProfile({ user, onComplete, onLogout }) {
                 required disabled={loading} className={inputCls}
               >
                 <option value="">Select your school</option>
-                <option value="ESSS">ESSS</option>
-                <option value="BGSS">BGSS</option>
+                {SCHOOLS.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
 
@@ -97,7 +97,7 @@ export default function CompleteProfile({ user, onComplete, onLogout }) {
                 required disabled={loading} className={inputCls}
               >
                 <option value="">Select your teacher</option>
-                <option value="Mr Lloyd Goh">Mr Lloyd Goh</option>
+                {TEACHERS.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
 
