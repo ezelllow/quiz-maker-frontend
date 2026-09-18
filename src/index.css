@@ -736,10 +736,19 @@ button.ed-blank:disabled { cursor: default; }
    negative margin, and the ring is an outline (outside the box
    model), so circling a word never reflows the line or opens gaps
    between words and their punctuation. */
-/* em, not px: the passage scales, and a fixed 2px ring sits on top of the
-   spaces either side of the word once the type gets small. */
+/* A tappable word, and the ring drawn round it when it's circled.
+   inline-block with its own line-height is what makes the ring fit: an inline
+   box inherits the passage's 2.1 line-height, so the outline came out 2.1x
+   the font size — a tall loose oval floating around a short word, worst on a
+   long one. 1.4 hugs the word instead. The em padding (not px) keeps the
+   clearance proportional as the passage scales, and the matching negative
+   margin means circling a word never reflows the line; 0.15em measures ~1.8px
+   of clearance to the neighbouring glyph at laptop size, where 0.3em overlaps
+   it. */
 .ed-word          { font: inherit; color: inherit; background: none; border: 0;
-                    padding: 0 0.15em; margin: 0 -0.15em; border-radius: 999px; cursor: pointer; }
+                    display: inline-block; line-height: 1.4;
+                    padding: 0 0.15em; margin: 0 -0.15em; border-radius: 999px;
+                    cursor: pointer; }
 .ed-word:disabled { cursor: default; }
 
 /* Wide mode. Opt in per screen with useWideFrame(); Layout's frame carries
