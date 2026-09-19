@@ -12,6 +12,7 @@ import { ease } from '../../motion'
 import EditingLineSheet from './EditingLineSheet'
 import EditingPassage, { BLANK } from './EditingPassage'
 import useWideFrame from '../../hooks/useWideFrame'
+import { usePublishReportTarget } from '../../lib/reportTarget'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -59,6 +60,12 @@ export default function EditingPlayer({
   // The passage fits its type to the column, so the whole window is worth
   // more here than it is on a quiz screen.
   useWideFrame()
+
+  // So the header's report button names this passage.
+  usePublishReportTarget(
+    () => ({ subject: 'English', uid, screen: 'quiz' }),
+    [uid],
+  )
   const isPractice = mode === 'practice'
 
   // ── load ────────────────────────────────────────────────────────────

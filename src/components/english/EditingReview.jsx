@@ -12,6 +12,7 @@ import { Stagger, StaggerItem } from '../ui/Motion'
 import { cn } from '../../lib/cn'
 import { ease } from '../../motion'
 import useWideFrame from '../../hooks/useWideFrame'
+import { usePublishReportTarget } from '../../lib/reportTarget'
 import EditingPassage from './EditingPassage'
 import EditingLineSheet from './EditingLineSheet'
 
@@ -52,6 +53,12 @@ export default function EditingReview({ result, onHome, onRetry, onNext }) {
     // their words, so the paper itself has to travel with the result.
     exercise, answers = {},
   } = result || {}
+
+  // So the header's report button names this passage.
+  usePublishReportTarget(
+    () => (uid ? { subject: 'English', uid, screen: 'review' } : null),
+    [uid],
+  )
 
   // The passage wants marking keyed by line, not a list.
   const byLine = useMemo(

@@ -9,7 +9,7 @@ import { correctPop, wrongShake, optionTap, questionEnter } from '../motion'
 import MathText from './ui/MathText'
 import Icon from './ui/Icon'
 import { SUBJECTS, SUBJECT_TONES } from '../lib/subjects'
-import ReportButton from './ReportButton'
+import { usePublishReportTarget } from '../lib/reportTarget'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -382,6 +382,20 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
   const [submitSuccess, setSubmitSuccess]                 = useState(null)
   const [isRetaking, setIsRetaking]                       = useState(false)
   const [retakeParentId, setRetakeParentId]               = useState(null)
+
+  // Tell the header's report button which question is on screen. Read
+  // defensively up here rather than from `q` further down, because `q` is
+  // computed after the early returns and a hook can't live there.
+  const liveQ = quiz?.questions?.[currentQuestionIndex]
+  usePublishReportTarget(
+    () => (liveQ?.uid ? {
+      subject: selectedSubject,
+      uid: liveQ.uid,
+      contentRef: liveQ.qno ? `Q${liveQ.qno}` : `Q${currentQuestionIndex + 1}`,
+      screen: reviewMode ? 'review' : 'quiz',
+    } : null),
+    [liveQ?.uid, liveQ?.qno, selectedSubject, reviewMode, currentQuestionIndex],
+  )
   const [topicsOpen, setTopicsOpen]                       = useState(false)
   const [celebrationDismissed, setCelebrationDismissed]   = useState(false)
   // Rank-up overlay dismissal — separate from the streak celebration since
@@ -1340,22 +1354,9 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
           <span className="px-3 py-1 rounded-full bg-quiz-orange-soft border border-quiz-orange/50 text-quiz-orange-deep text-xs font-bold">
             {isPractice ? 'Practice' : 'Challenge'} · {selectedSubject}
           </span>
-          <span className="flex items-center gap-3">
-            {/* Sits with the question counter so it's reachable at the moment
-                a student decides something is wrong, in review as well as
-                mid-quiz. q.uid is the Sheet UID — the row to go and fix. */}
-            {q?.uid && (
-              <ReportButton
-                subject={selectedSubject}
-                uid={q.uid}
-                contentRef={q.qno ? `Q${q.qno}` : `Q${currentQuestionIndex + 1}`}
-                screen={reviewMode ? 'review' : 'quiz'}
-              />
-            )}
-            {!reviewMode && (
-              <span className="text-xs sm:text-sm font-bold text-quiz-muted">Q{currentQuestionIndex + 1}/{total}</span>
-            )}
-          </span>
+          {!reviewMode && (
+            <span className="text-xs sm:text-sm font-bold text-quiz-muted">Q{currentQuestionIndex + 1}/{total}</span>
+          )}
         </div>
 
         <div className="h-1.5 rounded-full bg-gray-50 overflow-hidden">

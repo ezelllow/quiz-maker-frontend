@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
+import ReportButton from './ReportButton'
+import { useReportTarget } from '../lib/reportTarget'
 import { ease } from '../motion'
 import Avatar from './ui/Avatar'
 import Icon from './ui/Icon'
@@ -89,6 +91,8 @@ export default function Layout({
   // Routes for /dashboard + /history still exist in App.jsx — reachable via deep links
   // or Home page CTAs, just not in the bottom bar.
   // Daily dropped from nav (2026-05-19) — accessed via Home page CTA instead.
+  const reportTarget = useReportTarget()
+
   const navItems = [
     { id: 'home',        label: 'Home'        },
     { id: 'practice',    label: 'Practice'    },
@@ -122,6 +126,18 @@ export default function Layout({
             <img src="/brand/ooka/mascot/ooka_mascot_4.webp" alt="" className="w-10 h-10 object-contain" />
             <span className="font-head font-extrabold text-lg tracking-tight" style={{ color: 'var(--quiz-text)' }}>Ooka</span>
           </button>
+
+          {/* Always in the same place, but it knows what's on screen: quiz
+              screens publish the question they're showing (see
+              lib/reportTarget), so a report from here still names the Sheet
+              row to fix. */}
+          <ReportButton
+            subject={reportTarget?.subject}
+            uid={reportTarget?.uid}
+            contentRef={reportTarget?.contentRef}
+            screen={reportTarget?.screen}
+            className="mr-auto"
+          />
 
           <div className="flex items-center gap-2">
             {gems != null && (
