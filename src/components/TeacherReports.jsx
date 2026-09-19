@@ -18,6 +18,9 @@ export default function TeacherReports({ authToken }) {
   const [err, setErr] = useState(null)
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState(null)
+  // Object URLs for photos already fetched, so reopening one doesn't refetch.
+  // Kept in state rather than a ref because showing one has to re-render.
+  const [photos, setPhotos] = useState({})
 
   const load = useCallback(async () => {
     try {
@@ -36,6 +39,24 @@ export default function TeacherReports({ authToken }) {
   }, [authToken])
 
   useEffect(() => { load() }, [load])
+
+  // Fetched with the auth header and turned into an object URL — an <img src>
+  // can't carry a bearer token, and putting one in a query string would leak
+  // it into logs and history.
+  const viewPhoto = async (id) => {
+    if (photos[id]) return
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/teacher/reports/${id}/image`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      })
+      if (!res.ok) throw new Error('Could not load that photo')
+      // Awaited out here: the state updater isn't async.
+      const url = URL.createObjectURL(await res.blob())
+      setPhotos((prev) => ({ ...prev, [id]: url }))
+    } catch (e) {
+      setErr(e.message)
+    }
+  }
 
   const dismiss = async (id) => {
     setBusyId(id)
@@ -92,6 +113,11 @@ export default function TeacherReports({ authToken }) {
                     {r.content_uid}{r.content_ref ? ` · ${r.content_ref}` : ''}
                   </span>
                 )}
+                {r.category && (
+                  <span className="rounded-pill border border-quiz-orange/40 px-2 py-0.5 text-[11px] font-black text-quiz-orange">
+                    {r.category}
+                  </span>
+                )}
                 {r.subject && (
                   <span className="text-[11px] font-black uppercase tracking-wider text-quiz-muted">
                     {r.subject}
@@ -108,9 +134,31 @@ export default function TeacherReports({ authToken }) {
               </div>
 
               {/* Student-authored text: rendered as text, never as markup. */}
-              <p className="mt-1.5 text-sm font-semibold leading-snug text-quiz-text">
-                {r.message}
-              </p>
+              {r.message && (
+                <p className="mt-1.5 text-sm font-semibold leading-snug text-quiz-text">
+                  {r.message}
+                </p>
+              )}
+
+              {r.has_image && (
+                photos[r.id] ? (
+                  <a href={photos[r.id]} target="_blank" rel="noreferrer">
+                    <img
+                      src={photos[r.id]}
+                      alt={`Screenshot from ${r.student}`}
+                      className="mt-2 max-h-48 rounded-md border border-quiz-border"
+                    />
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => viewPhoto(r.id)}
+                    className="mt-2 inline-flex items-center gap-1 text-[11px] font-black uppercase tracking-wider text-quiz-orange hover:underline"
+                  >
+                    <Icon name="eye" className="h-3 w-3" /> View photo
+                  </button>
+                )
+              )}
 
               <p className="mt-1 text-[11px] font-bold text-quiz-muted">
                 {r.student}{r.student_class ? ` · ${r.student_class}` : ''}
