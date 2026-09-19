@@ -10,6 +10,7 @@ import MathText from './ui/MathText'
 import Icon from './ui/Icon'
 import { SUBJECTS, SUBJECT_TONES } from '../lib/subjects'
 import { usePublishReportTarget } from '../lib/reportTarget'
+import ReportButton from './ReportButton'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -1382,6 +1383,20 @@ export default function QuizMaker({ authToken, retakeAttempt, onRetakeClear, mod
               desktop (split mode only) so the question stays in view. */}
           <div className={'space-y-3 sm:space-y-4' + (hasDiagram ? ' lg:sticky lg:top-6' : '')}>
             <h2 className="!text-base sm:!text-lg lg:!text-xl !font-black leading-snug whitespace-pre-line"><MathText>{q.question_text}</MathText></h2>
+
+            {/* Under the stem, so it plainly belongs to THIS question — the
+                header's button reports the same thing, but a student has no
+                way of knowing that from looking at it. Both daily and
+                practice come through here; English has its own player and
+                its own button, so it isn't affected. */}
+            {q?.uid && (
+              <ReportButton
+                subject={selectedSubject}
+                uid={q.uid}
+                contentRef={q.qno ? `Q${q.qno}` : `Q${currentQuestionIndex + 1}`}
+                screen={reviewMode ? 'review' : 'quiz'}
+              />
+            )}
 
             <QImage src={q.setup_image_url} alt="Question diagram" />
             {q.option_type !== 'IMAGE' && !q.setup_image_url && q.image_url && (
