@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { backdrop, sheet } from '../../motion'
 import { cn } from '../../lib/cn'
@@ -6,6 +7,12 @@ import Button3d from './Button3d'
 
 /**
  * Modal — animated overlay replacing window.confirm and ad-hoc dialogs.
+ *
+ * Rendered through a portal into <body>, which is not cosmetic: an ancestor
+ * with backdrop-filter, filter or transform becomes the containing block for
+ * position:fixed descendants, so `inset-0` would resolve to THAT box rather
+ * than the viewport. Opened from the app bar — which is backdrop-blur-xl —
+ * an in-place modal was clipped to a 56px strip and left the page undimmed.
  *
  *   open:           boolean controlled by parent
  *   onClose:        called on backdrop tap, ESC, and Cancel
@@ -44,7 +51,7 @@ export default function Modal({
     }
   }, [open, onClose])
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
@@ -99,6 +106,7 @@ export default function Modal({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   )
 }

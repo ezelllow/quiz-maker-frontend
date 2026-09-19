@@ -23,7 +23,10 @@ const MAX_CHARS = 1000
  *   contentRef  which part of it — 'Q4', 'line 7'
  *   attemptId   so their answer can be looked at alongside the report
  *   screen      'quiz' | 'review' — where they were when they hit it
- *   label       show the word "Report" next to the flag
+ *   compact     icon only, for somewhere already tight (the line sheet).
+ *               Everywhere else it's a labelled pill — a lone grey flag in a
+ *               bar full of crystals and ranks reads as decoration, and an
+ *               unnoticed report button is the same as no report button.
  */
 export default function ReportButton({
   subject,
@@ -31,7 +34,7 @@ export default function ReportButton({
   contentRef,
   attemptId,
   screen,
-  label = false,
+  compact = false,
   className,
 }) {
   const [open, setOpen] = useState(false)
@@ -86,15 +89,18 @@ export default function ReportButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Report a problem with this question"
+        aria-label="Report a problem"
         title="Report a problem"
         className={cn(
-          'inline-flex items-center gap-1 text-[11px] font-black uppercase tracking-wider text-quiz-muted-soft transition-colors hover:text-quiz-red',
+          'inline-flex shrink-0 items-center gap-1 font-black uppercase tracking-wider transition-colors',
+          compact
+            ? 'text-[11px] text-quiz-muted-soft hover:text-quiz-red'
+            : 'rounded-pill border border-quiz-red/40 bg-quiz-red/10 px-2 py-1 text-[11px] text-quiz-red hover:bg-quiz-red/20',
           className,
         )}
       >
         <Icon name="flag" className="h-3.5 w-3.5" />
-        {label && <span>Report</span>}
+        <span className={compact ? 'sr-only' : undefined}>Report</span>
       </button>
 
       <Modal open={open} onClose={close} hideButtons className="max-w-sm">

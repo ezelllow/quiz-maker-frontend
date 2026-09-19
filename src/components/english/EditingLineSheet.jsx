@@ -88,7 +88,7 @@ export default function EditingLineSheet({
             uid={uid}
             contentRef={`line ${lineNo}`}
             screen={locked ? 'review' : 'quiz'}
-            label
+            compact
           />
           <button
             type="button"
