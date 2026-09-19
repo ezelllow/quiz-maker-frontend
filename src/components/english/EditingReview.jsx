@@ -43,7 +43,7 @@ export default function EditingReview({ result, onHome, onRetry, onNext }) {
   // from the full window back to a phone column.
   useWideFrame()
   const {
-    title, difficulty, score, total, percentage, mode, rewarded,
+    uid, title, difficulty, score, total, percentage, mode, rewarded,
     words_found: wordsFound, words_total: wordsTotal,
     results = [], by_error_code: byCode = [], miss_types: missTypes = {},
     xp_delta: xpDelta = 0, gems_delta: gemsDelta = 0,
@@ -172,6 +172,7 @@ export default function EditingReview({ result, onHome, onRetry, onNext }) {
           <EditingLineSheet
             open
             onClose={() => setOpenLine(null)}
+            uid={uid}
             lineNo={lines[openIdx].line_no}
             total={lines.length}
             tokens={lines[openIdx].tokens}

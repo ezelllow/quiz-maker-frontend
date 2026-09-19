@@ -274,6 +274,7 @@ export default function EditingPlayer({
         <EditingLineSheet
           open
           onClose={() => setOpenLine(null)}
+          uid={uid}
           lineNo={lines[openIdx].line_no}
           total={total}
           tokens={lines[openIdx].tokens}

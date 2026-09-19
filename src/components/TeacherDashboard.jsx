@@ -3,6 +3,7 @@ import Card from './ui/Card'
 import Icon from './ui/Icon'
 import { Stagger, StaggerItem } from './ui/Motion'
 import TeacherStudentDrillIn from './TeacherStudentDrillIn'
+import TeacherReports from './TeacherReports'
 
 // TeacherDashboard — read-only overview rendered when the JWT carries
 // is_teacher = true. Four sections, in order of decision-value:
@@ -11,6 +12,8 @@ import TeacherStudentDrillIn from './TeacherStudentDrillIn'
 //      list of students under 60%)
 //   3. Inactive students (WhatsApp shortlist — silent 5+ days or never active)
 //   4. Student consistency (attendance + effort per student, last 7 days)
+//   5. Fault reports students have filed (own fetch — unrelated to the
+//      overview's window and filter, and it shouldn't slow the tiles down)
 // One backend round-trip: GET /api/teacher/overview.
 //
 // No bottom-nav, no student routes — teachers don't navigate inside the app
@@ -274,6 +277,12 @@ export default function TeacherDashboard({ authToken, user, onLogout, onViewAsSt
                   </div>
                 )}
               </Card>
+            </StaggerItem>
+
+            {/* 5. Fault reports. Its own fetch: nothing about it belongs to
+                the overview's 7-day window or the daily/practice filter. */}
+            <StaggerItem>
+              <TeacherReports authToken={token} />
             </StaggerItem>
 
             <div className="text-center text-quiz-muted text-[11px] font-bold mt-4">

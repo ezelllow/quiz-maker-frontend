@@ -4,6 +4,7 @@ import Button3d from '../ui/Button3d'
 import Icon from '../ui/Icon'
 import { cn } from '../../lib/cn'
 import { LineFeedback } from './EditingLine'
+import ReportButton from '../ReportButton'
 
 /**
  * EditingLineSheet — one line of the passage, enlarged enough to work on.
@@ -31,6 +32,7 @@ import { LineFeedback } from './EditingLine'
 export default function EditingLineSheet({
   open,
   onClose,
+  uid,
   lineNo,
   total,
   tokens = [],
@@ -78,14 +80,25 @@ export default function EditingLineSheet({
         <span className="text-[11px] font-black uppercase tracking-wider text-quiz-muted">
           Line {lineNo} of {total}
         </span>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="text-quiz-muted hover:text-quiz-orange"
-        >
-          <Icon name="x" className="h-4 w-4" />
-        </button>
+        <span className="flex items-center gap-3">
+          {/* Here rather than on the passage row: this is the one place a
+              student is looking at a single line closely enough to judge it. */}
+          <ReportButton
+            subject="English"
+            uid={uid}
+            contentRef={`line ${lineNo}`}
+            screen={locked ? 'review' : 'quiz'}
+            label
+          />
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="text-quiz-muted hover:text-quiz-orange"
+          >
+            <Icon name="x" className="h-4 w-4" />
+          </button>
+        </span>
       </div>
 
       <p className="mt-2 text-[12px] font-bold text-quiz-muted">
